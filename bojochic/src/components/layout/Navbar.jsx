@@ -50,42 +50,48 @@ const Navbar = () => {
       alignItems: 'center', 
       justifyContent: 'space-between',
       padding: '0 50px',
-      background: '#000',
+      background: '#DE0797',
     }}>
-      <Link to="/" style={{ 
-        color: '#52c41a', 
-        fontSize: '24px', 
-        fontWeight: 'bold',
-        marginRight: '50px'
-      }}>
-        Bojo
-      </Link>
       
-      <Menu
-        mode="horizontal"
-        selectedKeys={[currentPath]}
-        items={menuItems}
-        style={{ 
-          flex: 1, 
-          minWidth: 0,
-          background: '#000',
-        }}
-        theme="dark"
-      />
+      {/* Menú izquierdo */}
+      <div style={{ flex: 1 }}>
+        <Menu
+          mode="horizontal"
+          selectedKeys={[currentPath]}
+          items={menuItems}
+          style={{ 
+            background: '#DE0797',
+          }}
+          theme="dark"
+        />
+      </div>
 
-      <Menu
-        mode="horizontal"
-        items={rightItems}
-        style={{ 
-          background: '#000',
-          marginLeft: '20px'
-        }}
-        theme="dark"
-      />
+      {/* Texto central */}
+      <div style={{
+        color: 'white',
+        fontSize: '14px',
+        fontWeight: '500',
+        textAlign: 'center',
+        flex: 1,
+        padding: '0 20px',
+        whiteSpace: 'nowrap'
+      }}>
+        Envíos gratis por compras sobre $20.000
+      </div>
+
+      {/* Menú derecho */}
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+        <Menu
+          mode="horizontal"
+          items={rightItems}
+          style={{ 
+            background: '#DE0797',
+          }}
+          theme="dark"
+        />
+      </div>
     </Header>
   );
 };
 
 export default Navbar;
-
-

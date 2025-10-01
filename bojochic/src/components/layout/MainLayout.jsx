@@ -7,7 +7,7 @@ const { Content } = Layout;
 
 const MainLayout = () => {
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <Layout style={{ minHeight: '100vh', background: '#fff' }}>
       <Navbar />
       <Content>
         <Outlet />
