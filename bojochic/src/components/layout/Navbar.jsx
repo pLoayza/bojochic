@@ -13,22 +13,7 @@ const Navbar = () => {
       key: '/',
       label: <Link to="/">Inicio</Link>,
     },
-    {
-      key: '/hombre',
-      label: <Link to="/hombre">Hombre</Link>,
-    },
-    {
-      key: '/mujer',
-      label: <Link to="/mujer">Mujer</Link>,
-    },
-    {
-      key: '/ninos',
-      label: <Link to="/ninos">Niños</Link>,
-    },
-    {
-      key: '/ofertas',
-      label: <Link to="/ofertas">Ofertas</Link>,
-    },
+    
   ];
 
   const rightItems = [
