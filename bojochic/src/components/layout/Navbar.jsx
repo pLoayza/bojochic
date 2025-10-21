@@ -13,7 +13,10 @@ const Navbar = () => {
       key: '/',
       label: <Link to="/">Inicio</Link>,
     },
-    
+    {
+      key: '/Estadisticas',
+      label: <Link to="/Estadisticas">Estadisticas</Link>,
+    },
   ];
 
   const rightItems = [
@@ -30,21 +33,22 @@ const Navbar = () => {
   ];
 
   return (
-    <Header style={{ 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'space-between',
-      padding: '0 50px',
-      background: '#DE0797',
-    }}>
-      
+    <Header
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 50px',
+        background: '#DE0797',
+      }}
+    >
       {/* Menú izquierdo */}
       <div style={{ flex: 1 }}>
         <Menu
           mode="horizontal"
           selectedKeys={[currentPath]}
           items={menuItems}
-          style={{ 
+          style={{
             background: '#DE0797',
           }}
           theme="dark"
@@ -52,15 +56,17 @@ const Navbar = () => {
       </div>
 
       {/* Texto central */}
-      <div style={{
-        color: 'white',
-        fontSize: '14px',
-        fontWeight: '500',
-        textAlign: 'center',
-        flex: 1,
-        padding: '0 20px',
-        whiteSpace: 'nowrap'
-      }}>
+      <div
+        style={{
+          color: 'white',
+          fontSize: '14px',
+          fontWeight: '500',
+          textAlign: 'center',
+          flex: 1,
+          padding: '0 20px',
+          whiteSpace: 'nowrap',
+        }}
+      >
         Envíos gratis por compras sobre $20.000
       </div>
 
@@ -69,7 +75,7 @@ const Navbar = () => {
         <Menu
           mode="horizontal"
           items={rightItems}
-          style={{ 
+          style={{
             background: '#DE0797',
           }}
           theme="dark"
