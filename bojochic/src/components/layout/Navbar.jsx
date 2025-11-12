@@ -67,7 +67,7 @@ const Navbar = () => {
           whiteSpace: 'nowrap',
         }}
       >
-        Envíos gratis por compras sobre $20.000
+        Envíos gratis por compras sobre $20.000 test
       </div>
 
       {/* Menú derecho */}
