@@ -1,12 +1,12 @@
 import { Button, Card, Row, Col, Typography } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
-import arosImg from '../../assets/categorias/aros.webp';
-import chokersImg from '../../assets/categorias/chokers.webp';
-import panuelosImg from '../../assets/categorias/panuelos.png';
-import pulserasImg from '../../assets/categorias/pulseras.webp';
-import collaresImg from '../../assets/categorias/collares.webp';
-import liquidacionImg from '../../assets/categorias/liquidacion.webp';
+import arosImg from '../../assets/Categorias/aros.webp';
+import chokersImg from '../../assets/Categorias/chokers.webp';
+import panuelosImg from '../../assets/Categorias/panuelos.png';
+import pulserasImg from '../../assets/Categorias/pulseras.webp';
+import collaresImg from '../../assets/Categorias/collares.webp';
+import liquidacionImg from '../../assets/Categorias/liquidacion.webp';
 
 const { Title } = Typography;
 
