@@ -1,18 +1,10 @@
-// pages/RegistroPage.jsx
+// src/pages/LoginPage.jsx
 import { Card, Typography } from 'antd';
-import FormularioRegistro from '../components/auth/signup/FormularioRegistro';
-import { useNavigate } from 'react-router-dom';
+import FormularioLogin from '../components/auth/login/FormularioLogin';
 
 const { Title } = Typography;
 
-const RegistroPage = () => {
-  const navigate = useNavigate();
-
-  const handleRegistroExitoso = () => {
-    // Redirigir o mostrar mensaje de éxito
-    navigate('/');
-  };
-
+const LoginPage = () => {
   return (
     <div
       style={{
@@ -26,13 +18,13 @@ const RegistroPage = () => {
     >
       <Card style={{ width: '100%', maxWidth: '450px' }}>
         <Title level={2} style={{ textAlign: 'center', marginBottom: '30px' }}>
-          Registro
+          Iniciar Sesión
         </Title>
 
-        <FormularioRegistro onSuccess={handleRegistroExitoso} />
+        <FormularioLogin />
       </Card>
     </div>
   );
 };
 
-export default RegistroPage;
+export default LoginPage;

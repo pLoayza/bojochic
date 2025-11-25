@@ -1,12 +1,24 @@
-import { Layout, Menu } from 'antd';
-import { Link, useLocation } from 'react-router-dom';
-import { ShoppingCartOutlined, UserOutlined } from '@ant-design/icons';
+import { Layout, Menu, Dropdown } from 'antd';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ShoppingCartOutlined, UserOutlined, LoginOutlined, LogoutOutlined } from '@ant-design/icons';
+import { useAuth } from '../../contexts/AuthContext'; // Ajusta la ruta según tu estructura
 
 const { Header } = Layout;
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const currentPath = location.pathname;
+  const { currentUser, logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+    }
+  };
 
   const menuItems = [
     {
@@ -19,18 +31,68 @@ const Navbar = () => {
     },
   ];
 
-  const rightItems = [
+  // Menú desplegable cuando el usuario está logueado
+  const userMenuItems = [
     {
-      key: 'user',
+      key: 'perfil',
       icon: <UserOutlined />,
-      label: <Link to="/registro">Mi Cuenta</Link>,
+      label: 'Mi Perfil',
+      onClick: () => navigate('/perfil'),
     },
     {
-      key: 'cart',
-      icon: <ShoppingCartOutlined />,
-      label: <Link to="/carrito">Carrito</Link>,
+      key: 'mis-pedidos',
+      label: 'Mis Pedidos',
+      onClick: () => navigate('/mis-pedidos'),
+    },
+    {
+      type: 'divider',
+    },
+    {
+      key: 'logout',
+      icon: <LogoutOutlined />,
+      label: 'Cerrar Sesión',
+      onClick: handleLogout,
     },
   ];
+
+  const rightItems = currentUser
+    ? [
+        // Usuario logueado
+        {
+          key: 'user',
+          icon: <UserOutlined />,
+          label: (
+            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+              <span style={{ cursor: 'pointer' }}>
+                {currentUser.email}
+              </span>
+            </Dropdown>
+          ),
+        },
+        {
+          key: 'cart',
+          icon: <ShoppingCartOutlined />,
+          label: <Link to="/carrito">Carrito</Link>,
+        },
+      ]
+    : [
+        // Usuario NO logueado
+        {
+          key: 'login',
+          icon: <LoginOutlined />,
+          label: <Link to="/login">Iniciar Sesión</Link>,
+        },
+        {
+          key: 'registro',
+          icon: <UserOutlined />,
+          label: <Link to="/registro">Registrarse</Link>,
+        },
+        {
+          key: 'cart',
+          icon: <ShoppingCartOutlined />,
+          label: <Link to="/carrito">Carrito</Link>,
+        },
+      ];
 
   return (
     <Header
@@ -55,7 +117,7 @@ const Navbar = () => {
         />
       </div>
 
-      {/* Texto central */}
+      {/* Texto central - Saludo dinámico */}
       <div
         style={{
           color: 'white',
@@ -67,7 +129,16 @@ const Navbar = () => {
           whiteSpace: 'nowrap',
         }}
       >
-        Envíos gratis por compras sobre $20.000 test
+        {currentUser ? (
+          <span>
+            ¡Hola, {currentUser.email.split('@')[0]}! 👋{' '}
+            <span style={{ opacity: 0.9 }}>
+              | Envíos gratis por compras sobre $20.000
+            </span>
+          </span>
+        ) : (
+          'Envíos gratis por compras sobre $20.000'
+        )}
       </div>
 
       {/* Menú derecho */}
