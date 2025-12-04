@@ -2,7 +2,7 @@ import { Layout, Menu, Dropdown } from 'antd';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { UserOutlined, LoginOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useAuth } from '../../contexts/AuthContext';
-import ShoppingCart from '../Carrito/ShoppingCart'
+import ShoppingCart from '../Carrito/shoppingcart'
 
 const { Header } = Layout;
 
