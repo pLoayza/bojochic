@@ -8,6 +8,8 @@ import {
 } from '@ant-design/icons';
 import { validateForm } from '../../../utils/validaciones';
 import { useAuth } from '../../../contexts/AuthContext';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '../../../firebase/config'; // Ajusta la ruta si es diferente
 
 const { Text } = Typography;
 
@@ -51,10 +53,20 @@ const FormularioRegistro = ({ onSuccess, showLoginLink = true }) => {
 
     try {
       // Registro con Firebase Auth
-      await signup(values.email, values.password);
+      const userCredential = await signup(values.email, values.password);
+      const user = userCredential.user;
       
-      // Aquí puedes guardar info adicional en Firestore
-      // await guardarInfoUsuario(values.nombre, values.rut);
+      // 👇 GUARDAR INFO ADICIONAL EN FIRESTORE
+      await setDoc(doc(db, 'users', user.uid), {
+        nombre: values.nombre,
+        email: values.email,
+        rut: values.rut,
+        telefono: '',
+        direccion: '',
+        createdAt: new Date().toISOString()
+      });
+      
+      console.log('✅ Usuario registrado y datos guardados en Firestore');
       
       form.resetFields();
       
@@ -63,10 +75,22 @@ const FormularioRegistro = ({ onSuccess, showLoginLink = true }) => {
       
     } catch (error) {
       console.error('Error al registrar:', error);
+      
+      let errorMessage = 'Error al crear la cuenta. Intenta nuevamente.';
+      
+      // Mensajes de error más específicos
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'Este email ya está registrado';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'La contraseña es muy débil';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Email inválido';
+      }
+      
       form.setFields([
         {
           name: 'email',
-          errors: ['Error al crear la cuenta. Intenta nuevamente.'],
+          errors: [errorMessage],
         },
       ]);
     }

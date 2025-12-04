@@ -1,7 +1,8 @@
 import { Layout, Menu, Dropdown } from 'antd';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ShoppingCartOutlined, UserOutlined, LoginOutlined, LogoutOutlined } from '@ant-design/icons';
-import { useAuth } from '../../contexts/AuthContext'; // Ajusta la ruta según tu estructura
+import { UserOutlined, LoginOutlined, LogoutOutlined } from '@ant-design/icons';
+import { useAuth } from '../../contexts/AuthContext';
+import ShoppingCart from '../Carrito/ShoppingCart'
 
 const { Header } = Layout;
 
@@ -69,11 +70,6 @@ const Navbar = () => {
             </Dropdown>
           ),
         },
-        {
-          key: 'cart',
-          icon: <ShoppingCartOutlined />,
-          label: <Link to="/carrito">Carrito</Link>,
-        },
       ]
     : [
         // Usuario NO logueado
@@ -86,11 +82,6 @@ const Navbar = () => {
           key: 'registro',
           icon: <UserOutlined />,
           label: <Link to="/registro">Registrarse</Link>,
-        },
-        {
-          key: 'cart',
-          icon: <ShoppingCartOutlined />,
-          label: <Link to="/carrito">Carrito</Link>,
         },
       ];
 
@@ -141,8 +132,8 @@ const Navbar = () => {
         )}
       </div>
 
-      {/* Menú derecho */}
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+      {/* Menú derecho + Carrito */}
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '15px' }}>
         <Menu
           mode="horizontal"
           items={rightItems}
@@ -151,6 +142,9 @@ const Navbar = () => {
           }}
           theme="dark"
         />
+        
+        {/* Componente del carrito con Drawer */}
+        <ShoppingCart />
       </div>
     </Header>
   );
