@@ -85,21 +85,21 @@ const AgregarProducto = () => {
         </Form.Item>
 
         <Form.Item
-          name="precio"
-          label="Precio (CLP)"
-          rules={[
-            { required: true, message: 'Ingresa el precio' },
-            { type: 'number', min: 0, message: 'El precio debe ser mayor a 0' }
-          ]}
-        >
-          <InputNumber
-            placeholder="3990"
-            style={{ width: '100%' }}
-            size="large"
-            formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
-            parser={value => value.replace(/\$\s?|(,*)/g, '')}
-          />
-        </Form.Item>
+  name="precio"
+  label="Precio (CLP)"
+  rules={[
+    { required: true, message: 'Ingresa el precio' },
+    { type: 'number', min: 0, message: 'El precio debe ser mayor a 0' }
+  ]}
+>
+  <InputNumber
+    placeholder="3990"
+    style={{ width: '100%' }}
+    size="large"
+    formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
+    parser={value => value.replace(/\$\s?|\./g, '')}
+  />
+</Form.Item>
 
         <Form.Item
           name="stock"
