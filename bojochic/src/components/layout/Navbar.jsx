@@ -26,10 +26,10 @@ const Navbar = () => {
       key: '/',
       label: <Link to="/">Inicio</Link>,
     },
-    {
+    /* {
       key: '/Estadisticas',
       label: <Link to="/Estadisticas">Estadisticas</Link>,
-    },
+    }, */
   ];
 
   // Menú desplegable cuando el usuario está logueado

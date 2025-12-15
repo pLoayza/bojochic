@@ -19,14 +19,9 @@ const Categorias = () => {
       image: arosImg,
     },
     {
-      title: 'Chokers',
-      path: '/chokers',
-      image: chokersImg,
-    },
-    {
-      title: 'Pañuelos',
-      path: '/panuelos',
-      image: panuelosImg,
+      title: 'Collares',
+      path: '/collares',
+      image: collaresImg,
     },
     {
       title: 'Pulseras',
@@ -34,9 +29,15 @@ const Categorias = () => {
       image: pulserasImg,
     },
     {
-      title: 'Collares',
-      path: '/collares',
-      image: collaresImg,
+      title: 'Pañuelos',
+      path: '/panuelos',
+      image: panuelosImg,
+    },
+    
+    {
+      title: 'Chokers',
+      path: '/chokers',
+      image: chokersImg,
     },
     {
       title: 'Liquidación',
@@ -57,7 +58,7 @@ const Categorias = () => {
           letterSpacing: '2px',
         }}
       >
-        Colección Verano 2025
+        Colección Verano 2026
       </Title>
       <Row gutter={[24, 24]}>
         {categories.map((cat) => (
