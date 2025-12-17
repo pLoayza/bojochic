@@ -1,6 +1,7 @@
 // src/components/Admin/EditarProducto.jsx
 import { useState, useEffect } from 'react';
-import { Modal, Form, Input, InputNumber, Select, message } from 'antd';
+import { Modal, Form, Input, InputNumber, Select, message, Space, List, Image, Button } from 'antd';
+import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 
@@ -9,13 +10,16 @@ const { TextArea } = Input;
 const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [imagenes, setImagenes] = useState([]);
+  const [nuevaImagenUrl, setNuevaImagenUrl] = useState('');
 
   const categorias = [
     'aros',
     'collares',
     'pulseras',
-    'anillos',
-    'sets',
+    'panuelos',
+    'chokers',
+    'liquidacion',
     'otros'
   ];
 
@@ -27,13 +31,61 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
         precio: producto.precio,
         stock: producto.stock,
         categoria: producto.categoria,
-        img: producto.img,
         activo: producto.activo
       });
+
+      // Cargar imágenes existentes
+      if (producto.imagenes && Array.isArray(producto.imagenes)) {
+        setImagenes(producto.imagenes);
+      } else if (producto.img) {
+        // Si no tiene array de imágenes, usar la imagen principal
+        setImagenes([producto.img]);
+      } else {
+        setImagenes([]);
+      }
     }
   }, [producto, form]);
 
+  // Función para agregar una imagen
+  const agregarImagen = () => {
+    if (!nuevaImagenUrl.trim()) {
+      message.warning('Ingresa una URL válida');
+      return;
+    }
+
+    try {
+      new URL(nuevaImagenUrl);
+    } catch (error) {
+      message.error('La URL no es válida');
+      return;
+    }
+
+    if (imagenes.includes(nuevaImagenUrl)) {
+      message.warning('Esta imagen ya fue agregada');
+      return;
+    }
+
+    setImagenes([...imagenes, nuevaImagenUrl]);
+    setNuevaImagenUrl('');
+    message.success('Imagen agregada');
+  };
+
+  // Función para eliminar una imagen
+  const eliminarImagen = (url) => {
+    if (imagenes.length === 1) {
+      message.error('Debes tener al menos una imagen');
+      return;
+    }
+    setImagenes(imagenes.filter(img => img !== url));
+    message.info('Imagen eliminada');
+  };
+
   const onFinish = async (values) => {
+    if (imagenes.length === 0) {
+      message.error('Debes tener al menos una imagen');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -45,7 +97,8 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
         precio: values.precio,
         stock: values.stock,
         categoria: values.categoria,
-        img: values.img,
+        img: imagenes[0], // Primera imagen como principal
+        imagenes: imagenes, // Array con todas las imágenes
         activo: values.activo
       });
 
@@ -61,14 +114,19 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
     }
   };
 
+  const handleCancel = () => {
+    setNuevaImagenUrl('');
+    onClose();
+  };
+
   return (
     <Modal
       title="Editar Producto"
       open={visible}
-      onCancel={onClose}
+      onCancel={handleCancel}
       onOk={() => form.submit()}
       confirmLoading={loading}
-      width={600}
+      width={800}
       okText="Guardar Cambios"
       cancelText="Cancelar"
     >
@@ -100,20 +158,20 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
         </Form.Item>
 
         <Form.Item
-  name="precio"
-  label="Precio (CLP)"
-  rules={[
-    { required: true, message: 'Ingresa el precio' },
-    { type: 'number', min: 0, message: 'El precio debe ser mayor a 0' }
-  ]}
->
-  <InputNumber
-    style={{ width: '100%' }}
-    size="large"
-    formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
-    parser={value => value.replace(/\$\s?|\./g, '')}
-  />
-</Form.Item>
+          name="precio"
+          label="Precio (CLP)"
+          rules={[
+            { required: true, message: 'Ingresa el precio' },
+            { type: 'number', min: 0, message: 'El precio debe ser mayor a 0' }
+          ]}
+        >
+          <InputNumber
+            style={{ width: '100%' }}
+            size="large"
+            formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
+            parser={value => value.replace(/\$\s?|\./g, '')}
+          />
+        </Form.Item>
 
         <Form.Item
           name="stock"
@@ -146,15 +204,74 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
           </Select>
         </Form.Item>
 
+        {/* Sección de Imágenes */}
         <Form.Item
-          name="img"
-          label="URL de la Imagen"
-          rules={[
-            { required: true, message: 'Ingresa la URL de la imagen' },
-            { type: 'url', message: 'Debe ser una URL válida' }
-          ]}
+          label="Imágenes del Producto"
+          required
+          extra="La primera imagen será la imagen principal"
         >
-          <Input size="large" />
+          <Space.Compact style={{ width: '100%' }}>
+            <Input
+              placeholder="https://i.imgur.com/ABC123.png"
+              size="large"
+              value={nuevaImagenUrl}
+              onChange={(e) => setNuevaImagenUrl(e.target.value)}
+              onPressEnter={agregarImagen}
+            />
+            <Button 
+              type="primary" 
+              size="large"
+              icon={<PlusOutlined />}
+              onClick={agregarImagen}
+            >
+              Agregar
+            </Button>
+          </Space.Compact>
+
+          {imagenes.length > 0 && (
+            <List
+              style={{ marginTop: '15px', maxHeight: '300px', overflowY: 'auto' }}
+              bordered
+              size="small"
+              dataSource={imagenes}
+              renderItem={(item, index) => (
+                <List.Item
+                  actions={[
+                    <Button 
+                      danger 
+                      size="small"
+                      icon={<DeleteOutlined />}
+                      onClick={() => eliminarImagen(item)}
+                      disabled={imagenes.length === 1}
+                    >
+                      Eliminar
+                    </Button>
+                  ]}
+                >
+                  <List.Item.Meta
+                    avatar={
+                      <Image
+                        src={item}
+                        width={50}
+                        height={50}
+                        style={{ objectFit: 'cover', borderRadius: '6px' }}
+                      />
+                    }
+                    title={index === 0 ? 'Imagen Principal' : `Imagen ${index + 1}`}
+                    description={
+                      <div style={{ 
+                        fontSize: '11px', 
+                        wordBreak: 'break-all',
+                        maxWidth: '400px' 
+                      }}>
+                        {item}
+                      </div>
+                    }
+                  />
+                </List.Item>
+              )}
+            />
+          )}
         </Form.Item>
 
         <Form.Item

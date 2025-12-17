@@ -1,15 +1,22 @@
 // src/components/Productos/ProductModal.jsx
-import { Modal, Image, Button, Tag, Descriptions, Space, message } from 'antd';
-import { ShoppingCartOutlined, CloseOutlined } from '@ant-design/icons';
+import { Modal, Image, Button, Tag, Descriptions, Space, message, Carousel } from 'antd';
+import { ShoppingCartOutlined, CloseOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { auth, db } from '../../firebase/config';
 import { doc, setDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import { useRef } from 'react';
 
 const ProductModal = ({ visible, producto, onClose }) => {
   const navigate = useNavigate();
+  const carouselRef = useRef(null);
 
   // Si no hay producto, no renderizar nada
   if (!producto) return null;
+
+  // Obtener array de imágenes
+  const imagenes = producto.imagenes && Array.isArray(producto.imagenes) && producto.imagenes.length > 0
+    ? producto.imagenes
+    : [producto.img || producto.imagen || producto.image];
 
   // Formatear precio
   const formatearPrecio = (precio) => {
@@ -36,7 +43,7 @@ const ProductModal = ({ visible, producto, onClose }) => {
       const cartItem = {
         name: producto.nombre || producto.title,
         price: producto.precio || producto.price,
-        image: producto.img || producto.imagen || producto.image,
+        image: imagenes[0], // Usar la primera imagen
         quantity: 1,
         addedAt: new Date().toISOString(),
         size: producto.talla || null,
@@ -72,20 +79,110 @@ const ProductModal = ({ visible, producto, onClose }) => {
           flexWrap: 'wrap',
         }}
       >
-        {/* Columna de imagen */}
-        <div style={{ flex: '1 1 300px', minWidth: '250px' }}>
-          <Image
-            src={producto.img || producto.imagen || producto.image}
-            alt={producto.nombre || producto.title}
-            style={{
-              width: '100%',
-              borderRadius: '12px',
-              objectFit: 'cover',
-            }}
-            preview={{
-              mask: 'Ver imagen completa',
-            }}
-          />
+        {/* Columna de imágenes con Carousel */}
+        <div style={{ flex: '1 1 300px', minWidth: '250px', position: 'relative' }}>
+          {imagenes.length > 1 ? (
+            <div style={{ position: 'relative' }}>
+              <Carousel
+                ref={carouselRef}
+                arrows
+                dotPosition="bottom"
+                style={{ borderRadius: '12px', overflow: 'hidden' }}
+              >
+                {imagenes.map((img, index) => (
+                  <div key={index}>
+                    <Image
+                      src={img}
+                      alt={`${producto.nombre || producto.title} - Imagen ${index + 1}`}
+                      style={{
+                        width: '100%',
+                        height: '400px',
+                        objectFit: 'cover',
+                        borderRadius: '12px',
+                      }}
+                      preview={{
+                        mask: 'Ver imagen completa',
+                      }}
+                    />
+                  </div>
+                ))}
+              </Carousel>
+
+              {/* Botones personalizados del carousel */}
+              <Button
+                icon={<LeftOutlined />}
+                onClick={() => carouselRef.current?.prev()}
+                style={{
+                  position: 'absolute',
+                  left: '10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  zIndex: 10,
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '40px',
+                  height: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                }}
+              />
+              <Button
+                icon={<RightOutlined />}
+                onClick={() => carouselRef.current?.next()}
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  zIndex: 10,
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '40px',
+                  height: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                }}
+              />
+
+              {/* Contador de imágenes */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '15px',
+                  right: '15px',
+                  background: 'rgba(0, 0, 0, 0.6)',
+                  color: 'white',
+                  padding: '5px 12px',
+                  borderRadius: '20px',
+                  fontSize: '12px',
+                  fontWeight: '500',
+                  zIndex: 10,
+                }}
+              >
+                {imagenes.length} fotos
+              </div>
+            </div>
+          ) : (
+            <Image
+              src={imagenes[0]}
+              alt={producto.nombre || producto.title}
+              style={{
+                width: '100%',
+                height: '400px',
+                objectFit: 'cover',
+                borderRadius: '12px',
+              }}
+              preview={{
+                mask: 'Ver imagen completa',
+              }}
+            />
+          )}
         </div>
 
         {/* Columna de información */}
