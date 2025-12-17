@@ -1,7 +1,7 @@
 // src/components/Admin/AgregarProducto.jsx
 import { useState } from 'react';
-import { Form, Input, InputNumber, Button, Select, message, Space } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Form, Input, InputNumber, Button, Select, message, Space, List, Image } from 'antd';
+import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 
@@ -10,17 +10,56 @@ const { TextArea } = Input;
 const AgregarProducto = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [imagenes, setImagenes] = useState([]);
+  const [nuevaImagenUrl, setNuevaImagenUrl] = useState('');
 
   const categorias = [
     'aros',
     'collares',
     'pulseras',
-    'anillos',
-    'sets',
+    'panuelos',
+    'chokers',
+    'liquidacion',
     'otros'
   ];
 
+  // Función para agregar una imagen a la lista
+  const agregarImagen = () => {
+    if (!nuevaImagenUrl.trim()) {
+      message.warning('Ingresa una URL válida');
+      return;
+    }
+
+    // Validar que sea una URL
+    try {
+      new URL(nuevaImagenUrl);
+    } catch (error) {
+      message.error('La URL no es válida');
+      return;
+    }
+
+    if (imagenes.includes(nuevaImagenUrl)) {
+      message.warning('Esta imagen ya fue agregada');
+      return;
+    }
+
+    setImagenes([...imagenes, nuevaImagenUrl]);
+    setNuevaImagenUrl('');
+    message.success('Imagen agregada');
+  };
+
+  // Función para eliminar una imagen
+  const eliminarImagen = (url) => {
+    setImagenes(imagenes.filter(img => img !== url));
+    message.info('Imagen eliminada');
+  };
+
   const onFinish = async (values) => {
+    if (imagenes.length === 0) {
+      message.error('Debes agregar al menos una imagen');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -30,7 +69,8 @@ const AgregarProducto = () => {
         precio: values.precio,
         stock: values.stock,
         categoria: values.categoria,
-        img: values.img,
+        img: imagenes[0], // Primera imagen como principal
+        imagenes: imagenes, // Array con todas las imágenes
         activo: true,
         fechaCreacion: new Date().toISOString(),
       };
@@ -39,6 +79,8 @@ const AgregarProducto = () => {
       
       message.success('¡Producto agregado exitosamente!');
       form.resetFields();
+      setImagenes([]);
+      setNuevaImagenUrl('');
 
     } catch (error) {
       console.error('Error agregando producto:', error);
@@ -49,7 +91,7 @@ const AgregarProducto = () => {
   };
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
       <Form
         form={form}
         layout="vertical"
@@ -85,21 +127,21 @@ const AgregarProducto = () => {
         </Form.Item>
 
         <Form.Item
-  name="precio"
-  label="Precio (CLP)"
-  rules={[
-    { required: true, message: 'Ingresa el precio' },
-    { type: 'number', min: 0, message: 'El precio debe ser mayor a 0' }
-  ]}
->
-  <InputNumber
-    placeholder="3990"
-    style={{ width: '100%' }}
-    size="large"
-    formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
-    parser={value => value.replace(/\$\s?|\./g, '')}
-  />
-</Form.Item>
+          name="precio"
+          label="Precio (CLP)"
+          rules={[
+            { required: true, message: 'Ingresa el precio' },
+            { type: 'number', min: 0, message: 'El precio debe ser mayor a 0' }
+          ]}
+        >
+          <InputNumber
+            placeholder="3990"
+            style={{ width: '100%' }}
+            size="large"
+            formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
+            parser={value => value.replace(/\$\s?|\./g, '')}
+          />
+        </Form.Item>
 
         <Form.Item
           name="stock"
@@ -136,24 +178,78 @@ const AgregarProducto = () => {
           </Select>
         </Form.Item>
 
+        {/* Sección de Imágenes */}
         <Form.Item
-          name="img"
-          label="URL de la Imagen"
-          rules={[
-            { required: true, message: 'Ingresa la URL de la imagen' },
-            { type: 'url', message: 'Debe ser una URL válida' }
-          ]}
-          extra="Puedes usar Imgur, Cloudinary u otro servicio de imágenes"
+          label="Imágenes del Producto"
+          required
+          extra="La primera imagen será la imagen principal. Puedes agregar varias imágenes."
         >
-          <Input 
-            placeholder="https://i.imgur.com/ABC123.png"
-            size="large"
-          />
+          <Space.Compact style={{ width: '100%' }}>
+            <Input
+              placeholder="https://i.imgur.com/ABC123.png"
+              size="large"
+              value={nuevaImagenUrl}
+              onChange={(e) => setNuevaImagenUrl(e.target.value)}
+              onPressEnter={agregarImagen}
+            />
+            <Button 
+              type="primary" 
+              size="large"
+              icon={<PlusOutlined />}
+              onClick={agregarImagen}
+              style={{
+                background: 'linear-gradient(45deg, #DE0797, #FF6B9D)',
+                border: 'none',
+              }}
+            >
+              Agregar
+            </Button>
+          </Space.Compact>
+
+          {/* Lista de imágenes agregadas */}
+          {imagenes.length > 0 && (
+            <List
+              style={{ marginTop: '20px' }}
+              bordered
+              dataSource={imagenes}
+              renderItem={(item, index) => (
+                <List.Item
+                  actions={[
+                    <Button 
+                      danger 
+                      size="small"
+                      icon={<DeleteOutlined />}
+                      onClick={() => eliminarImagen(item)}
+                    >
+                      Eliminar
+                    </Button>
+                  ]}
+                >
+                  <List.Item.Meta
+                    avatar={
+                      <Image
+                        src={item}
+                        width={60}
+                        height={60}
+                        style={{ objectFit: 'cover', borderRadius: '8px' }}
+                      />
+                    }
+                    title={index === 0 ? 'Imagen Principal' : `Imagen ${index + 1}`}
+                    description={item}
+                  />
+                </List.Item>
+              )}
+            />
+          )}
         </Form.Item>
 
         <Form.Item>
           <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
-            <Button onClick={() => form.resetFields()}>
+            <Button onClick={() => {
+              form.resetFields();
+              setImagenes([]);
+              setNuevaImagenUrl('');
+            }}>
               Limpiar
             </Button>
             <Button 

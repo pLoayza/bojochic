@@ -21,6 +21,14 @@ const ProductCard = ({ producto }) => {
     return precio;
   };
 
+  // Obtener la imagen principal (primera del array o la imagen por defecto)
+  const imagenPrincipal = () => {
+    if (producto.imagenes && Array.isArray(producto.imagenes) && producto.imagenes.length > 0) {
+      return producto.imagenes[0];
+    }
+    return producto.img || producto.imagen || producto.image;
+  };
+
   // Función para agregar al carrito
   const agregarAlCarrito = async (e) => {
     e.stopPropagation();
@@ -39,7 +47,7 @@ const ProductCard = ({ producto }) => {
       const cartItem = {
         name: producto.nombre || producto.title,
         price: producto.precio || producto.price,
-        image: producto.img || producto.imagen || producto.image,
+        image: imagenPrincipal(),
         quantity: 1,
         addedAt: new Date().toISOString(),
         size: producto.talla || null,
@@ -95,7 +103,7 @@ const ProductCard = ({ producto }) => {
             }}
           >
             <img
-              src={producto.img || producto.imagen || producto.image}
+              src={imagenPrincipal()}
               alt={producto.nombre || producto.title}
               style={{
                 position: 'absolute',
