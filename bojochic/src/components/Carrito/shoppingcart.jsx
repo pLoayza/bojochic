@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Drawer, Button, Badge, List, InputNumber, Typography, Space, Empty, Divider, message } from 'antd';
 import { ShoppingCartOutlined, DeleteOutlined, ShoppingOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom'; // ⬅️ AGREGADO
+import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../../firebase/config';
 import { collection, doc, onSnapshot, updateDoc, deleteDoc } from 'firebase/firestore';
 
 const { Title, Text } = Typography;
 
-function ShoppingCart() {
+function ShoppingCart({ iconColor = '#DE0797', iconSize = '22px', showInNavbar = false }) {
   const [open, setOpen] = useState(false);
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate(); // ⬅️ AGREGADO
+  const navigate = useNavigate();
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -78,20 +78,41 @@ function ShoppingCart() {
     }, 0);
   };
 
-  // ⬅️ FUNCIÓN ACTUALIZADA
   const handleCheckout = () => {
-    onClose(); // Cierra el drawer
-    navigate('/checkout'); // Navega al checkout
+    onClose();
+    navigate('/checkout');
   };
+
+  // Estilos diferentes si está en navbar
+  const finalIconColor = showInNavbar ? 'white' : iconColor;
 
   return (
     <>
-      {/* Botón del carrito en el navbar */}
-      <Badge count={cartItems.length} showZero>
-        <Button 
-          type="text" 
-          icon={<ShoppingCartOutlined style={{ fontSize: '20px', color: 'white' }} />}
+      {/* Botón del carrito */}
+      <Badge 
+        count={cartItems.length} 
+        showZero={false}
+        style={{ 
+          backgroundColor: showInNavbar ? 'white' : '#DE0797',
+          color: showInNavbar ? '#DE0797' : 'white',
+        }}
+      >
+        <ShoppingCartOutlined 
+          style={{ 
+            fontSize: iconSize, 
+            color: finalIconColor,
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+          }}
           onClick={showDrawer}
+          onMouseEnter={(e) => {
+            if (showInNavbar) {
+              e.currentTarget.style.transform = 'scale(1.15)';
+            } else {
+              e.currentTarget.style.transform = 'scale(1.15)';
+            }
+          }}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
         />
       </Badge>
 
@@ -113,7 +134,7 @@ function ShoppingCart() {
               <Divider style={{ margin: '10px 0' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text strong style={{ fontSize: '18px' }}>Total:</Text>
-                <Title level={3} style={{ margin: 0, color: '#1890ff' }}>
+                <Title level={3} style={{ margin: 0, color: '#DE0797' }}>
                   ${calculateTotal().toLocaleString('es-CL')}
                 </Title>
               </div>
@@ -123,6 +144,18 @@ function ShoppingCart() {
                 block
                 icon={<ShoppingOutlined />}
                 onClick={handleCheckout}
+                style={{
+                  background: '#DE0797',
+                  borderColor: '#DE0797',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#c00686';
+                  e.currentTarget.style.borderColor = '#c00686';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#DE0797';
+                  e.currentTarget.style.borderColor = '#DE0797';
+                }}
               >
                 Proceder al Pago
               </Button>
@@ -135,7 +168,14 @@ function ShoppingCart() {
             description="Tu carrito está vacío"
             image={Empty.PRESENTED_IMAGE_SIMPLE}
           >
-            <Button type="primary" onClick={onClose}>
+            <Button 
+              type="primary" 
+              onClick={onClose}
+              style={{
+                background: '#DE0797',
+                borderColor: '#DE0797',
+              }}
+            >
               Ir a Comprar
             </Button>
           </Empty>
@@ -179,7 +219,7 @@ function ShoppingCart() {
                           size="small"
                         />
                       </div>
-                      <Text strong style={{ color: '#1890ff' }}>
+                      <Text strong style={{ color: '#DE0797' }}>
                         Subtotal: ${(item.price * item.quantity).toLocaleString('es-CL')}
                       </Text>
                     </Space>

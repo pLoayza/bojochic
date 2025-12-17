@@ -23,6 +23,8 @@ const ListaProductos = () => {
     { value: 'pulseras', label: 'Pulseras' },
     { value: 'panuelos', label: 'Pañuelos' },
     { value: 'chokers', label: 'Chokers' },
+    { value: 'dorados', label: 'Dorados' },
+    { value: 'plateados', label: 'Plateados' },
     { value: 'liquidacion', label: 'Liquidación' },
     { value: 'otros', label: 'Otros' }
   ];

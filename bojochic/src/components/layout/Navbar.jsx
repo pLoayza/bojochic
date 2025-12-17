@@ -1,150 +1,90 @@
-import { Layout, Menu, Dropdown } from 'antd';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { UserOutlined, LoginOutlined, LogoutOutlined } from '@ant-design/icons';
-import { useAuth } from '../../contexts/AuthContext';
-import ShoppingCart from '../../components/Carrito/shoppingcart'
+// src/components/Layout/Navbar.jsx
+import { Layout } from 'antd';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { HomeOutlined } from '@ant-design/icons';
+import ShoppingCart from '../Carrito/shoppingcart';
 
 const { Header } = Layout;
 
 const Navbar = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const currentPath = location.pathname;
-  const { currentUser, logout } = useAuth();
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/');
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error);
-    }
-  };
-
-  const menuItems = [
-    {
-      key: '/',
-      label: <Link to="/">Inicio</Link>,
-    },
-    /* {
-      key: '/Estadisticas',
-      label: <Link to="/Estadisticas">Estadisticas</Link>,
-    }, */
-  ];
-
-  // Menú desplegable cuando el usuario está logueado
-  const userMenuItems = [
-    {
-      key: 'perfil',
-      icon: <UserOutlined />,
-      label: 'Mi Perfil',
-      onClick: () => navigate('/perfil'),
-    },
-    {
-      key: 'mis-pedidos',
-      label: 'Mis Pedidos',
-      onClick: () => navigate('/mis-pedidos'),
-    },
-    {
-      type: 'divider',
-    },
-    {
-      key: 'logout',
-      icon: <LogoutOutlined />,
-      label: 'Cerrar Sesión',
-      onClick: handleLogout,
-    },
-  ];
-
-  const rightItems = currentUser
-    ? [
-        // Usuario logueado
-        {
-          key: 'user',
-          icon: <UserOutlined />,
-          label: (
-            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-              <span style={{ cursor: 'pointer' }}>
-                {currentUser.email}
-              </span>
-            </Dropdown>
-          ),
-        },
-      ]
-    : [
-        // Usuario NO logueado
-        {
-          key: 'login',
-          icon: <LoginOutlined />,
-          label: <Link to="/login">Iniciar Sesión</Link>,
-        },
-        {
-          key: 'registro',
-          icon: <UserOutlined />,
-          label: <Link to="/registro">Registrarse</Link>,
-        },
-      ];
+  const location = useLocation();
+  const isHome = location.pathname === '/';
 
   return (
     <Header
       style={{
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
         padding: '0 50px',
         background: '#DE0797',
+        height: '50px',
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000,
       }}
     >
-      {/* Menú izquierdo */}
-      <div style={{ flex: 1 }}>
-        <Menu
-          mode="horizontal"
-          selectedKeys={[currentPath]}
-          items={menuItems}
+      <div style={{
+        maxWidth: '1400px',
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        position: 'relative',
+      }}>
+        {/* Icono de Home a la izquierda */}
+        <div
+          onClick={() => navigate('/')}
           style={{
-            background: '#DE0797',
+            fontSize: '24px',
+            color: 'white',
+            cursor: 'pointer',
+            padding: '8px',
+            borderRadius: '50%',
+            transition: 'all 0.3s ease',
+            display: 'flex',
+            alignItems: 'center',
+            position: 'absolute',
+            left: 0,
           }}
-          theme="dark"
-        />
-      </div>
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent';
+          }}
+        >
+          <HomeOutlined />
+        </div>
 
-      {/* Texto central - Saludo dinámico */}
-      <div
-        style={{
-          color: 'white',
-          fontSize: '14px',
-          fontWeight: '500',
-          textAlign: 'center',
-          flex: 1,
-          padding: '0 20px',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {currentUser ? (
-          <span>
-            ¡Hola, {currentUser.email.split('@')[0]}! 👋{' '}
-            <span style={{ opacity: 0.9 }}>
-              | Envíos gratis por compras sobre $20.000
-            </span>
-          </span>
-        ) : (
-          'Envíos gratis por compras sobre $20.000'
+        {/* Texto promocional centrado */}
+        <div
+          style={{
+            color: 'white',
+            fontSize: '13px',
+            fontWeight: '400',
+            textAlign: 'center',
+            width: '100%',
+            letterSpacing: '0.3px',
+          }}
+        >
+          Envíos gratis por compras sobre $20.000
+        </div>
+
+        {/* Carrito a la derecha - SOLO si NO estamos en Home */}
+        {!isHome && (
+          <div
+            style={{
+              position: 'absolute',
+              right: 0,
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <ShoppingCart showInNavbar={true} />
+          </div>
         )}
-      </div>
-
-      {/* Menú derecho + Carrito */}
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '15px' }}>
-        <Menu
-          mode="horizontal"
-          items={rightItems}
-          style={{
-            background: '#DE0797',
-          }}
-          theme="dark"
-        />
-        
-        {/* Componente del carrito con Drawer */}
-        <ShoppingCart />
       </div>
     </Header>
   );
