@@ -1,5 +1,6 @@
 import { Card, Row, Col, Typography } from 'antd';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import arosImg from '../../assets/Categorias/aros.webp';
 import chokersImg from '../../assets/Categorias/chokers.webp';
 import panuelosImg from '../../assets/Categorias/panuelos.png';
@@ -11,6 +12,7 @@ const { Title } = Typography;
 
 const Categorias = () => {
   const navigate = useNavigate();
+  const [hoveredCard, setHoveredCard] = useState(null);
 
   const categories = [
     {
@@ -33,7 +35,6 @@ const Categorias = () => {
       path: '/panuelos',
       image: panuelosImg,
     },
-    
     {
       title: 'Chokers',
       path: '/chokers',
@@ -61,15 +62,17 @@ const Categorias = () => {
         Colección Verano 2026
       </Title>
       <Row gutter={[24, 24]}>
-        {categories.map((cat) => (
+        {categories.map((cat, index) => (
           <Col xs={24} sm={12} md={8} key={cat.title}>
             <Card
-              hoverable
               onClick={() => navigate(cat.path)}
+              onMouseEnter={() => setHoveredCard(index)}
+              onMouseLeave={() => setHoveredCard(null)}
               style={{
                 border: 'none',
                 borderRadius: '0',
                 overflow: 'hidden',
+                cursor: 'pointer',
               }}
               bodyStyle={{
                 padding: 0,
@@ -83,6 +86,7 @@ const Categorias = () => {
                     overflow: 'hidden',
                   }}
                 >
+                  {/* Imagen con efecto zoom */}
                   <img
                     src={cat.image}
                     alt={cat.title}
@@ -93,8 +97,27 @@ const Categorias = () => {
                       width: '100%',
                       height: '100%',
                       objectFit: 'cover',
+                      transition: 'transform 0.5s ease',
+                      transform: hoveredCard === index ? 'scale(1.1)' : 'scale(1)',
                     }}
                   />
+                  
+                  {/* Overlay oscuro que se aclara en hover */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      background: hoveredCard === index 
+                        ? 'rgba(0, 0, 0, 0.1)' 
+                        : 'rgba(0, 0, 0, 0.25)',
+                      transition: 'background 0.3s ease',
+                    }}
+                  />
+                  
+                  {/* Título */}
                   <div
                     style={{
                       position: 'absolute',
@@ -113,11 +136,27 @@ const Categorias = () => {
                         fontSize: '28px',
                         fontWeight: 'bold',
                         textShadow: '2px 2px 4px rgba(0,0,0,0.7)',
+                        transition: 'transform 0.3s ease',
+                        transform: hoveredCard === index ? 'scale(1.1)' : 'scale(1)',
                       }}
                     >
                       {cat.title}
                     </Title>
                   </div>
+
+                  {/* Borde rosa que aparece en hover */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      border: hoveredCard === index ? '4px solid #DE0797' : '4px solid transparent',
+                      transition: 'border 0.3s ease',
+                      pointerEvents: 'none',
+                    }}
+                  />
                 </div>
               }
             />

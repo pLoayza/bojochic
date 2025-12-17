@@ -19,6 +19,8 @@ const AgregarProducto = () => {
     'pulseras',
     'panuelos',
     'chokers',
+    'dorados',
+    'plateados',
     'liquidacion',
     'otros'
   ];

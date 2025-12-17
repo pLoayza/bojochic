@@ -19,6 +19,8 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
     'pulseras',
     'panuelos',
     'chokers',
+    'dorados',
+    'plateados',
     'liquidacion',
     'otros'
   ];

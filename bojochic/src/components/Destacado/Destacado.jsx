@@ -1,6 +1,6 @@
-import { Button, Card, Row, Col, Typography } from 'antd';
+import { Card, Row, Col, Typography } from 'antd';
 import { useNavigate } from 'react-router-dom';
-
+import { useState } from 'react';
 import arosImg from '../../assets/Categorias/aros.webp';
 import chokersImg from '../../assets/Categorias/chokers.webp';
 import panuelosImg from '../../assets/Categorias/panuelos.png';
@@ -10,67 +10,50 @@ import liquidacionImg from '../../assets/Categorias/liquidacion.webp';
 
 const { Title } = Typography;
 
-const Destacado = () => {
+const Colecciones = () => {
   const navigate = useNavigate();
+  const [hoveredCard, setHoveredCard] = useState(null);
 
-  const productos = [
+  const colecciones = [
     {
-      id: 1,
-      title: 'Pulsera tipo pandora',
-      price: '$4.990',
+      title: 'Colección 1',
+      path: '/coleccion1',
       image: arosImg,
-      path: '/producto/pulsera-pandora',
-      popular: true,
     },
     {
-      id: 2,
-      title: 'Pulsera tejida 3',
-      price: '$9.990',
-      image: chokersImg,
-      path: '/producto/pulsera-tejida',
-    },
-    {
-      id: 3,
-      title: 'Set de pulseras rock',
-      price: '$6.990',
-      image: panuelosImg,
-      path: '/producto/set-pulseras-rock',
-    },
-    {
-      id: 4,
-      title: 'Pulsera vueltas',
-      price: '$5.990',
-      image: pulserasImg,
-      path: '/producto/pulsera-vueltas',
-    },
-    {
-      id: 5,
-      title: 'Pulsera esclava bojo',
-      price: '$5.990',
+      title: 'Colección 2',
+      path: '/coleccion2',
       image: collaresImg,
-      path: '/producto/pulsera-esclava',
     },
     {
-      id: 6,
-      title: 'Pulsera hebilla bojo',
-      price: '$5.990',
-      image: liquidacionImg,
-      path: '/producto/pulsera-hebilla',
+      title: 'Colección 3',
+      path: '/coleccion3',
+      image: pulserasImg,
     },
     {
-      id: 7,
-      title: 'Pulsera hippie chic',
-      price: '$5.990',
-      image: liquidacionImg,
-      path: '/producto/pulsera-hippie',
+      title: 'Colección 4',
+      path: '/coleccion4',
+      image: panuelosImg,
     },
     {
-      id: 8,
-      title: 'Pulsera boho colgantes',
-      price: '$5.990',
+      title: 'Colección 5',
+      path: '/coleccion5',
+      image: chokersImg,
+    },
+    {
+      title: 'Colección 6',
+      path: '/coleccion6',
       image: liquidacionImg,
-      path: '/producto/pulsera-boho',
-      popular: true,
+    },
+    {
+      title: 'Colección 7',
+      path: '/coleccion7',
+      image: arosImg, // Reutilizando imágenes
+    },
+    {
+      title: 'Colección 8',
+      path: '/coleccion8',
+      image: collaresImg, // Reutilizando imágenes
     },
   ];
 
@@ -86,36 +69,37 @@ const Destacado = () => {
           letterSpacing: '2px',
         }}
       >
-        Productos Destacados
+        Colecciones Destacadas
       </Title>
-
       <Row gutter={[24, 24]}>
-        {productos.map((producto) => (
-          <Col xs={24} sm={12} md={8} lg={6} key={producto.id}>
+        {colecciones.map((coleccion, index) => (
+          <Col xs={24} sm={12} md={6} key={coleccion.title}>
             <Card
-              hoverable
+              onClick={() => navigate(coleccion.path)}
+              onMouseEnter={() => setHoveredCard(index)}
+              onMouseLeave={() => setHoveredCard(null)}
               style={{
                 border: 'none',
                 borderRadius: '0',
                 overflow: 'hidden',
-                position: 'relative',
-                boxShadow: 'none',
+                cursor: 'pointer',
               }}
               bodyStyle={{
-                padding: '16px',
+                padding: 0,
               }}
               cover={
                 <div
                   style={{
                     width: '100%',
-                    paddingBottom: '75%',
+                    paddingBottom: '100%',
                     position: 'relative',
                     overflow: 'hidden',
                   }}
                 >
+                  {/* Imagen con efecto zoom */}
                   <img
-                    src={producto.image}
-                    alt={producto.title}
+                    src={coleccion.image}
+                    alt={coleccion.title}
                     style={{
                       position: 'absolute',
                       top: 0,
@@ -123,53 +107,69 @@ const Destacado = () => {
                       width: '100%',
                       height: '100%',
                       objectFit: 'cover',
+                      transition: 'transform 0.5s ease',
+                      transform: hoveredCard === index ? 'scale(1.1)' : 'scale(1)',
                     }}
                   />
-                  {producto.popular && (
-                    <div
+                  
+                  {/* Overlay oscuro que se aclara en hover */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      background: hoveredCard === index 
+                        ? 'rgba(0, 0, 0, 0.1)' 
+                        : 'rgba(0, 0, 0, 0.25)',
+                      transition: 'background 0.3s ease',
+                    }}
+                  />
+                  
+                  {/* Título */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      textAlign: 'center',
+                      width: '100%',
+                    }}
+                  >
+                    <Title
+                      level={3}
                       style={{
-                        position: 'absolute',
-                        top: '10px',
-                        right: '10px',
-                        background: '#DE0797',
                         color: '#fff',
-                        padding: '4px 8px',
-                        borderRadius: '4px',
-                        fontSize: '12px',
+                        margin: 0,
+                        fontSize: '22px',
                         fontWeight: 'bold',
+                        textShadow: '2px 2px 4px rgba(0,0,0,0.7)',
+                        transition: 'transform 0.3s ease',
+                        transform: hoveredCard === index ? 'scale(1.1)' : 'scale(1)',
                       }}
                     >
-                      POPULAR
-                    </div>
-                  )}
+                      {coleccion.title}
+                    </Title>
+                  </div>
+
+                  {/* Borde rosa que aparece en hover */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      border: hoveredCard === index ? '4px solid #DE0797' : '4px solid transparent',
+                      transition: 'border 0.3s ease',
+                      pointerEvents: 'none',
+                    }}
+                  />
                 </div>
               }
-            >
-              <div style={{ textAlign: 'center' }}>
-                <Title
-                  level={4}
-                  style={{
-                    margin: '0 0 8px 0',
-                    fontSize: '16px',
-                    color: '#333',
-                    fontWeight: '600',
-                  }}
-                >
-                  {producto.title}
-                </Title>
-
-                <div
-                  style={{
-                    fontSize: '20px',
-                    fontWeight: 'bold',
-                    color: '#DE0797',
-                    marginBottom: '16px',
-                  }}
-                >
-                  {producto.price}
-                </div>
-              </div>
-            </Card>
+            />
           </Col>
         ))}
       </Row>
@@ -177,4 +177,4 @@ const Destacado = () => {
   );
 };
 
-export default Destacado;
+export default Colecciones;

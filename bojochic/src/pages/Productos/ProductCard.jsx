@@ -31,7 +31,7 @@ const ProductCard = ({ producto }) => {
 
   // Función para agregar al carrito
   const agregarAlCarrito = async (e) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Evitar que abra el modal
 
     const user = auth.currentUser;
     
@@ -64,8 +64,7 @@ const ProductCard = ({ producto }) => {
   };
 
   // Función para abrir el modal
-  const abrirModal = (e) => {
-    e.stopPropagation();
+  const abrirModal = () => {
     setModalVisible(true);
   };
 
@@ -78,6 +77,7 @@ const ProductCard = ({ producto }) => {
     <>
       <Card
         hoverable
+        onClick={abrirModal}
         style={{
           border: 'none',
           borderRadius: '0',
@@ -86,6 +86,7 @@ const ProductCard = ({ producto }) => {
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
+          cursor: 'pointer',
         }}
         bodyStyle={{
           padding: '16px',
@@ -165,7 +166,10 @@ const ProductCard = ({ producto }) => {
 
             <Button
               block
-              onClick={abrirModal}
+              onClick={(e) => {
+                e.stopPropagation(); // Evitar doble apertura
+                abrirModal();
+              }}
               style={{
                 borderRadius: '8px',
                 fontWeight: '600',
