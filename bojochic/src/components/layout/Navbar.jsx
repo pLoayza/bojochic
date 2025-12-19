@@ -3,6 +3,7 @@ import { Layout } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { HomeOutlined } from '@ant-design/icons';
 import ShoppingCart from '../Carrito/shoppingcart';
+import { useResponsive } from '../../hooks/useResponsive'; // ← 1. IMPORTAR
 
 const { Header } = Layout;
 
@@ -10,6 +11,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isHome = location.pathname === '/';
+  const { isMobile, padding } = useResponsive(); // ← 2. LLAMAR EL HOOK
 
   return (
     <Header
@@ -17,7 +19,7 @@ const Navbar = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '0 50px',
+        padding: `0 ${padding}`, // ← 3. USAR (20px móvil, 50px desktop)
         background: '#DE0797',
         height: '50px',
         position: 'sticky',
@@ -37,7 +39,7 @@ const Navbar = () => {
         <div
           onClick={() => navigate('/')}
           style={{
-            fontSize: '24px',
+            fontSize: isMobile ? '20px' : '24px', // ← Más pequeño en móvil
             color: 'white',
             cursor: 'pointer',
             padding: '8px',
@@ -62,14 +64,16 @@ const Navbar = () => {
         <div
           style={{
             color: 'white',
-            fontSize: '13px',
+            fontSize: isMobile ? '11px' : '13px', // ← Más pequeño en móvil
             fontWeight: '400',
             textAlign: 'center',
             width: '100%',
             letterSpacing: '0.3px',
+            padding: isMobile ? '0 60px' : '0', // ← Espacio para iconos en móvil
           }}
         >
-          Envíos gratis por compras sobre $20.000
+          {/* Texto más corto en móvil para que quepa */}
+          {isMobile ? 'Envíos gratis $20.000+' : 'Envíos gratis por compras sobre $20.000'}
         </div>
 
         {/* Carrito a la derecha - SOLO si NO estamos en Home */}

@@ -6,12 +6,14 @@ import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import ShoppingCart from '../Carrito/shoppingcart';
 import SearchModal from '../search/SearchModal';
+import { useResponsive } from '../../hooks/useResponsive'; // ← 1. IMPORTAR
 import bojoLogo from '../../assets/bojo-logo_360x.png';
 
 const Banner = () => {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
   const [searchModalVisible, setSearchModalVisible] = useState(false);
+  const { isMobile, isSmallMobile, padding } = useResponsive(); // ← 2. LLAMAR
 
   const handleLogout = async () => {
     try {
@@ -50,7 +52,6 @@ const Banner = () => {
 
   // Menú desplegable del catálogo
   const catalogoMenuItems = [
-    
     {
       key: 'aros',
       label: 'Aros',
@@ -84,7 +85,7 @@ const Banner = () => {
   ];
 
   const iconStyle = {
-    fontSize: '22px',
+    fontSize: isMobile ? '20px' : '22px', // ← 3. Iconos más pequeños en móvil
     color: '#DE0797',
     cursor: 'pointer',
     transition: 'all 0.3s ease',
@@ -96,7 +97,7 @@ const Banner = () => {
       <div
         style={{
           background: 'white',
-          padding: '40px 50px 30px 50px',
+          padding: isMobile ? '20px 15px 20px 15px' : '40px 50px 30px 50px', // ← 3. Menos padding en móvil
           position: 'relative',
         }}
       >
@@ -106,24 +107,26 @@ const Banner = () => {
           justifyContent: 'center',
           alignItems: 'center',
           position: 'relative',
+          flexDirection: isMobile ? 'column' : 'row', // ← 3. Layout vertical en móvil
         }}>
           {/* Logo centrado */}
           <img
             src={bojoLogo}
             alt="Bojo Chic Logo"
             style={{
-              maxWidth: '280px',
+              maxWidth: isMobile ? '200px' : '280px', // ← 3. Logo más pequeño en móvil
               width: '100%',
               display: 'block',
+              marginBottom: isMobile ? '20px' : '0', // ← 3. Espacio debajo en móvil
             }}
           />
 
-          {/* Iconos a la derecha - posición absoluta */}
+          {/* Iconos a la derecha */}
           <div style={{
-            position: 'absolute',
-            right: 0,
+            position: isMobile ? 'relative' : 'absolute', // ← 3. Relativo en móvil (no absoluto)
+            right: isMobile ? 'auto' : 0,
             display: 'flex',
-            gap: '20px',
+            gap: isMobile ? '15px' : '20px', // ← 3. Menos espacio en móvil
             alignItems: 'center',
           }}>
             {/* Icono de búsqueda */}
@@ -161,7 +164,7 @@ const Banner = () => {
               display: 'flex',
               alignItems: 'center',
               color: '#DE0797',
-              fontSize: '22px',
+              fontSize: isMobile ? '20px' : '22px', // ← 3. Más pequeño en móvil
             }}>
               <ShoppingCart />
             </div>
@@ -171,14 +174,14 @@ const Banner = () => {
         {/* Menú de navegación centrado debajo del logo */}
         <div style={{ 
           textAlign: 'center',
-          marginTop: '30px'
+          marginTop: isMobile ? '20px' : '30px' // ← 3. Menos margen en móvil
         }}>
-          <Space size="large">
+          <Space size={isMobile ? 'middle' : 'large'}> {/* ← 3. Menos espacio en móvil */}
             <a
               onClick={() => navigate('/')}
               style={{
                 color: '#DE0797',
-                fontSize: '16px',
+                fontSize: isMobile ? '14px' : '16px', // ← 3. Texto más pequeño en móvil
                 cursor: 'pointer',
                 textDecoration: 'underline',
                 fontWeight: '500',
@@ -193,12 +196,12 @@ const Banner = () => {
             <Dropdown 
               menu={{ items: catalogoMenuItems }} 
               placement="bottom"
-              trigger={['hover']}
+              trigger={isMobile ? ['click'] : ['hover']} // ← 3. Click en móvil, hover en desktop
             >
               <a
                 style={{
                   color: '#DE0797',
-                  fontSize: '16px',
+                  fontSize: isMobile ? '14px' : '16px', // ← 3. Texto más pequeño en móvil
                   cursor: 'pointer',
                   textDecoration: 'none',
                   fontWeight: '500',
