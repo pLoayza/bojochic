@@ -27,20 +27,22 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
 
   useEffect(() => {
     if (producto) {
+      // ← CAMBIO: Cargar categorías como array
+      const categoriasProducto = producto.categorias || 
+                                 (producto.categoria ? [producto.categoria] : []);
+      
       form.setFieldsValue({
         nombre: producto.nombre,
         descripcion: producto.descripcion,
         precio: producto.precio,
         stock: producto.stock,
-        categoria: producto.categoria,
+        categorias: categoriasProducto, // ← CAMBIO AQUÍ
         activo: producto.activo
       });
 
-      // Cargar imágenes existentes
       if (producto.imagenes && Array.isArray(producto.imagenes)) {
         setImagenes(producto.imagenes);
       } else if (producto.img) {
-        // Si no tiene array de imágenes, usar la imagen principal
         setImagenes([producto.img]);
       } else {
         setImagenes([]);
@@ -48,7 +50,6 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
     }
   }, [producto, form]);
 
-  // Función para agregar una imagen
   const agregarImagen = () => {
     if (!nuevaImagenUrl.trim()) {
       message.warning('Ingresa una URL válida');
@@ -72,7 +73,6 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
     message.success('Imagen agregada');
   };
 
-  // Función para eliminar una imagen
   const eliminarImagen = (url) => {
     if (imagenes.length === 1) {
       message.error('Debes tener al menos una imagen');
@@ -98,9 +98,10 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
         descripcion: values.descripcion,
         precio: values.precio,
         stock: values.stock,
-        categoria: values.categoria,
-        img: imagenes[0], // Primera imagen como principal
-        imagenes: imagenes, // Array con todas las imágenes
+        categorias: values.categorias || [], // ← ARRAY DE CATEGORÍAS
+        categoria: values.categorias?.[0] || 'otros', // ← MANTENER COMPATIBILIDAD
+        img: imagenes[0],
+        imagenes: imagenes,
         activo: values.activo
       });
 
@@ -190,14 +191,20 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
           />
         </Form.Item>
 
+        {/* ← CAMBIO PRINCIPAL: Select MÚLTIPLE */}
         <Form.Item
-          name="categoria"
-          label="Categoría"
+          name="categorias"
+          label="Categorías"
           rules={[
-            { required: true, message: 'Selecciona una categoría' }
+            { required: true, message: 'Selecciona al menos una categoría' }
           ]}
+          extra="Puedes seleccionar múltiples categorías"
         >
-          <Select size="large">
+          <Select 
+            mode="multiple" // ← MODO MÚLTIPLE
+            size="large"
+            maxTagCount="responsive"
+          >
             {categorias.map(cat => (
               <Select.Option key={cat} value={cat}>
                 {cat.charAt(0).toUpperCase() + cat.slice(1)}

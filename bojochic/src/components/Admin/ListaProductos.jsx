@@ -55,11 +55,19 @@ const ListaProductos = () => {
     }
   };
 
+  // ← CAMBIO: Filtrar productos que tengan la categoría en su array
   const filtrarProductos = () => {
     if (categoriaSeleccionada === 'todas') {
       setProductosFiltrados(productos);
     } else {
-      const filtrados = productos.filter(p => p.categoria === categoriaSeleccionada);
+      const filtrados = productos.filter(p => {
+        // Si tiene array de categorías, buscar en el array
+        if (p.categorias && Array.isArray(p.categorias)) {
+          return p.categorias.includes(categoriaSeleccionada);
+        }
+        // Fallback: si solo tiene categoría única
+        return p.categoria === categoriaSeleccionada;
+      });
       setProductosFiltrados(filtrados);
     }
   };
@@ -127,14 +135,21 @@ const ListaProductos = () => {
       ),
     },
     {
-      title: 'Categoría',
-      dataIndex: 'categoria',
-      key: 'categoria',
-      render: (categoria) => (
-        <Tag color="blue">
-          {categoria.charAt(0).toUpperCase() + categoria.slice(1)}
-        </Tag>
-      ),
+      title: 'Categorías', // ← CAMBIO: Plural
+      key: 'categorias',
+      render: (_, record) => {
+        // ← CAMBIO: Mostrar todas las categorías como Tags
+        const cats = record.categorias || (record.categoria ? [record.categoria] : []);
+        return (
+          <Space wrap>
+            {cats.map(cat => (
+              <Tag color="blue" key={cat}>
+                {cat.charAt(0).toUpperCase() + cat.slice(1)}
+              </Tag>
+            ))}
+          </Space>
+        );
+      },
     },
     {
       title: 'Estado',
@@ -182,7 +197,7 @@ const ListaProductos = () => {
 
   return (
     <div>
-      {/* Selector de categoría arriba a la derecha */}
+      {/* Selector de categoría */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 

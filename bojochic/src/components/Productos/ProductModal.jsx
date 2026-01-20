@@ -18,6 +18,11 @@ const ProductModal = ({ visible, producto, onClose }) => {
     ? producto.imagenes
     : [producto.img || producto.imagen || producto.image];
 
+  // ← NUEVO: Obtener array de categorías
+  const categorias = producto.categorias && Array.isArray(producto.categorias) && producto.categorias.length > 0
+    ? producto.categorias
+    : (producto.categoria ? [producto.categoria] : []);
+
   // Formatear precio
   const formatearPrecio = (precio) => {
     if (typeof precio === 'number') {
@@ -227,11 +232,16 @@ const ProductModal = ({ visible, producto, onClose }) => {
                 Agotado
               </Tag>
             )}
-            {producto.categoria && (
-              <Tag color="magenta" style={{ fontSize: '13px', padding: '4px 10px' }}>
-                {producto.categoria.charAt(0).toUpperCase() + producto.categoria.slice(1)}
+            {/* ← CAMBIO: Mostrar TODAS las categorías */}
+            {categorias.length > 0 && categorias.map((cat, index) => (
+              <Tag 
+                key={index} 
+                color="magenta" 
+                style={{ fontSize: '13px', padding: '4px 10px' }}
+              >
+                {cat.charAt(0).toUpperCase() + cat.slice(1)}
               </Tag>
-            )}
+            ))}
           </Space>
 
           {/* Descripción */}

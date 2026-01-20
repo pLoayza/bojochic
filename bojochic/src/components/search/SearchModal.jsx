@@ -1,7 +1,7 @@
 // src/components/Search/SearchModal.jsx
 import { useState, useEffect } from 'react';
-import { Modal, Input, List, Image, Empty, Tag, Spin } from 'antd';
-import { SearchOutlined, ShoppingCartOutlined } from '@ant-design/icons';
+import { Modal, Input, List, Image, Empty, Tag, Spin, Space } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../firebase/config';
@@ -51,14 +51,31 @@ const SearchModal = ({ visible, onClose }) => {
     }
   };
 
+  // ← CAMBIO: Buscar también en array de categorías
   const buscarProductos = (termino) => {
     const terminoLower = termino.toLowerCase();
     
-    const filtrados = productos.filter(producto => 
-      producto.nombre.toLowerCase().includes(terminoLower) ||
-      producto.descripcion.toLowerCase().includes(terminoLower) ||
-      producto.categoria.toLowerCase().includes(terminoLower)
-    );
+    const filtrados = productos.filter(producto => {
+      // Buscar en nombre
+      const nombreCoincide = producto.nombre.toLowerCase().includes(terminoLower);
+      
+      // Buscar en descripción
+      const descripcionCoincide = producto.descripcion?.toLowerCase().includes(terminoLower) || false;
+      
+      // ← CAMBIO: Buscar en TODAS las categorías
+      let categoriaCoincide = false;
+      if (producto.categorias && Array.isArray(producto.categorias)) {
+        // Si tiene array de categorías, buscar en el array
+        categoriaCoincide = producto.categorias.some(cat => 
+          cat.toLowerCase().includes(terminoLower)
+        );
+      } else if (producto.categoria) {
+        // Fallback: buscar en categoría única
+        categoriaCoincide = producto.categoria.toLowerCase().includes(terminoLower);
+      }
+      
+      return nombreCoincide || descripcionCoincide || categoriaCoincide;
+    });
     
     setResultados(filtrados);
   };
@@ -118,72 +135,82 @@ const SearchModal = ({ visible, onClose }) => {
         ) : (
           <List
             dataSource={resultados}
-            renderItem={(producto) => (
-              <List.Item
-                onClick={() => handleProductClick(producto)}
-                style={{
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  padding: '15px',
-                  borderRadius: '8px',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#f5f5f5';
-                  e.currentTarget.style.transform = 'scale(1.02)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.transform = 'scale(1)';
-                }}
-              >
-                <List.Item.Meta
-                  avatar={
-                    <Image
-                      src={producto.img}
-                      alt={producto.nombre}
-                      width={80}
-                      height={80}
-                      style={{ objectFit: 'cover', borderRadius: '8px' }}
-                      preview={false}
-                    />
-                  }
-                  title={
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '16px', fontWeight: '600' }}>
-                        {producto.nombre}
-                      </span>
-                      <span style={{ color: '#DE0797', fontSize: '18px', fontWeight: 'bold' }}>
-                        ${producto.precio.toLocaleString('es-CL')}
-                      </span>
-                    </div>
-                  }
-                  description={
-                    <div>
-                      <p style={{ 
-                        margin: '5px 0', 
-                        color: '#666',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        maxWidth: '400px'
-                      }}>
-                        {producto.descripcion}
-                      </p>
-                      <div style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
-                        <Tag color="blue">
-                          {producto.categoria.charAt(0).toUpperCase() + producto.categoria.slice(1)}
-                        </Tag>
-                        {producto.stock > 0 ? (
-                          <Tag color="green">En stock</Tag>
-                        ) : (
-                          <Tag color="red">Agotado</Tag>
-                        )}
+            renderItem={(producto) => {
+              // ← CAMBIO: Obtener array de categorías para mostrar
+              const categorias = producto.categorias && Array.isArray(producto.categorias) && producto.categorias.length > 0
+                ? producto.categorias
+                : (producto.categoria ? [producto.categoria] : []);
+
+              return (
+                <List.Item
+                  onClick={() => handleProductClick(producto)}
+                  style={{
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    padding: '15px',
+                    borderRadius: '8px',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#f5f5f5';
+                    e.currentTarget.style.transform = 'scale(1.02)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                >
+                  <List.Item.Meta
+                    avatar={
+                      <Image
+                        src={producto.img}
+                        alt={producto.nombre}
+                        width={80}
+                        height={80}
+                        style={{ objectFit: 'cover', borderRadius: '8px' }}
+                        preview={false}
+                      />
+                    }
+                    title={
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '16px', fontWeight: '600' }}>
+                          {producto.nombre}
+                        </span>
+                        <span style={{ color: '#DE0797', fontSize: '18px', fontWeight: 'bold' }}>
+                          ${producto.precio.toLocaleString('es-CL')}
+                        </span>
                       </div>
-                    </div>
-                  }
-                />
-              </List.Item>
-            )}
+                    }
+                    description={
+                      <div>
+                        <p style={{ 
+                          margin: '5px 0', 
+                          color: '#666',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          maxWidth: '400px'
+                        }}>
+                          {producto.descripcion}
+                        </p>
+                        {/* ← CAMBIO: Mostrar TODAS las categorías */}
+                        <Space wrap style={{ marginTop: '8px' }}>
+                          {categorias.map((cat, index) => (
+                            <Tag key={index} color="blue">
+                              {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                            </Tag>
+                          ))}
+                          {producto.stock > 0 ? (
+                            <Tag color="green">En stock</Tag>
+                          ) : (
+                            <Tag color="red">Agotado</Tag>
+                          )}
+                        </Space>
+                      </div>
+                    }
+                  />
+                </List.Item>
+              );
+            }}
           />
         )}
       </div>
