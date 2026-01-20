@@ -18,10 +18,10 @@ const AgregarProducto = () => {
     'collares',
     'pulseras',
     'panuelos',
-    'chokers',
+    'anillos',
     'dorados',
     'plateados',
-    'liquidacion',
+    'conjuntos',
     'otros'
   ];
 

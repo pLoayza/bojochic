@@ -18,10 +18,10 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
     'collares',
     'pulseras',
     'panuelos',
-    'chokers',
+    'anillos',
     'dorados',
     'plateados',
-    'liquidacion',
+    'conjuntos',
     'otros'
   ];
 

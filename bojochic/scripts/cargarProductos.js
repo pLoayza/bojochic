@@ -23,11 +23,11 @@ const productos = [
     stock: 8,
   },
 
-  // Chokers
+  // Anillos
   {
     id: 'choker-negro-clasico',
     nombre: 'Choker Negro Clásico',
-    categoria: 'chokers',
+    categoria: 'anillos',
     precio: 4990,
     descripcion: 'Choker de terciopelo negro',
     img: 'https://i.imgur.com/GHI789.png',

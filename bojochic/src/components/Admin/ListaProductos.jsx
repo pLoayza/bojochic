@@ -22,10 +22,10 @@ const ListaProductos = () => {
     { value: 'collares', label: 'Collares' },
     { value: 'pulseras', label: 'Pulseras' },
     { value: 'panuelos', label: 'Pañuelos' },
-    { value: 'chokers', label: 'Chokers' },
+    { value: 'anillos', label: 'Anillos' },
     { value: 'dorados', label: 'Dorados' },
     { value: 'plateados', label: 'Plateados' },
-    { value: 'liquidacion', label: 'Liquidación' },
+    { value: 'conjuntos', label: 'Conjuntos' },
     { value: 'otros', label: 'Otros' }
   ];
 

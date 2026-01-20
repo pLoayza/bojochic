@@ -14,6 +14,8 @@ import Profile from './pages/profile';
 import CheckoutPage from './pages/Checkout/CheckoutPage';
 import OrderConfirmationPage from './pages/Checkout/OrderConfirmationPage';
 import AdminPage from './pages/Admin/AdminPage';
+import Checkout from './components/Payments/Checkout';
+import WebpayReturn from './components/Payments/WebpayReturn';
 
 import CartPage from './pages/CartPage';
 
@@ -39,17 +41,19 @@ function App() {
               <Route path="catalogo" element={<Catalogo />} />
               <Route path="ofertas" element={<Catalogo />} />
               <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/webpay/return" element={<WebpayReturn />} />
               <Route path="Estadisticas" element={<EstadisticasPage />} />
               {/* Rutas para categorías de productos */}
               <Route path="aros" element={<ProductosPage />} />
               <Route path="/perfil" element={<Profile />} />
               <Route path="login" element={<LoginPage />} />
-              <Route path="chokers" element={<ProductosPage />} />
+              <Route path="anillos" element={<ProductosPage />} />
               <Route path="panuelos" element={<ProductosPage />} />
               <Route path="pulseras" element={<ProductosPage />} />
               <Route path="collares" element={<ProductosPage />} />
               <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
-              <Route path="liquidacion" element={<ProductosPage />} />
+              <Route path="conjuntos" element={<ProductosPage />} />
               <Route path="/admin" element={<AdminPage />} />
             </Route>
           </Routes>

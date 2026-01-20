@@ -1,10 +1,8 @@
-
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Row, Col, Spin, message } from 'antd';
 import { auth, db } from '../../firebase/config';
-import { collection, onSnapshot, addDoc, deleteDoc, doc, getDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, getDoc } from 'firebase/firestore';
 import CheckoutForm from '../../components/Payments/CheckoutForm';
 import OrderSummary from '../../components/Payments/OrderSummary';
 
@@ -28,7 +26,7 @@ const CheckoutPage = () => {
       try {
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         if (userDoc.exists()) {
-          setUserData(userDoc.data());
+          setUserData({ ...userDoc.data(), email: user.email });
         }
       } catch (error) {
         console.error('Error cargando datos del usuario:', error);
@@ -44,6 +42,8 @@ const CheckoutPage = () => {
         id: doc.id,
         ...doc.data()
       }));
+      
+      console.log('🔵 Carrito cargado en CheckoutPage:', items);
       
       if (items.length === 0) {
         message.info('Tu carrito está vacío');
@@ -72,68 +72,12 @@ const CheckoutPage = () => {
     return calculateSubtotal() + calculateShipping();
   };
 
-  const generarNumeroOrden = () => {
-    const fecha = new Date();
-    const año = fecha.getFullYear();
-    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-    const dia = String(fecha.getDate()).padStart(2, '0');
-    const random = Math.floor(Math.random() * 10000);
-    return `ORD-${año}${mes}${dia}-${random}`;
-  };
+  const subtotal = calculateSubtotal();
+  const shipping = calculateShipping();
+  const total = calculateTotal();
 
-  const limpiarCarrito = async () => {
-    try {
-      const user = auth.currentUser;
-      const deletePromises = cartItems.map(item => 
-        deleteDoc(doc(db, 'users', user.uid, 'cart', item.id))
-      );
-      await Promise.all(deletePromises);
-    } catch (error) {
-      console.error('Error limpiando carrito:', error);
-    }
-  };
-
-  const handleConfirmarPedido = async (formValues) => {
-    try {
-      const user = auth.currentUser;
-      const numeroOrden = generarNumeroOrden();
-
-      const orden = {
-        orderId: numeroOrden,
-        userId: user.uid,
-        customerInfo: {
-          ...formValues,
-          rut: userData?.rut || ''
-        },
-        items: cartItems.map(item => ({
-          productId: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          image: item.image,
-          size: item.size,
-          color: item.color
-        })),
-        subtotal: calculateSubtotal(),
-        shipping: calculateShipping(),
-        total: calculateTotal(),
-        paymentMethod: 'pendiente',
-        status: 'pendiente_pago',
-        createdAt: new Date().toISOString(),
-      };
-
-      await addDoc(collection(db, 'orders'), orden);
-      await limpiarCarrito();
-
-      message.success('¡Orden creada exitosamente!');
-      navigate(`/order-confirmation/${numeroOrden}`, { state: { orden } });
-
-    } catch (error) {
-      console.error('Error creando orden:', error);
-      message.error('Error al procesar la orden. Intenta nuevamente.');
-      throw error;
-    }
-  };
+  console.log('🔵 CheckoutPage - Total:', total);
+  console.log('🔵 CheckoutPage - Items:', cartItems);
 
   if (loading) {
     return (
@@ -159,16 +103,17 @@ const CheckoutPage = () => {
         <Col xs={24} lg={14}>
           <CheckoutForm 
             userData={userData}
-            onSubmit={handleConfirmarPedido}
+            cartItems={cartItems}      // ✅ AGREGADO
+            totalAmount={total}         // ✅ AGREGADO
           />
         </Col>
 
         <Col xs={24} lg={10}>
           <OrderSummary 
             cartItems={cartItems}
-            subtotal={calculateSubtotal()}
-            shipping={calculateShipping()}
-            total={calculateTotal()}
+            subtotal={subtotal}
+            shipping={shipping}
+            total={total}
           />
         </Col>
       </Row>

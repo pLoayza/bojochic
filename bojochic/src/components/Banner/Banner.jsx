@@ -73,14 +73,14 @@ const Banner = () => {
       onClick: () => navigate('/panuelos'),
     },
     {
-      key: 'chokers',
-      label: 'Chokers',
-      onClick: () => navigate('/chokers'),
+      key: 'anillos',
+      label: 'Anillos',
+      onClick: () => navigate('/anillos'),
     },
     {
-      key: 'liquidacion',
-      label: 'Liquidación',
-      onClick: () => navigate('/liquidacion'),
+      key: 'conjuntos',
+      label: 'Conjuntos',
+      onClick: () => navigate('/conjuntos'),
     },
   ];
 

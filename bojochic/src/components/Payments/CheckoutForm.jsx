@@ -1,21 +1,20 @@
-// src/components/Checkout/CheckoutForm.jsx
 import { useEffect, useState } from 'react';
-import { Card, Form, Input, Button, Row, Col, Alert, Typography } from 'antd';
+import { Card, Form, Input, Button, Row, Col, Alert, Typography, message } from 'antd';
 import { 
   UserOutlined, 
   PhoneOutlined, 
   HomeOutlined,
   EnvironmentOutlined,
-  CheckCircleOutlined
+  CreditCardOutlined
 } from '@ant-design/icons';
+import { auth } from '../../firebase/config';
 
 const { Title } = Typography;
 
-const CheckoutForm = ({ userData, onSubmit }) => {
+const CheckoutForm = ({ userData, cartItems, totalAmount }) => {
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
 
-  // Pre-llenar formulario con datos del perfil
   useEffect(() => {
     if (userData) {
       form.setFieldsValue({
@@ -30,12 +29,97 @@ const CheckoutForm = ({ userData, onSubmit }) => {
   }, [userData, form]);
 
   const handleSubmit = async (values) => {
+    console.log('🔵 === INICIO HANDLESUBMIT ===');
+    console.log('🔵 Formulario enviado:', values);
+    console.log('🔵 Total:', totalAmount);
+    console.log('🔵 Items:', cartItems);
+    console.log('🔵 Usuario autenticado:', auth.currentUser?.email);
+    
     setSubmitting(true);
+    
     try {
-      await onSubmit(values);
+      // Validar carrito
+      if (!cartItems || cartItems.length === 0) {
+        console.log('❌ Carrito vacío');
+        message.error('Tu carrito está vacío');
+        setSubmitting(false);
+        return;
+      }
+
+      // Obtener token de autenticación
+      const user = auth.currentUser;
+      if (!user) {
+        console.log('❌ Usuario no autenticado');
+        message.error('Debes iniciar sesión');
+        setSubmitting(false);
+        return;
+      }
+
+      console.log('✅ Usuario OK, obteniendo token...');
+      const token = await user.getIdToken();
+      console.log('✅ Token obtenido');
+
+      const requestBody = {
+        amount: totalAmount,
+        items: cartItems.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image,
+          size: item.size || null,
+          color: item.color || null
+        })),
+        shippingData: values
+      };
+
+      console.log('🔵 Request body:', requestBody);
+      console.log('🔵 Llamando al backend...');
+
+      // Llamar al backend para crear transacción
+      const response = await fetch('http://localhost:3001/api/webpay/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      console.log('🔵 Response status:', response.status);
+
+      const data = await response.json();
+      console.log('🔵 Response data:', data);
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al crear transacción');
+      }
+
+      console.log('✅ Transacción creada, redirigiendo a Webpay...');
+      console.log('✅ URL:', data.url);
+      console.log('✅ Token:', data.token);
+
+      // Redirigir a Webpay
+      const formElement = document.createElement('form');
+      formElement.method = 'POST';
+      formElement.action = data.url;
+      
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'token_ws';
+      input.value = data.token;
+      
+      formElement.appendChild(input);
+      document.body.appendChild(formElement);
+      
+      console.log('✅ Form creado, enviando...');
+      formElement.submit();
+
     } catch (error) {
-      console.error('Error en formulario:', error);
-    } finally {
+      console.error('❌ ERROR:', error);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error stack:', error.stack);
+      message.error(error.message || 'Error al procesar el pago');
       setSubmitting(false);
     }
   };
@@ -79,7 +163,7 @@ const CheckoutForm = ({ userData, onSubmit }) => {
             prefix={<UserOutlined />} 
             placeholder="correo@ejemplo.com" 
             size="large"
-            disabled
+            disabled={!!userData?.email}
           />
         </Form.Item>
 
@@ -118,9 +202,7 @@ const CheckoutForm = ({ userData, onSubmit }) => {
             <Form.Item
               name="comuna"
               label="Comuna"
-              rules={[
-                { required: true, message: 'Ingresa tu comuna' }
-              ]}
+              rules={[{ required: true, message: 'Ingresa tu comuna' }]}
             >
               <Input 
                 prefix={<EnvironmentOutlined />} 
@@ -133,9 +215,7 @@ const CheckoutForm = ({ userData, onSubmit }) => {
             <Form.Item
               name="region"
               label="Región"
-              rules={[
-                { required: true, message: 'Ingresa tu región' }
-              ]}
+              rules={[{ required: true, message: 'Ingresa tu región' }]}
             >
               <Input 
                 prefix={<EnvironmentOutlined />} 
@@ -146,10 +226,7 @@ const CheckoutForm = ({ userData, onSubmit }) => {
           </Col>
         </Row>
 
-        <Form.Item
-          name="notas"
-          label="Notas adicionales (opcional)"
-        >
+        <Form.Item name="notas" label="Notas adicionales (opcional)">
           <Input.TextArea 
             placeholder="Ej: Dejar en conserjería, timbre no funciona, etc."
             rows={3}
@@ -157,10 +234,11 @@ const CheckoutForm = ({ userData, onSubmit }) => {
         </Form.Item>
 
         <Alert
-          message="Información de Pago"
-          description="Después de confirmar tu pedido, recibirás las instrucciones de pago por email."
+          message="Pago Seguro con Webpay"
+          description="Serás redirigido a la plataforma segura de Transbank para completar tu pago."
           type="info"
           showIcon
+          icon={<CreditCardOutlined />}
           style={{ marginBottom: '20px' }}
         />
 
@@ -171,7 +249,7 @@ const CheckoutForm = ({ userData, onSubmit }) => {
             size="large" 
             block
             loading={submitting}
-            icon={<CheckCircleOutlined />}
+            icon={<CreditCardOutlined />}
             style={{
               background: 'linear-gradient(45deg, #DE0797, #FF6B9D)',
               border: 'none',
@@ -180,7 +258,7 @@ const CheckoutForm = ({ userData, onSubmit }) => {
               fontWeight: '600'
             }}
           >
-            {submitting ? 'Procesando...' : 'Confirmar Pedido'}
+            {submitting ? 'Redirigiendo a Webpay...' : 'Pagar con Webpay'}
           </Button>
         </Form.Item>
       </Form>
