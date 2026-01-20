@@ -2,11 +2,11 @@ import { Card, Row, Col, Typography } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import arosImg from '../../assets/Categorias/aros.webp';
-import chokersImg from '../../assets/Categorias/chokers.webp';
+import anillosImg from '../../assets/Categorias/panuelos.png';
 import panuelosImg from '../../assets/Categorias/panuelos.png';
 import pulserasImg from '../../assets/Categorias/pulseras.webp';
 import collaresImg from '../../assets/Categorias/collares.webp';
-import liquidacionImg from '../../assets/Categorias/liquidacion.webp';
+import conjuntosImg from '../../assets/Categorias/liquidacion.webp';
 
 const { Title } = Typography;
 
@@ -36,14 +36,14 @@ const Categorias = () => {
       image: panuelosImg,
     },
     {
-      title: 'Chokers',
-      path: '/chokers',
-      image: chokersImg,
+      title: 'Anillos',
+      path: '/anillos',
+      image: anillosImg,
     },
     {
-      title: 'Liquidación',
-      path: '/liquidacion',
-      image: liquidacionImg,
+      title: 'Conjuntos',
+      path: '/conjuntos',
+      image: conjuntosImg,
     },
   ];
 

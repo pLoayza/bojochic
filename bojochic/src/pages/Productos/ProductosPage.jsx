@@ -1,6 +1,6 @@
 import { useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore'; // ← QUITÉ "query, where"
 import { Spin, Alert } from 'antd';
 import { db } from '../../firebase/config.js';
 import ProductosPorCategoria from '../../components/Productos/ProductosPorCategoria';
@@ -19,28 +19,37 @@ const ProductosPage = () => {
         setLoading(true);
         setError(null);
 
-        console.log(' Buscando productos para categoría:', categoria);
+        console.log('🔍 Buscando productos para categoría:', categoria);
 
-        // Query a Firebase para obtener productos por categoría
-        const q = query(
-          collection(db, 'productos'),
-          where('categoria', '==', categoria)
-        );
+        // ← CAMBIO: Ya NO usamos "where" porque necesitamos filtrar en el cliente
+        // Firebase no puede hacer queries con "array-contains" de forma eficiente en este caso
+        
+        // Obtener TODOS los productos
+        const querySnapshot = await getDocs(collection(db, 'productos'));
+        
+        // ← CAMBIO: Filtrar en el cliente para buscar en el array de categorías
+        const productosData = querySnapshot.docs
+          .map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }))
+          .filter((producto) => {
+            // Si tiene array de categorías, buscar en el array
+            if (producto.categorias && Array.isArray(producto.categorias)) {
+              return producto.categorias.includes(categoria);
+            }
+            // Fallback: si solo tiene categoría única (compatibilidad)
+            return producto.categoria === categoria;
+          });
 
-        const querySnapshot = await getDocs(q);
-        const productosData = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        console.log(' Productos encontrados:', productosData);
+        console.log('✅ Productos encontrados:', productosData);
         setProductos(productosData);
 
         if (productosData.length === 0) {
-          console.log(' No se encontraron productos para esta categoría');
+          console.log('⚠️ No se encontraron productos para esta categoría');
         }
       } catch (err) {
-        console.error(' Error al obtener productos:', err);
+        console.error('❌ Error al obtener productos:', err);
         setError(`Error al cargar los productos: ${err.message}`);
       } finally {
         setLoading(false);

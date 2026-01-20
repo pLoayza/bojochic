@@ -18,10 +18,10 @@ const AgregarProducto = () => {
     'collares',
     'pulseras',
     'panuelos',
-    'chokers',
+    'anillos',
     'dorados',
     'plateados',
-    'liquidacion',
+    'conjuntos',
     'otros'
   ];
 
@@ -32,7 +32,6 @@ const AgregarProducto = () => {
       return;
     }
 
-    // Validar que sea una URL
     try {
       new URL(nuevaImagenUrl);
     } catch (error) {
@@ -50,7 +49,6 @@ const AgregarProducto = () => {
     message.success('Imagen agregada');
   };
 
-  // Función para eliminar una imagen
   const eliminarImagen = (url) => {
     setImagenes(imagenes.filter(img => img !== url));
     message.info('Imagen eliminada');
@@ -70,9 +68,10 @@ const AgregarProducto = () => {
         descripcion: values.descripcion,
         precio: values.precio,
         stock: values.stock,
-        categoria: values.categoria,
-        img: imagenes[0], // Primera imagen como principal
-        imagenes: imagenes, // Array con todas las imágenes
+        categorias: values.categorias || [], // ← AHORA ES ARRAY
+        categoria: values.categorias?.[0] || 'otros', // ← MANTENER COMPATIBILIDAD (primera categoría)
+        img: imagenes[0],
+        imagenes: imagenes,
         activo: true,
         fechaCreacion: new Date().toISOString(),
       };
@@ -161,16 +160,20 @@ const AgregarProducto = () => {
           />
         </Form.Item>
 
+        {/* ← CAMBIO PRINCIPAL: Select MÚLTIPLE */}
         <Form.Item
-          name="categoria"
-          label="Categoría"
+          name="categorias"
+          label="Categorías"
           rules={[
-            { required: true, message: 'Selecciona una categoría' }
+            { required: true, message: 'Selecciona al menos una categoría' }
           ]}
+          extra="Puedes seleccionar múltiples categorías para este producto"
         >
           <Select 
-            placeholder="Selecciona una categoría"
+            mode="multiple" // ← MODO MÚLTIPLE
+            placeholder="Selecciona una o más categorías"
             size="large"
+            maxTagCount="responsive"
           >
             {categorias.map(cat => (
               <Select.Option key={cat} value={cat}>
@@ -208,7 +211,6 @@ const AgregarProducto = () => {
             </Button>
           </Space.Compact>
 
-          {/* Lista de imágenes agregadas */}
           {imagenes.length > 0 && (
             <List
               style={{ marginTop: '20px' }}
