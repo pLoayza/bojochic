@@ -4,7 +4,7 @@ import { useState } from 'react';
 import arosImg from '../../assets/Categorias/aros.webp';
 import pulserasImg from '../../assets/Categorias/pulseras.webp';
 import collaresImg from '../../assets/Categorias/collares.webp';
-import plateadosImg from '../../assets/Categorias/Plateados.webp';
+import plateadosImg from '../../assets/Categorias/plateados.webp';
 import doradosImg from '../../assets/Categorias/Dorados.jpg';
 
 const { Title } = Typography;
