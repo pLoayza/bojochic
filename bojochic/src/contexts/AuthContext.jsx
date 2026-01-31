@@ -1,59 +1,77 @@
-
+// src/contexts/AuthContext.jsx
 import { createContext, useContext, useEffect, useState } from 'react';
-import { auth } from '../firebase/config'; 
+import { auth, db } from '../firebase/config'; 
 import { 
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged 
 } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 
-// Crear el contexto
 const AuthContext = createContext();
 
-// Hook personalizado para usar el contexto fácilmente
 export function useAuth() {
   return useContext(AuthContext);
 }
 
-// Proveedor del contexto (envuelve tu app)
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Función para registrar usuario
   function signup(email, password) {
     return createUserWithEmailAndPassword(auth, email, password);
   }
 
-  // Función para hacer login
   function login(email, password) {
     return signInWithEmailAndPassword(auth, email, password);
   }
 
-  // Función para logout
   function logout() {
     return signOut(auth);
   }
 
-  // Detectar cambios en la autenticación (login/logout automático)
+  // 👇 Nueva función para obtener datos del usuario desde Firestore
+  async function getUserData(uid) {
+    try {
+      const userDoc = await getDoc(doc(db, 'users', uid));
+      if (userDoc.exists()) {
+        return userDoc.data();
+      }
+      return null;
+    } catch (error) {
+      console.error('Error obteniendo datos de usuario:', error);
+      return null;
+    }
+  }
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
+      
+      // 👇 Si hay usuario, obtener su rol
+      if (user) {
+        const userData = await getUserData(user.uid);
+        setUserRole(userData?.role || 'customer');
+      } else {
+        setUserRole(null);
+      }
+      
       setLoading(false);
     });
 
-    // Cleanup: desuscribirse cuando el componente se desmonte
     return unsubscribe;
   }, []);
 
-  // Valores que estarán disponibles en toda la app
   const value = {
-    currentUser,    // Usuario actual (null si no está logueado)
-    signup,         // Función de registro
-    login,          // Función de login
-    logout,         // Función de logout
-    loading         // Estado de carga
+    currentUser,
+    userRole,      // 👈 Nuevo: rol del usuario
+    signup,
+    login,
+    logout,
+    loading,
+    getUserData    // 👈 Nuevo: función para obtener datos
   };
 
   return (

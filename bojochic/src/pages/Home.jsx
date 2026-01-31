@@ -1,3 +1,4 @@
+// src/pages/Home.jsx
 import { Typography } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import Banner from '../components/Banner/Banner';
@@ -11,8 +12,10 @@ const Home = () => {
     <div>
       {/* Banner principal */}
       <Banner />
+      
       {/* Categorías */}
       <Categories />
+      
       {/* Productos destacados */}
       <Destacado />
     </div>

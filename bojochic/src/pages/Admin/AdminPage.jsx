@@ -1,44 +1,27 @@
 // src/pages/Admin/AdminPage.jsx
-import { useState, useEffect } from 'react';
-import { Card, Tabs, message } from 'antd';
+import { Card, Tabs, Button, Space } from 'antd';
+import { UserOutlined, ShoppingOutlined, UnorderedListOutlined, TeamOutlined } from '@ant-design/icons';
+import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { auth } from '../../firebase/config';
 import AgregarProducto from '../../components/Admin/AgregarProducto';
 import ListaProductos from '../../components/Admin/ListaProductos';
 
 const AdminPage = () => {
+  const { userRole } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const user = auth.currentUser;
-    
-    // Verificar que hay un usuario autenticado
-    if (!user) {
-      message.error('Debes iniciar sesión para acceder al panel');
-      navigate('/login');
-      return;
-    }
-
-    setLoading(false);
-  }, [navigate]);
 
   const items = [
     {
       key: '1',
-      label: 'Agregar Producto',
+      label: <span><ShoppingOutlined /> Agregar Producto</span>,
       children: <AgregarProducto />,
     },
     {
       key: '2',
-      label: 'Lista de Productos',
+      label: <span><UnorderedListOutlined /> Lista de Productos</span>,
       children: <ListaProductos />,
     },
   ];
-
-  if (loading) {
-    return <Card loading />;
-  }
 
   return (
     <div style={{ 
@@ -46,7 +29,22 @@ const AdminPage = () => {
       margin: '50px auto', 
       padding: '0 20px' 
     }}>
-      <Card title="Panel de Administración - Bojo Chic">
+      <Card 
+        title="Panel de Administración - Bojo Chic"
+        extra={
+          // 👇 Solo mostrar si es admin
+          userRole === 'admin' && (
+            <Button 
+              type="primary"
+              icon={<TeamOutlined />}
+              onClick={() => navigate('/admin/usuarios')}
+              size="large"
+            >
+              Gestionar Usuarios
+            </Button>
+          )
+        }
+      >
         <Tabs defaultActiveKey="1" items={items} />
       </Card>
     </div>

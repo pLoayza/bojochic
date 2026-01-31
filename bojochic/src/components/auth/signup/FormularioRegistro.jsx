@@ -9,7 +9,7 @@ import {
 import { validateForm } from '../../../utils/validaciones';
 import { useAuth } from '../../../contexts/AuthContext';
 import { doc, setDoc } from 'firebase/firestore';
-import { db } from '../../../firebase/config'; // Ajusta la ruta si es diferente
+import { db } from '../../../firebase/config';
 
 const { Text } = Typography;
 
@@ -56,13 +56,14 @@ const FormularioRegistro = ({ onSuccess, showLoginLink = true }) => {
       const userCredential = await signup(values.email, values.password);
       const user = userCredential.user;
       
-      // 👇 GUARDAR INFO ADICIONAL EN FIRESTORE
+      // 👇 GUARDAR INFO ADICIONAL EN FIRESTORE CON ROL
       await setDoc(doc(db, 'users', user.uid), {
         nombre: values.nombre,
         email: values.email,
         rut: values.rut,
         telefono: '',
         direccion: '',
+        role: 'customer', // 👈 NUEVO: Rol por defecto
         createdAt: new Date().toISOString()
       });
       
