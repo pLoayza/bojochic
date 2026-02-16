@@ -1,5 +1,5 @@
-import { Layout, Row, Col, Input, Button, notification } from 'antd'; // Cambiar message por notification
-import { InstagramOutlined, FacebookOutlined, CheckCircleOutlined, WarningOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import { Layout, Row, Col, Input, Button, notification } from 'antd';
+import { InstagramOutlined, FacebookOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
@@ -10,10 +10,9 @@ const { Footer: AntFooter } = Layout;
 const Footer = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [api, contextHolder] = notification.useNotification(); // Hook de notificación
+  const [api, contextHolder] = notification.useNotification();
 
   const handleSubscribe = async () => {
-    // Validar que el campo no esté vacío
     if (!email.trim()) {
       api.error({
         message: 'Error',
@@ -24,7 +23,6 @@ const Footer = () => {
       return;
     }
 
-    // Validar formato de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       api.error({
@@ -39,7 +37,6 @@ const Footer = () => {
     setLoading(true);
 
     try {
-      // Verificar si el email ya existe en la base de datos
       const subscribersRef = collection(db, 'subscribers');
       const q = query(subscribersRef, where('email', '==', email.toLowerCase()));
       const querySnapshot = await getDocs(q);
@@ -56,7 +53,6 @@ const Footer = () => {
         return;
       }
 
-      // Guardar el nuevo suscriptor en Firestore
       await addDoc(collection(db, 'subscribers'), {
         email: email.toLowerCase(),
         subscribedAt: new Date(),
@@ -84,7 +80,6 @@ const Footer = () => {
     }
   };
 
-  // Permitir suscribirse con Enter
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       handleSubscribe();
@@ -93,7 +88,7 @@ const Footer = () => {
 
   return (
     <>
-      {contextHolder} {/* Importante: agregar el contextHolder */}
+      {contextHolder}
       <AntFooter style={{ background: '#f5f5f5', padding: '60px 20px 40px', marginTop: '80px' }}>
         <div style={{ 
           maxWidth: '1200px', 
@@ -103,7 +98,7 @@ const Footer = () => {
         }}>
           <Row gutter={[80, 32]}>
             {/* Enlaces rápidos */}
-            <Col xs={24} sm={8} md={6}>
+            <Col xs={24} sm={12} md={6}>
               <h3 style={{ 
                 color: '#333', 
                 fontSize: '16px', 
@@ -118,8 +113,11 @@ const Footer = () => {
                   style={{ 
                     color: '#666', 
                     textDecoration: 'none',
-                    fontSize: '14px'
+                    fontSize: '14px',
+                    transition: 'color 0.3s'
                   }}
+                  onMouseEnter={(e) => e.target.style.color = '#DE0797'}
+                  onMouseLeave={(e) => e.target.style.color = '#666'}
                 >
                   Inicio
                 </Link>
@@ -128,16 +126,85 @@ const Footer = () => {
                   style={{ 
                     color: '#666', 
                     textDecoration: 'none',
-                    fontSize: '14px'
+                    fontSize: '14px',
+                    transition: 'color 0.3s'
                   }}
+                  onMouseEnter={(e) => e.target.style.color = '#DE0797'}
+                  onMouseLeave={(e) => e.target.style.color = '#666'}
                 >
                   Catálogo
                 </Link>
               </div>
             </Col>
 
+            {/* Políticas - NUEVA SECCIÓN */}
+            <Col xs={24} sm={12} md={6}>
+              <h3 style={{ 
+                color: '#333', 
+                fontSize: '16px', 
+                fontWeight: '600',
+                marginBottom: '20px'
+              }}>
+                Información Legal
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <Link 
+                  to="/politicas/envio" 
+                  style={{ 
+                    color: '#666', 
+                    textDecoration: 'none',
+                    fontSize: '14px',
+                    transition: 'color 0.3s'
+                  }}
+                  onMouseEnter={(e) => e.target.style.color = '#DE0797'}
+                  onMouseLeave={(e) => e.target.style.color = '#666'}
+                >
+                  Políticas de Envío
+                </Link>
+                <Link 
+                  to="/politicas/privacidad" 
+                  style={{ 
+                    color: '#666', 
+                    textDecoration: 'none',
+                    fontSize: '14px',
+                    transition: 'color 0.3s'
+                  }}
+                  onMouseEnter={(e) => e.target.style.color = '#DE0797'}
+                  onMouseLeave={(e) => e.target.style.color = '#666'}
+                >
+                  Política de Privacidad
+                </Link>
+                <Link 
+                  to="/politicas/reembolso" 
+                  style={{ 
+                    color: '#666', 
+                    textDecoration: 'none',
+                    fontSize: '14px',
+                    transition: 'color 0.3s'
+                  }}
+                  onMouseEnter={(e) => e.target.style.color = '#DE0797'}
+                  onMouseLeave={(e) => e.target.style.color = '#666'}
+                >
+                  Política de Reembolso
+                </Link>
+                <Link 
+                  to="/politicas/terminos" 
+                  style={{ 
+                    color: '#666', 
+                    textDecoration: 'none',
+                    fontSize: '14px',
+                    transition: 'color 0.3s'
+                  }}
+                  onMouseEnter={(e) => e.target.style.color = '#DE0797'}
+                  onMouseLeave={(e) => e.target.style.color = '#666'}
+                >
+                  Términos de Servicio
+                </Link>
+              </div>
+            </Col>
+
             {/* Suscripción */}
-            <Col xs={24} sm={16} md={18}>
+            <Col xs={24} sm={24} md={12}>
               <h3 style={{ 
                 color: '#333', 
                 fontSize: '16px', 

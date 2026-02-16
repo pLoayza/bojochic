@@ -24,6 +24,12 @@ import Checkout from './components/Payments/Checkout';
 import WebpayReturn from './components/Payments/WebpayReturn';
 import CartPage from './pages/CartPage';
 
+// POLÍTICAS
+import Envio from './pages/politicas/Envio';
+import Privacidad from './pages/politicas/Privacidad';
+import Reembolso from './pages/politicas/Reembolso';
+import Terminos from './pages/politicas/Terminos';
+
 function App() {
   return (
     <BrowserRouter>
@@ -67,6 +73,12 @@ function App() {
               <Route path="collares" element={<ProductosPage />} />
               <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
               <Route path="conjuntos" element={<ProductosPage />} />
+              
+              {/* Rutas de Políticas */}
+              <Route path="/politicas/envio" element={<Envio />} />
+              <Route path="/politicas/privacidad" element={<Privacidad />} />
+              <Route path="/politicas/reembolso" element={<Reembolso />} />
+              <Route path="/politicas/terminos" element={<Terminos />} />
               
               {/* Rutas protegidas para Admin */}
               <Route 
