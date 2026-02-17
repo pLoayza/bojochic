@@ -77,7 +77,7 @@ const CheckoutForm = ({ userData, cartItems, totalAmount }) => {
       console.log('🔵 Llamando al backend...');
 
       // Llamar al backend para crear transacción
-      const response = await fetch('http://localhost:3001/api/webpay/create', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/webpay/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
