@@ -8,7 +8,7 @@ const app = express();
 
 // CORS
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'https://www.bojo.cl'],
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'https://www.bojo.cl',  'https://bojochic.vercel.app'],
   credentials: true
 }));
 app.use(express.json());
