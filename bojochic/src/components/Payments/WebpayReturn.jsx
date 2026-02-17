@@ -50,7 +50,7 @@ const WebpayReturn = () => {
         const userToken = await user.getIdToken();
 
         // Confirmar transacción con el backend
-        const response = await fetch('http://localhost:3001/api/webpay/confirm', {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/webpay/confirm`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
