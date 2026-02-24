@@ -54,7 +54,7 @@ const Categorias = () => {
         style={{
           textAlign: 'center',
           marginBottom: '40px',
-          color: '#DE0797',
+          color: '#f33763',
           textTransform: 'uppercase',
           letterSpacing: '2px',
         }}
