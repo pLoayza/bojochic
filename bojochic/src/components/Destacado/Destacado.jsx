@@ -47,7 +47,7 @@ const Destacado = () => {
         style={{
           textAlign: 'center',
           marginBottom: '50px',
-          color: '#DE0797',
+          color: '#f33763',
           textTransform: 'uppercase',
           letterSpacing: '3px',
           fontSize: '32px',
