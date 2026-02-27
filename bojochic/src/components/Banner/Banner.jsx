@@ -107,7 +107,7 @@ const Banner = () => {
 
   const userMenuItems = [
     { key: 'perfil',      icon: <UserOutlined />,    label: 'Mi Perfil',     onClick: () => navigate('/perfil') },
-    { key: 'mis-pedidos', icon: <ShoppingOutlined />, label: 'Mis Pedidos',   onClick: () => navigate('/mis-pedidos') },
+    { key: 'mis-pedidos', icon: <ShoppingOutlined />, label: 'Mis Pedidos',   onClick: () => navigate('/orders') },
     { type: 'divider' },
     { key: 'logout',      icon: <LogoutOutlined />,   label: 'Cerrar Sesión', onClick: handleLogout, danger: true },
   ];

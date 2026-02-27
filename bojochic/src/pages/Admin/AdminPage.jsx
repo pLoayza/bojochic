@@ -1,10 +1,10 @@
-// src/pages/Admin/AdminPage.jsx
-import { Card, Tabs, Button, Space } from 'antd';
-import { UserOutlined, ShoppingOutlined, UnorderedListOutlined, TeamOutlined } from '@ant-design/icons';
+import { Card, Tabs, Button } from 'antd';
+import { UserOutlined, ShoppingOutlined, UnorderedListOutlined, TeamOutlined, FileTextOutlined } from '@ant-design/icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import AgregarProducto from '../../components/Admin/AgregarProducto';
 import ListaProductos from '../../components/Admin/ListaProductos';
+import AdminOrders from '../../components/Admin/AdminOrders';
 
 const AdminPage = () => {
   const { userRole } = useAuth();
@@ -21,20 +21,20 @@ const AdminPage = () => {
       label: <span><UnorderedListOutlined /> Lista de Productos</span>,
       children: <ListaProductos />,
     },
+    {
+      key: '3',
+      label: <span><FileTextOutlined /> Órdenes</span>,
+      children: <AdminOrders />,
+    },
   ];
 
   return (
-    <div style={{ 
-      maxWidth: '1200px', 
-      margin: '50px auto', 
-      padding: '0 20px' 
-    }}>
-      <Card 
+    <div style={{ maxWidth: '1200px', margin: '50px auto', padding: '0 20px' }}>
+      <Card
         title="Panel de Administración - Bojo Chic"
         extra={
-          // 👇 Solo mostrar si es admin
           userRole === 'admin' && (
-            <Button 
+            <Button
               type="primary"
               icon={<TeamOutlined />}
               onClick={() => navigate('/admin/usuarios')}

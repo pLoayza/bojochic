@@ -30,34 +30,23 @@ const CheckoutForm = ({ userData, cartItems, totalAmount }) => {
 
   const handleSubmit = async (values) => {
     console.log('🔵 === INICIO HANDLESUBMIT ===');
-    console.log('🔵 Formulario enviado:', values);
-    console.log('🔵 Total:', totalAmount);
-    console.log('🔵 Items:', cartItems);
-    console.log('🔵 Usuario autenticado:', auth.currentUser?.email);
-    
     setSubmitting(true);
-    
+
     try {
-      // Validar carrito
       if (!cartItems || cartItems.length === 0) {
-        console.log('❌ Carrito vacío');
         message.error('Tu carrito está vacío');
         setSubmitting(false);
         return;
       }
 
-      // Obtener token de autenticación
       const user = auth.currentUser;
       if (!user) {
-        console.log('❌ Usuario no autenticado');
         message.error('Debes iniciar sesión');
         setSubmitting(false);
         return;
       }
 
-      console.log('✅ Usuario OK, obteniendo token...');
       const token = await user.getIdToken();
-      console.log('✅ Token obtenido');
 
       const requestBody = {
         amount: totalAmount,
@@ -73,10 +62,8 @@ const CheckoutForm = ({ userData, cartItems, totalAmount }) => {
         shippingData: values
       };
 
-      console.log('🔵 Request body:', requestBody);
       console.log('🔵 Llamando al backend...');
 
-      // Llamar al backend para crear transacción
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/webpay/create`, {
         method: 'POST',
         headers: {
@@ -86,8 +73,6 @@ const CheckoutForm = ({ userData, cartItems, totalAmount }) => {
         body: JSON.stringify(requestBody)
       });
 
-      console.log('🔵 Response status:', response.status);
-
       const data = await response.json();
       console.log('🔵 Response data:', data);
 
@@ -95,30 +80,23 @@ const CheckoutForm = ({ userData, cartItems, totalAmount }) => {
         throw new Error(data.error || 'Error al crear transacción');
       }
 
-      console.log('✅ Transacción creada, redirigiendo a Webpay...');
-      console.log('✅ URL:', data.url);
-      console.log('✅ Token:', data.token);
-
       // Redirigir a Webpay
+      console.log('✅ Redirigiendo a Webpay...');
       const formElement = document.createElement('form');
       formElement.method = 'POST';
       formElement.action = data.url;
-      
+
       const input = document.createElement('input');
       input.type = 'hidden';
       input.name = 'token_ws';
       input.value = data.token;
-      
+
       formElement.appendChild(input);
       document.body.appendChild(formElement);
-      
-      console.log('✅ Form creado, enviando...');
       formElement.submit();
 
     } catch (error) {
       console.error('❌ ERROR:', error);
-      console.error('❌ Error message:', error.message);
-      console.error('❌ Error stack:', error.stack);
       message.error(error.message || 'Error al procesar el pago');
       setSubmitting(false);
     }
@@ -144,11 +122,7 @@ const CheckoutForm = ({ userData, cartItems, totalAmount }) => {
             { min: 3, message: 'Mínimo 3 caracteres' }
           ]}
         >
-          <Input 
-            prefix={<UserOutlined />} 
-            placeholder="Juan Pérez" 
-            size="large"
-          />
+          <Input prefix={<UserOutlined />} placeholder="Juan Pérez" size="large" />
         </Form.Item>
 
         <Form.Item
@@ -175,11 +149,7 @@ const CheckoutForm = ({ userData, cartItems, totalAmount }) => {
             { pattern: /^[0-9+\s()-]+$/, message: 'Teléfono inválido' }
           ]}
         >
-          <Input 
-            prefix={<PhoneOutlined />} 
-            placeholder="+56 9 1234 5678" 
-            size="large"
-          />
+          <Input prefix={<PhoneOutlined />} placeholder="+56 9 1234 5678" size="large" />
         </Form.Item>
 
         <Form.Item
@@ -193,7 +163,7 @@ const CheckoutForm = ({ userData, cartItems, totalAmount }) => {
           <Input 
             prefix={<HomeOutlined />} 
             placeholder="Calle Ejemplo 123, Depto 45" 
-            size="large"
+            size="large" 
           />
         </Form.Item>
 
@@ -204,11 +174,7 @@ const CheckoutForm = ({ userData, cartItems, totalAmount }) => {
               label="Comuna"
               rules={[{ required: true, message: 'Ingresa tu comuna' }]}
             >
-              <Input 
-                prefix={<EnvironmentOutlined />} 
-                placeholder="Santiago Centro" 
-                size="large"
-              />
+              <Input prefix={<EnvironmentOutlined />} placeholder="Santiago Centro" size="large" />
             </Form.Item>
           </Col>
           <Col span={12}>
@@ -217,11 +183,7 @@ const CheckoutForm = ({ userData, cartItems, totalAmount }) => {
               label="Región"
               rules={[{ required: true, message: 'Ingresa tu región' }]}
             >
-              <Input 
-                prefix={<EnvironmentOutlined />} 
-                placeholder="Metropolitana" 
-                size="large"
-              />
+              <Input prefix={<EnvironmentOutlined />} placeholder="Metropolitana" size="large" />
             </Form.Item>
           </Col>
         </Row>
