@@ -62,7 +62,7 @@ const MyOrders = () => {
           size="large"
           icon={<HomeOutlined />}
           onClick={() => navigate('/')}
-          style={{ marginTop: 24, background: 'linear-gradient(45deg, #DE0797, #FF6B9D)', border: 'none', borderRadius: 8, height: 44 }}
+          style={{ marginTop: 24, background: 'linear-gradient(45deg,  #f33763, #FF6B9D)', border: 'none', borderRadius: 8, height: 44 }}
         >
           Ir a la tienda
         </Button>
@@ -76,7 +76,7 @@ const MyOrders = () => {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 32 }}>
         <div style={{
           width: 48, height: 48, borderRadius: 12,
-          background: 'linear-gradient(45deg, #DE0797, #FF6B9D)',
+          background: 'linear-gradient(45deg,  #f33763, #FF6B9D)',
           display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
           <ShoppingOutlined style={{ color: 'white', fontSize: 22 }} />
@@ -163,7 +163,7 @@ const MyOrders = () => {
                         {item.color && ` · Color: ${item.color}`}
                       </Text>
                     </div>
-                    <Text strong style={{ color: '#DE0797', fontSize: 14, whiteSpace: 'nowrap' }}>
+                    <Text strong style={{ color: ' #f33763', fontSize: 14, whiteSpace: 'nowrap' }}>
                       ${(item.price * item.quantity).toLocaleString('es-CL')}
                     </Text>
                   </div>
@@ -180,7 +180,7 @@ const MyOrders = () => {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Text strong style={{ fontSize: 15 }}>Total pagado:</Text>
-                  <Text strong style={{ color: '#DE0797', fontSize: 18 }}>
+                  <Text strong style={{ color: ' #f33763', fontSize: 18 }}>
                     ${total?.toLocaleString('es-CL')}
                   </Text>
                 </div>
@@ -193,7 +193,7 @@ const MyOrders = () => {
                 items={[{
                   key: '1',
                   label: (
-                    <Text style={{ fontSize: 13, color: '#DE0797', fontWeight: 500 }}>
+                    <Text style={{ fontSize: 13, color: ' #f33763', fontWeight: 500 }}>
                       📦 Ver datos de envío y transacción
                     </Text>
                   ),

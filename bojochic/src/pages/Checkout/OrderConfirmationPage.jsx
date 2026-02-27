@@ -123,7 +123,7 @@ const OrderConfirmationPage = () => {
                 }
               />
               <div>
-                <Text strong style={{ fontSize: '16px', color: '#DE0797' }}>
+                <Text strong style={{ fontSize: '16px', color: ' #f33763' }}>
                   ${(item.price * item.quantity).toLocaleString('es-CL')}
                 </Text>
               </div>
@@ -152,7 +152,7 @@ const OrderConfirmationPage = () => {
             <Divider style={{ margin: '8px 0' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Title level={4} style={{ margin: 0 }}>Total:</Title>
-              <Title level={3} style={{ margin: 0, color: '#DE0797' }}>
+              <Title level={3} style={{ margin: 0, color: ' #f33763' }}>
                 ${orderData.total.toLocaleString('es-CL')}
               </Title>
             </div>
@@ -187,7 +187,7 @@ const OrderConfirmationPage = () => {
                   <strong>ventas@bojochic.cl</strong>
                 </Descriptions.Item>
                 <Descriptions.Item label="Monto a Transferir">
-                  <strong style={{ color: '#DE0797', fontSize: '16px' }}>
+                  <strong style={{ color: ' #f33763', fontSize: '16px' }}>
                     ${orderData.total.toLocaleString('es-CL')}
                   </strong>
                 </Descriptions.Item>

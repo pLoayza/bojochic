@@ -46,7 +46,7 @@ const Envio = () => {
         {/* Despachos */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -74,7 +74,7 @@ const Envio = () => {
         {/* Procesamiento del Pedido */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -97,7 +97,7 @@ const Envio = () => {
         {/* Envío Gratuito y Pagado */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -120,7 +120,7 @@ const Envio = () => {
         {/* Importante */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -144,7 +144,7 @@ const Envio = () => {
         {/* Envíos Devueltos */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -166,7 +166,7 @@ const Envio = () => {
         {/* Seguimiento */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -186,7 +186,7 @@ const Envio = () => {
               href="https://wa.me/56989058379" 
               target="_blank" 
               rel="noopener noreferrer"
-              style={{ color: '#DE0797', fontWeight: '600' }}
+              style={{ color: ' #f33763', fontWeight: '600' }}
             >
               +56 9 8905 8379
             </a>

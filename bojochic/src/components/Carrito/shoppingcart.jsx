@@ -8,7 +8,7 @@ import { useResponsive } from '../../hooks/useResponsive';
 
 const { Title, Text } = Typography;
 
-function ShoppingCart({ iconColor = '#DE0797', iconSize = '22px', showInNavbar = false }) {
+function ShoppingCart({ iconColor = ' #ffffff', iconSize = '22px', showInNavbar = false }) {
   const [open, setOpen] = useState(false);
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -92,8 +92,8 @@ function ShoppingCart({ iconColor = '#DE0797', iconSize = '22px', showInNavbar =
         count={cartItems.length} 
         showZero={false}
         style={{ 
-          backgroundColor: showInNavbar ? 'white' : '#DE0797',
-          color: showInNavbar ? '#DE0797' : 'white',
+          backgroundColor: showInNavbar ? 'white' : ' #f33763',
+          color: showInNavbar ? ' #f33763' : 'white',
         }}
       >
         <ShoppingCartOutlined 
@@ -179,7 +179,7 @@ function ShoppingCart({ iconColor = '#DE0797', iconSize = '22px', showInNavbar =
           minHeight: '60px',
         }}>
           <Space>
-            <ShoppingCartOutlined style={{ fontSize: '20px', color: '#DE0797' }} />
+            <ShoppingCartOutlined style={{ fontSize: '20px', color: ' #f33763' }} />
             <Text strong style={{ fontSize: '18px' }}>Mi Carrito</Text>
           </Space>
           <Button 
@@ -218,8 +218,8 @@ function ShoppingCart({ iconColor = '#DE0797', iconSize = '22px', showInNavbar =
                 type="primary" 
                 onClick={onClose}
                 style={{
-                  background: '#DE0797',
-                  borderColor: '#DE0797',
+                  background: ' #f33763',
+                  borderColor: ' #f33763',
                   height: '50px',
                   fontSize: '16px',
                   padding: '0 40px'
@@ -334,7 +334,7 @@ function ShoppingCart({ iconColor = '#DE0797', iconSize = '22px', showInNavbar =
                         <Text 
                           strong 
                           style={{ 
-                            color: '#DE0797',
+                            color: ' #f33763',
                             fontSize: isMobile ? '17px' : '16px',
                             marginTop: '12px',
                             display: 'block',
@@ -378,7 +378,7 @@ function ShoppingCart({ iconColor = '#DE0797', iconSize = '22px', showInNavbar =
                 </Text>
                 <Text strong style={{ 
                   fontSize: '28px',
-                  color: '#DE0797',
+                  color: ' #f33763',
                   fontWeight: 'bold'
                 }}>
                   ${calculateTotal().toLocaleString('es-CL')}
@@ -393,8 +393,8 @@ function ShoppingCart({ iconColor = '#DE0797', iconSize = '22px', showInNavbar =
                 icon={<ShoppingOutlined />}
                 onClick={handleCheckout}
                 style={{
-                  background: '#DE0797',
-                  borderColor: '#DE0797',
+                  background: ' #f33763',
+                  borderColor: ' #f33763',
                   height: '56px',
                   fontSize: '18px',
                   fontWeight: '600',
@@ -405,8 +405,8 @@ function ShoppingCart({ iconColor = '#DE0797', iconSize = '22px', showInNavbar =
                   e.currentTarget.style.borderColor = '#c00686';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#DE0797';
-                  e.currentTarget.style.borderColor = '#DE0797';
+                  e.currentTarget.style.background = ' #f33763';
+                  e.currentTarget.style.borderColor = ' #f33763';
                 }}
               >
                 Proceder al Pago

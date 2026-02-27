@@ -39,7 +39,7 @@ const OrderSummary = ({ cartItems, subtotal, shipping, total }) => {
               }
             />
             <div>
-              <Text strong style={{ color: '#DE0797' }}>
+              <Text strong style={{ color: ' #f33763' }}>
                 ${(item.price * item.quantity).toLocaleString('es-CL')}
               </Text>
             </div>
@@ -79,7 +79,7 @@ const OrderSummary = ({ cartItems, subtotal, shipping, total }) => {
           alignItems: 'center'
         }}>
           <Title level={4} style={{ margin: 0 }}>Total:</Title>
-          <Title level={3} style={{ margin: 0, color: '#DE0797' }}>
+          <Title level={3} style={{ margin: 0, color: ' #f33763' }}>
             ${total.toLocaleString('es-CL')}
           </Title>
         </div>

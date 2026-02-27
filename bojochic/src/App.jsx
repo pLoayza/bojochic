@@ -4,6 +4,7 @@ import { App as AntApp } from 'antd';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
+import ProductosLayout from './components/layout/ProductosLayout';
 
 // PÁGINAS
 import AuthLanding from './pages/Auth/AuthLanding';
@@ -20,7 +21,6 @@ import CheckoutPage from './pages/Checkout/CheckoutPage';
 import OrderConfirmationPage from './pages/Checkout/OrderConfirmationPage';
 import AdminPage from './pages/Admin/AdminPage';
 import GestionUsuariosPage from './pages/Admin/GestionUsuariosPage';
-import Checkout from './components/Payments/Checkout';
 import WebpayReturn from './components/Payments/WebpayReturn';
 import CartPage from './pages/CartPage';
 import MyOrders from './components/Payments/MyOrders';
@@ -35,69 +35,55 @@ function App() {
     <BrowserRouter>
       <AntApp>
         <AuthProvider>
-          <Popup 
-            delaySeconds={3} 
-            discountPercent={10} 
+          <Popup
+            delaySeconds={3}
+            discountPercent={10}
             showEveryMinutes={1}
           />
-          
+
           <Routes>
-            {/* RUTA RAÍZ - Página de autenticación temporal (SIN LAYOUT) */}
+            {/* RUTA RAÍZ — sin layout */}
             <Route path="/" element={<AuthLanding />} />
-            
-            {/* RUTAS CON LAYOUT */}
+
+            {/* RUTAS CON LAYOUT GENERAL */}
             <Route element={<MainLayout />}>
-              {/* 👇 Home completo - SOLO ADMINS */}
-              <Route 
-                path="/home" 
+              <Route
+                path="/home"
                 element={
                   <ProtectedRoute requireAdmin={true}>
                     <Home />
                   </ProtectedRoute>
-                } 
+                }
               />
-              
-              <Route path="registro" element={<Registro />} />
-              <Route path="login" element={<LoginPage />} />
-              <Route path="nosotros" element={<Nosotros />} />
-              <Route path="catalogo" element={<Catalogo />} />
-              <Route path="ofertas" element={<Catalogo />} />
-              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="registro"    element={<Registro />} />
+              <Route path="login"       element={<LoginPage />} />
+              <Route path="nosotros"    element={<Nosotros />} />
+              <Route path="catalogo"    element={<Catalogo />} />
+              <Route path="ofertas"     element={<Catalogo />} />
+              <Route path="/checkout"   element={<CheckoutPage />} />
               <Route path="/webpay/return" element={<WebpayReturn />} />
               <Route path="Estadisticas" element={<EstadisticasPage />} />
-              <Route path="aros" element={<ProductosPage />} />
-              <Route path="/perfil" element={<Profile />} />
-              <Route path="anillos" element={<ProductosPage />} />
-              <Route path="panuelos" element={<ProductosPage />} />
-              <Route path="pulseras" element={<ProductosPage />} />
-              <Route path="collares" element={<ProductosPage />} />
+              <Route path="/perfil"     element={<Profile />} />
               <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
+              <Route path="/orders"     element={<MyOrders />} />
+              {/* Políticas */}
+              <Route path="/politicas/envio"       element={<Envio />} />
+              <Route path="/politicas/privacidad"  element={<Privacidad />} />
+              <Route path="/politicas/reembolso"   element={<Reembolso />} />
+              <Route path="/politicas/terminos"    element={<Terminos />} />
+              {/* Admin */}
+              <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><AdminPage /></ProtectedRoute>} />
+              <Route path="/admin/usuarios" element={<ProtectedRoute requireAdmin={true}><GestionUsuariosPage /></ProtectedRoute>} />
+            </Route>
+
+            {/* ✅ RUTAS DE CATEGORÍAS — Banner persistente, solo cambia el grid */}
+            <Route element={<ProductosLayout />}>
+              <Route path="aros"      element={<ProductosPage />} />
+              <Route path="collares"  element={<ProductosPage />} />
+              <Route path="pulseras"  element={<ProductosPage />} />
+              <Route path="anillos"   element={<ProductosPage />} />
+              <Route path="panuelos"  element={<ProductosPage />} />
               <Route path="conjuntos" element={<ProductosPage />} />
-              <Route path="/orders" element={<MyOrders />} />
-              {/* Rutas de Políticas */}
-              <Route path="/politicas/envio" element={<Envio />} />
-              <Route path="/politicas/privacidad" element={<Privacidad />} />
-              <Route path="/politicas/reembolso" element={<Reembolso />} />
-              <Route path="/politicas/terminos" element={<Terminos />} />
-              
-              {/* Rutas protegidas para Admin */}
-              <Route 
-                path="/admin" 
-                element={
-                  <ProtectedRoute requireAdmin={true}>
-                    <AdminPage />
-                  </ProtectedRoute>
-                } 
-              />
-              
-              <Route 
-                path="/admin/usuarios" 
-                element={
-                  <ProtectedRoute requireAdmin={true}>
-                    <GestionUsuariosPage />
-                  </ProtectedRoute>
-                } 
-              />
             </Route>
           </Routes>
         </AuthProvider>

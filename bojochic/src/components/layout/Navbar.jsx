@@ -20,7 +20,7 @@ const Navbar = () => {
         alignItems: 'center',
         justifyContent: 'center',
         padding: `0 ${padding}`, // ← 3. USAR (20px móvil, 50px desktop)
-        background: '#DE0797',
+        background: ' #f33763',
         height: '50px',
         position: 'sticky',
         top: 0,

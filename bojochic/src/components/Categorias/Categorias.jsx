@@ -152,7 +152,7 @@ const Categorias = () => {
                       left: 0,
                       right: 0,
                       bottom: 0,
-                      border: hoveredCard === index ? '4px solid #DE0797' : '4px solid transparent',
+                      border: hoveredCard === index ? '4px solid  #f33763' : '4px solid transparent',
                       transition: 'border 0.3s ease',
                       pointerEvents: 'none',
                     }}

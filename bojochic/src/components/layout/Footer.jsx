@@ -116,7 +116,7 @@ const Footer = () => {
                     fontSize: '14px',
                     transition: 'color 0.3s'
                   }}
-                  onMouseEnter={(e) => e.target.style.color = '#DE0797'}
+                  onMouseEnter={(e) => e.target.style.color = ' #f33763'}
                   onMouseLeave={(e) => e.target.style.color = '#666'}
                 >
                   Inicio
@@ -129,7 +129,7 @@ const Footer = () => {
                     fontSize: '14px',
                     transition: 'color 0.3s'
                   }}
-                  onMouseEnter={(e) => e.target.style.color = '#DE0797'}
+                  onMouseEnter={(e) => e.target.style.color = ' #f33763'}
                   onMouseLeave={(e) => e.target.style.color = '#666'}
                 >
                   Catálogo
@@ -156,7 +156,7 @@ const Footer = () => {
                     fontSize: '14px',
                     transition: 'color 0.3s'
                   }}
-                  onMouseEnter={(e) => e.target.style.color = '#DE0797'}
+                  onMouseEnter={(e) => e.target.style.color = ' #f33763'}
                   onMouseLeave={(e) => e.target.style.color = '#666'}
                 >
                   Políticas de Envío
@@ -169,7 +169,7 @@ const Footer = () => {
                     fontSize: '14px',
                     transition: 'color 0.3s'
                   }}
-                  onMouseEnter={(e) => e.target.style.color = '#DE0797'}
+                  onMouseEnter={(e) => e.target.style.color = ' #f33763'}
                   onMouseLeave={(e) => e.target.style.color = '#666'}
                 >
                   Política de Privacidad
@@ -182,7 +182,7 @@ const Footer = () => {
                     fontSize: '14px',
                     transition: 'color 0.3s'
                   }}
-                  onMouseEnter={(e) => e.target.style.color = '#DE0797'}
+                  onMouseEnter={(e) => e.target.style.color = ' #f33763'}
                   onMouseLeave={(e) => e.target.style.color = '#666'}
                 >
                   Política de Reembolso
@@ -195,7 +195,7 @@ const Footer = () => {
                     fontSize: '14px',
                     transition: 'color 0.3s'
                   }}
-                  onMouseEnter={(e) => e.target.style.color = '#DE0797'}
+                  onMouseEnter={(e) => e.target.style.color = ' #f33763'}
                   onMouseLeave={(e) => e.target.style.color = '#666'}
                 >
                   Términos de Servicio
@@ -234,7 +234,7 @@ const Footer = () => {
                   loading={loading}
                   disabled={loading}
                   style={{
-                    background: loading ? '#ccc' : '#DE0797',
+                    background: loading ? '#ccc' : ' #f33763',
                     color: 'white',
                     border: 'none',
                     borderRadius: '0',
@@ -249,7 +249,7 @@ const Footer = () => {
                     if (!loading) e.currentTarget.style.background = '#c00686';
                   }}
                   onMouseLeave={(e) => {
-                    if (!loading) e.currentTarget.style.background = '#DE0797';
+                    if (!loading) e.currentTarget.style.background = ' #f33763';
                   }}
                 >
                   SUSCRIBIRSE

@@ -100,7 +100,7 @@ const EstadisticasPage = () => {
             {data.nombreCompleto}
           </p>
           <p
-            style={{ margin: '4px 0 0 0', color: '#DE0797', fontWeight: '600' }}
+            style={{ margin: '4px 0 0 0', color: ' #f33763', fontWeight: '600' }}
           >
             Stock: {data.stock} unidades
           </p>
@@ -123,7 +123,7 @@ const EstadisticasPage = () => {
           level={1}
           style={{
             textAlign: 'center',
-            color: '#DE0797',
+            color: ' #f33763',
             marginBottom: '40px',
           }}
         >
@@ -175,9 +175,9 @@ const EstadisticasPage = () => {
                 <Tooltip content={<CustomTooltip />} />
                 <Bar
                   dataKey="stock"
-                  fill="#DE0797"
+                  fill=" #f33763"
                   radius={[6, 6, 0, 0]}
-                  stroke="#DE0797"
+                  stroke=" #f33763"
                   strokeWidth={1}
                 />
               </BarChart>

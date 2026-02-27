@@ -49,7 +49,7 @@ const Terminos = () => {
         {/* Descripción General */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -63,7 +63,7 @@ const Terminos = () => {
           </Paragraph>
           <Paragraph style={{ fontSize: '15px', lineHeight: '1.8', color: '#555' }}>
             Al ver nuestros Servicios, interactuar con ellos o utilizarlos, acepta cumplir con estos Términos del servicio y nuestra{' '}
-            <Link to="/politicas/privacidad" style={{ color: '#DE0797', fontWeight: '600' }}>
+            <Link to="/politicas/privacidad" style={{ color: ' #f33763', fontWeight: '600' }}>
               Política de privacidad
             </Link>
             . Si no acepta estos Términos del servicio ni la Política de privacidad, no debe utilizar nuestros Servicios.
@@ -73,7 +73,7 @@ const Terminos = () => {
         {/* Sección 1: Acceso y Cuenta */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -96,7 +96,7 @@ const Terminos = () => {
         {/* Sección 2: Nuestros Productos */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -116,7 +116,7 @@ const Terminos = () => {
         {/* Sección 3: Pedidos */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -130,7 +130,7 @@ const Terminos = () => {
           </Paragraph>
           <Paragraph style={{ fontSize: '15px', lineHeight: '1.8', color: '#555' }}>
             Sus compras están sujetas a devoluciones o cambio únicamente conforme a nuestra{' '}
-            <Link to="/politicas/reembolso" style={{ color: '#DE0797', fontWeight: '600' }}>
+            <Link to="/politicas/reembolso" style={{ color: ' #f33763', fontWeight: '600' }}>
               Política de reembolso
             </Link>
             .
@@ -140,7 +140,7 @@ const Terminos = () => {
         {/* Sección 4: Precios y Facturación */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -160,7 +160,7 @@ const Terminos = () => {
         {/* Sección 5: Envío y Entrega */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -177,7 +177,7 @@ const Terminos = () => {
         {/* Sección 6: Propiedad Intelectual */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -197,7 +197,7 @@ const Terminos = () => {
         {/* Sección 7: Herramientas Opcionales */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -214,7 +214,7 @@ const Terminos = () => {
         {/* Sección 8: Enlaces de Terceros */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -231,7 +231,7 @@ const Terminos = () => {
         {/* Sección 9: Política de Privacidad */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -242,7 +242,7 @@ const Terminos = () => {
           </Title>
           <Paragraph style={{ fontSize: '15px', lineHeight: '1.8', color: '#555' }}>
             Toda la información personal que recopilamos está sujeta a nuestra{' '}
-            <Link to="/politicas/privacidad" style={{ color: '#DE0797', fontWeight: '600' }}>
+            <Link to="/politicas/privacidad" style={{ color: ' #f33763', fontWeight: '600' }}>
               Política de privacidad
             </Link>
             . Al utilizar los Servicios, usted reconoce que leyó esta política.
@@ -252,7 +252,7 @@ const Terminos = () => {
         {/* Sección 10: Comentarios */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -269,7 +269,7 @@ const Terminos = () => {
         {/* Sección 11: Errores e Imprecisiones */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -286,7 +286,7 @@ const Terminos = () => {
         {/* Sección 12: Usos Prohibidos */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -312,7 +312,7 @@ const Terminos = () => {
         {/* Sección 13: Rescisión */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -329,7 +329,7 @@ const Terminos = () => {
         {/* Sección 14: Descargo de Responsabilidad */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -346,7 +346,7 @@ const Terminos = () => {
         {/* Sección 15: Limitación de Responsabilidad */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -363,7 +363,7 @@ const Terminos = () => {
         {/* Sección 16: Indemnización */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -380,7 +380,7 @@ const Terminos = () => {
         {/* Sección 20: Legislación Vigente */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -397,7 +397,7 @@ const Terminos = () => {
         {/* Sección 22: Cambios en los Términos */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -414,7 +414,7 @@ const Terminos = () => {
         {/* Sección 23: Contacto */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -427,7 +427,7 @@ const Terminos = () => {
             Debe enviarnos cualquier pregunta acerca de los Términos del servicio a{' '}
             <a 
               href="mailto:bohochicchile@gmail.com"
-              style={{ color: '#DE0797', fontWeight: '600' }}
+              style={{ color: ' #f33763', fontWeight: '600' }}
             >
               bohochicchile@gmail.com
             </a>

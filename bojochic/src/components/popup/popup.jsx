@@ -149,7 +149,7 @@ const Popup = ({
               width: '45%',
               background: productImage 
                 ? `url(${productImage}) center/cover no-repeat`
-                : 'linear-gradient(135deg, #DE0797 0%, #ff6bb3 100%)',
+                : 'linear-gradient(135deg,  #f33763 0%, #ff6bb3 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -175,7 +175,7 @@ const Popup = ({
             <Title 
               level={3} 
               style={{ 
-                color: '#DE0797',
+                color: ' #f33763',
                 marginBottom: 8,
                 fontStyle: 'italic',
                 fontWeight: 600
@@ -218,8 +218,8 @@ const Popup = ({
               loading={loading}
               disabled={loading}
               style={{
-                background: '#DE0797',
-                borderColor: '#DE0797',
+                background: ' #f33763',
+                borderColor: ' #f33763',
                 height: 44,
                 fontWeight: 'bold',
                 borderRadius: 4,
@@ -229,7 +229,7 @@ const Popup = ({
                 if (!loading) e.currentTarget.style.background = '#c00686';
               }}
               onMouseLeave={(e) => {
-                if (!loading) e.currentTarget.style.background = '#DE0797';
+                if (!loading) e.currentTarget.style.background = ' #f33763';
               }}
             >
               SUSCRÍBETE

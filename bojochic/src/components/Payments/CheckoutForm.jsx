@@ -213,7 +213,7 @@ const CheckoutForm = ({ userData, cartItems, totalAmount }) => {
             loading={submitting}
             icon={<CreditCardOutlined />}
             style={{
-              background: 'linear-gradient(45deg, #DE0797, #FF6B9D)',
+              background: 'linear-gradient(45deg,  #f33763, #FF6B9D)',
               border: 'none',
               height: '50px',
               fontSize: '16px',

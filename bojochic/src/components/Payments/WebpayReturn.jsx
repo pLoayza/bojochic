@@ -97,7 +97,7 @@ const WebpayReturn = () => {
             <Button 
               type="primary" key="retry"
               onClick={() => navigate('/checkout')}
-              style={{ background: '#DE0797', borderColor: '#DE0797' }}
+              style={{ background: ' #f33763', borderColor: ' #f33763' }}
             >
               Intentar nuevamente
             </Button>,
@@ -134,7 +134,7 @@ const WebpayReturn = () => {
             </Descriptions.Item>
             {paymentData.amount && (
               <Descriptions.Item label="Monto Pagado">
-                <strong style={{ color: '#DE0797', fontSize: '18px' }}>
+                <strong style={{ color: ' #f33763', fontSize: '18px' }}>
                   ${paymentData.amount?.toLocaleString('es-CL')}
                 </strong>
               </Descriptions.Item>
@@ -167,7 +167,7 @@ const WebpayReturn = () => {
           type="primary" size="large"
           icon={<HomeOutlined />}
           onClick={() => navigate('/')}
-          style={{ background: '#DE0797', borderColor: '#DE0797', minWidth: '160px' }}
+          style={{ background: ' #f33763', borderColor: ' #f33763', minWidth: '160px' }}
         >
           Volver al Inicio
         </Button>

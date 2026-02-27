@@ -4,8 +4,8 @@ import { useState } from 'react';
 import arosImg from '../../assets/Categorias/aros.webp';
 import pulserasImg from '../../assets/Categorias/pulseras.webp';
 import collaresImg from '../../assets/Categorias/collares.webp';
-import plateadosImg from '../../assets/Categorias/plateados.webp';
-import doradosImg from '../../assets/Categorias/Dorados.jpg';
+import plateadosImg from '../../assets/Categorias/plateados.jpeg';
+import doradosImg from '../../assets/Categorias/Dorados.jpeg';
 
 const { Title } = Typography;
 
@@ -216,7 +216,7 @@ const Destacado = () => {
                             style={{
                               fontSize: '16px',
                               fontWeight: 'bold',
-                              color: '#DE0797',
+                              color: ' #f33763',
                             }}
                           >
                             {producto.precio}
@@ -235,7 +235,7 @@ const Destacado = () => {
                       navigate(coleccion.path);
                     }}
                     style={{
-                      background: '#DE0797',
+                      background: ' #f33763',
                       color: '#fff',
                       border: 'none',
                       padding: '12px 40px',

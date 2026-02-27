@@ -91,7 +91,7 @@ const AdminOrders = () => {
             style={{ display: 'flex', alignItems: 'center', gap: 10 }}
             onClick={e => e.stopPropagation()}
           >
-            <Text strong style={{ color: '#DE0797', fontSize: 15 }}>
+            <Text strong style={{ color: ' #f33763', fontSize: 15 }}>
               ${total?.toLocaleString('es-CL')}
             </Text>
             <Select
@@ -130,7 +130,7 @@ const AdminOrders = () => {
                     {item.color && ` · Color: ${item.color}`}
                   </Text>
                 </div>
-                <Text strong style={{ color: '#DE0797', fontSize: 13 }}>
+                <Text strong style={{ color: ' #f33763', fontSize: 13 }}>
                   ${(item.price * item.quantity).toLocaleString('es-CL')}
                 </Text>
               </div>
@@ -147,7 +147,7 @@ const AdminOrders = () => {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <Text strong>Total:</Text>
-              <Text strong style={{ color: '#DE0797' }}>${total?.toLocaleString('es-CL')}</Text>
+              <Text strong style={{ color: ' #f33763' }}>${total?.toLocaleString('es-CL')}</Text>
             </div>
           </div>
 
