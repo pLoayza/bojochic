@@ -155,15 +155,11 @@ const Banner = () => {
         <div className="bojo-ticker-inner">
           {[
             '✦ Envíos gratis por compras sobre $20.000',
-            '✦ Nueva Colección Verano 2026',
             '✦ Pago seguro con Webpay Plus',
-            '✦ Retiro en tienda disponible',
             '✦ Envíos gratis por compras sobre $20.000',
-            '✦ Nueva Colección Verano 2026',
             '✦ Pago seguro con Webpay Plus',
-            '✦ Retiro en tienda disponible',
           ].map((msg, i) => (
-            <span key={i} style={{ margin: '0 36px' }}>{msg}</span>
+            <span key={i} style={{ margin: '0 240px' }}>{msg}</span>
           ))}
         </div>
       </div>

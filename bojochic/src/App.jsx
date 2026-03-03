@@ -7,7 +7,6 @@ import MainLayout from './components/layout/MainLayout';
 import ProductosLayout from './components/layout/ProductosLayout';
 
 // PÁGINAS
-import AuthLanding from './pages/Auth/AuthLanding';
 import Home from './pages/Home';
 import Registro from './pages/Registro';
 import Nosotros from './pages/Nosotros';
@@ -42,19 +41,12 @@ function App() {
           />
 
           <Routes>
-            {/* RUTA RAÍZ — sin layout */}
-            <Route path="/" element={<AuthLanding />} />
-
             {/* RUTAS CON LAYOUT GENERAL */}
             <Route element={<MainLayout />}>
-              <Route
-                path="/home"
-                element={
-                  <ProtectedRoute requireAdmin={true}>
-                    <Home />
-                  </ProtectedRoute>
-                }
-              />
+              {/* ✅ Home ahora es la ruta raíz */}
+              <Route path="/" element={<Home />} />
+              <Route path="/home" element={<Home />} />
+
               <Route path="registro"    element={<Registro />} />
               <Route path="login"       element={<LoginPage />} />
               <Route path="nosotros"    element={<Nosotros />} />
@@ -76,7 +68,7 @@ function App() {
               <Route path="/admin/usuarios" element={<ProtectedRoute requireAdmin={true}><GestionUsuariosPage /></ProtectedRoute>} />
             </Route>
 
-            {/* ✅ RUTAS DE CATEGORÍAS — Banner persistente, solo cambia el grid */}
+            {/* ✅ RUTAS DE CATEGORÍAS */}
             <Route element={<ProductosLayout />}>
               <Route path="aros"      element={<ProductosPage />} />
               <Route path="collares"  element={<ProductosPage />} />
@@ -84,6 +76,9 @@ function App() {
               <Route path="anillos"   element={<ProductosPage />} />
               <Route path="panuelos"  element={<ProductosPage />} />
               <Route path="conjuntos" element={<ProductosPage />} />
+               {/* ✅ Nuevas colecciones */}
+              <Route path="plateados" element={<ProductosPage />} />
+              <Route path="dorados"   element={<ProductosPage />} />
             </Route>
           </Routes>
         </AuthProvider>
