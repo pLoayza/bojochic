@@ -107,7 +107,7 @@ const Banner = () => {
 
   const userMenuItems = [
     { key: 'perfil',      icon: <UserOutlined />,    label: 'Mi Perfil',     onClick: () => navigate('/perfil') },
-    { key: 'mis-pedidos', icon: <ShoppingOutlined />, label: 'Mis Pedidos',   onClick: () => navigate('/mis-pedidos') },
+    { key: 'mis-pedidos', icon: <ShoppingOutlined />, label: 'Mis Pedidos',   onClick: () => navigate('/orders') },
     { type: 'divider' },
     { key: 'logout',      icon: <LogoutOutlined />,   label: 'Cerrar Sesión', onClick: handleLogout, danger: true },
   ];
@@ -155,15 +155,11 @@ const Banner = () => {
         <div className="bojo-ticker-inner">
           {[
             '✦ Envíos gratis por compras sobre $20.000',
-            '✦ Nueva Colección Verano 2026',
             '✦ Pago seguro con Webpay Plus',
-            '✦ Retiro en tienda disponible',
             '✦ Envíos gratis por compras sobre $20.000',
-            '✦ Nueva Colección Verano 2026',
             '✦ Pago seguro con Webpay Plus',
-            '✦ Retiro en tienda disponible',
           ].map((msg, i) => (
-            <span key={i} style={{ margin: '0 36px' }}>{msg}</span>
+            <span key={i} style={{ margin: '0 240px' }}>{msg}</span>
           ))}
         </div>
       </div>

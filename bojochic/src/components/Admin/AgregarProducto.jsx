@@ -203,7 +203,7 @@ const AgregarProducto = () => {
               icon={<PlusOutlined />}
               onClick={agregarImagen}
               style={{
-                background: 'linear-gradient(45deg, #DE0797, #FF6B9D)',
+                background: 'linear-gradient(45deg,  #f33763, #FF6B9D)',
                 border: 'none',
               }}
             >
@@ -263,7 +263,7 @@ const AgregarProducto = () => {
               size="large"
               loading={loading}
               style={{
-                background: 'linear-gradient(45deg, #DE0797, #FF6B9D)',
+                background: 'linear-gradient(45deg,  #f33763, #FF6B9D)',
                 border: 'none',
               }}
             >

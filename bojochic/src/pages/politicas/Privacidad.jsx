@@ -67,7 +67,7 @@ const Privacidad = () => {
         {/* Información personal que recopilamos */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -103,7 +103,7 @@ const Privacidad = () => {
         {/* Fuentes de información */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -136,7 +136,7 @@ const Privacidad = () => {
         {/* Cómo utilizamos su información */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -162,7 +162,7 @@ const Privacidad = () => {
         {/* Cómo divulgamos la información */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -196,7 +196,7 @@ const Privacidad = () => {
         {/* Sitios web de terceros */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -217,7 +217,7 @@ const Privacidad = () => {
         {/* Datos de menores */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -238,7 +238,7 @@ const Privacidad = () => {
         {/* Seguridad y retención */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -259,7 +259,7 @@ const Privacidad = () => {
         {/* Sus derechos */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -293,7 +293,7 @@ const Privacidad = () => {
         {/* Transferencias internacionales */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -314,7 +314,7 @@ const Privacidad = () => {
         {/* Cambios en la política */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -335,7 +335,7 @@ const Privacidad = () => {
         {/* Contacto */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: '#DE0797', 
+            color: ' #f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -352,7 +352,7 @@ const Privacidad = () => {
             Si tiene alguna pregunta contáctenos a{' '}
             <a 
               href="mailto:bohochicchile@gmail.com"
-              style={{ color: '#DE0797', fontWeight: '600' }}
+              style={{ color: ' #f33763', fontWeight: '600' }}
             >
               bohochicchile@gmail.com
             </a>

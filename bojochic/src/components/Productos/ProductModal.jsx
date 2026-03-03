@@ -209,7 +209,7 @@ const ProductModal = ({ visible, producto, onClose }) => {
             style={{
               fontSize: 'clamp(26px, 6vw, 32px)',
               fontWeight: 'bold',
-              color: '#DE0797',
+              color: ' #f33763',
               marginBottom: '20px',
             }}
           >
@@ -338,7 +338,7 @@ const ProductModal = ({ visible, producto, onClose }) => {
                 background:
                   producto.stock === 0 || producto.activo === false
                     ? '#d9d9d9'
-                    : 'linear-gradient(45deg, #DE0797, #FF6B9D)',
+                    : 'linear-gradient(45deg,  #f33763, #FF6B9D)',
                 border: 'none',
                 borderRadius: '8px',
                 fontWeight: '600',
@@ -359,8 +359,8 @@ const ProductModal = ({ visible, producto, onClose }) => {
                 borderRadius: '8px',
                 fontWeight: '600',
                 height: '45px',
-                borderColor: '#DE0797',
-                color: '#DE0797',
+                borderColor: ' #f33763',
+                color: ' #f33763',
               }}
             >
               Seguir comprando

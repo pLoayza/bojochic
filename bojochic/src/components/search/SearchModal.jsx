@@ -95,7 +95,7 @@ const SearchModal = ({ visible, onClose }) => {
     <Modal
       title={
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <SearchOutlined style={{ color: '#DE0797', fontSize: '20px' }} />
+          <SearchOutlined style={{ color: ' #f33763', fontSize: '20px' }} />
           <span>Buscar Productos</span>
         </div>
       }
@@ -175,7 +175,7 @@ const SearchModal = ({ visible, onClose }) => {
                         <span style={{ fontSize: '16px', fontWeight: '600' }}>
                           {producto.nombre}
                         </span>
-                        <span style={{ color: '#DE0797', fontSize: '18px', fontWeight: 'bold' }}>
+                        <span style={{ color: ' #f33763', fontSize: '18px', fontWeight: 'bold' }}>
                           ${producto.precio.toLocaleString('es-CL')}
                         </span>
                       </div>

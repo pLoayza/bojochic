@@ -15,29 +15,21 @@ const WebpayReturn = () => {
   const [paymentData, setPaymentData] = useState(null);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  
-  // ✅ Prevenir doble llamado en React Strict Mode
   const hasConfirmed = useRef(false);
 
   useEffect(() => {
     const confirmPayment = async () => {
-      // ✅ Si ya confirmó, no volver a hacerlo
-      if (hasConfirmed.current) {
-        console.log('⏭️ Ya confirmado, saltando...');
-        return;
-      }
+      if (hasConfirmed.current) return;
 
       const token = searchParams.get('token_ws');
-      
+
       if (!token) {
         setError('Token inválido');
         setLoading(false);
         return;
       }
 
-      // ✅ Marcar como confirmado ANTES de hacer el fetch
       hasConfirmed.current = true;
-      console.log('🔵 Confirmando por primera vez...');
 
       try {
         const user = auth.currentUser;
@@ -49,7 +41,6 @@ const WebpayReturn = () => {
 
         const userToken = await user.getIdToken();
 
-        // Confirmar transacción con el backend
         const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/webpay/confirm`, {
           method: 'POST',
           headers: {
@@ -62,18 +53,13 @@ const WebpayReturn = () => {
         const data = await response.json();
 
         if (!response.ok) {
-          // Si el error es "already locked", verificar si el pago fue exitoso
           if (data.error?.includes('already locked')) {
-            console.log('⚠️ Ya procesado por otra petición, verificando estado...');
-            // Mostrar como exitoso si fue aprobado
-            setPaymentData({ 
-              success: true, 
-              message: 'Pago ya procesado exitosamente'
-            });
+            setPaymentData({ success: true, message: 'Pago ya procesado exitosamente' });
           } else {
             throw new Error(data.error || 'Error al confirmar pago');
           }
         } else {
+          // ✅ El backend ya actualizó Firestore, solo seteamos el estado local
           setPaymentData(data);
         }
       } catch (err) {
@@ -85,22 +71,17 @@ const WebpayReturn = () => {
     };
 
     confirmPayment();
-  }, [searchParams]); // ✅ Solo depende de searchParams
+  }, [searchParams]);
 
   if (loading) {
     return (
       <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column',
-        justifyContent: 'center', 
-        alignItems: 'center',
-        minHeight: '60vh',
-        padding: '40px'
+        display: 'flex', flexDirection: 'column',
+        justifyContent: 'center', alignItems: 'center',
+        minHeight: '60vh', padding: '40px'
       }}>
         <Spin size="large" />
-        <p style={{ marginTop: 20, fontSize: '16px' }}>
-          Verificando tu pago...
-        </p>
+        <p style={{ marginTop: 20, fontSize: '16px' }}>Verificando tu pago...</p>
       </div>
     );
   }
@@ -111,13 +92,12 @@ const WebpayReturn = () => {
         <Result
           status="error"
           title="Error en la transacción"
-          subTitle={error || "No se pudo procesar tu pago"}
+          subTitle={error || 'No se pudo procesar tu pago'}
           extra={[
             <Button 
-              type="primary" 
-              key="retry" 
+              type="primary" key="retry"
               onClick={() => navigate('/checkout')}
-              style={{ background: '#DE0797', borderColor: '#DE0797' }}
+              style={{ background: ' #f33763', borderColor: ' #f33763' }}
             >
               Intentar nuevamente
             </Button>,
@@ -148,18 +128,13 @@ const WebpayReturn = () => {
 
       {paymentData.success && paymentData.buyOrder && (
         <Card style={{ marginTop: 24 }}>
-          <Descriptions 
-            title="Detalles de la Transacción" 
-            bordered 
-            column={1}
-            size="middle"
-          >
+          <Descriptions title="Detalles de la Transacción" bordered column={1} size="middle">
             <Descriptions.Item label="Número de Orden">
               <strong>{paymentData.buyOrder}</strong>
             </Descriptions.Item>
             {paymentData.amount && (
               <Descriptions.Item label="Monto Pagado">
-                <strong style={{ color: '#DE0797', fontSize: '18px' }}>
+                <strong style={{ color: ' #f33763', fontSize: '18px' }}>
                   ${paymentData.amount?.toLocaleString('es-CL')}
                 </strong>
               </Descriptions.Item>
@@ -176,11 +151,8 @@ const WebpayReturn = () => {
             )}
             <Descriptions.Item label="Fecha">
               {new Date().toLocaleDateString('es-CL', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+                year: 'numeric', month: 'long', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
               })}
             </Descriptions.Item>
           </Descriptions>
@@ -188,30 +160,20 @@ const WebpayReturn = () => {
       )}
 
       <div style={{ 
-        marginTop: 32, 
-        display: 'flex', 
-        gap: '16px', 
-        justifyContent: 'center',
-        flexWrap: 'wrap'
+        marginTop: 32, display: 'flex', gap: '16px', 
+        justifyContent: 'center', flexWrap: 'wrap'
       }}>
         <Button 
-          type="primary" 
-          size="large"
+          type="primary" size="large"
           icon={<HomeOutlined />}
           onClick={() => navigate('/')}
-          style={{
-            background: '#DE0797',
-            borderColor: '#DE0797',
-            minWidth: '160px'
-          }}
+          style={{ background: ' #f33763', borderColor: ' #f33763', minWidth: '160px' }}
         >
           Volver al Inicio
         </Button>
-        
         {paymentData.success && (
           <Button 
-            size="large"
-            icon={<ShoppingOutlined />}
+            size="large" icon={<ShoppingOutlined />}
             onClick={() => navigate('/orders')}
             style={{ minWidth: '160px' }}
           >

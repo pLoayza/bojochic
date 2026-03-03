@@ -221,7 +221,7 @@ const ListaProductos = () => {
         </div>
         
         <Space align="center">
-          <FilterOutlined style={{ color: '#DE0797' }} />
+          <FilterOutlined style={{ color: ' #f33763' }} />
           <span>Filtrar por:</span>
           <Select
             value={categoriaSeleccionada}

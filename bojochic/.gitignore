@@ -26,6 +26,8 @@ build
 .env.production.local
 backend/.env
 **/.env
+.env.development
+.env.production
 
 # Firebase credentials
 serviceAccountKey.json

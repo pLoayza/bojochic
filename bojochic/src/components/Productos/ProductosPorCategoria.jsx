@@ -89,7 +89,7 @@ const ProductosPorCategoria = ({ categoria, productos }) => {
             level={1}
             style={{
               margin: 0,
-              color: '#DE0797',
+              color: ' #f33763',
               textTransform: 'uppercase',
               letterSpacing: '2px',
               fontSize: 'clamp(24px, 5vw, 36px)',
