@@ -55,7 +55,9 @@ const Checkout = () => {
     total + (item.price * item.quantity), 0
   );
 
-  const shipping = subtotal >= 20000 ? 0 : 3000;
+  /* const shipping = subtotal >= 20000 ? 0 : 3000; */
+  const shipping = 0;
+  
   const total = subtotal + shipping;
 
   if (loading) {
