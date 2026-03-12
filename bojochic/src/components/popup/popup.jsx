@@ -246,7 +246,7 @@ const Popup = ({
             >
               Al introducir tu correo electronico, automáticamente quedas 
               suscrito a recibir 
-              nuestras novedades,(correo)que puedes cancelar/dar de baja 
+              nuestras novedades,(correos)que puedes cancelar/dar de baja 
               cuando lo desees
             </Text>
           </div>
