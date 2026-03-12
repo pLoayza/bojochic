@@ -244,9 +244,10 @@ const Popup = ({
                 color: '#999'
               }}
             >
-              *Al introducir tu correo electrónico automáticamente 
-              quedas suscrito a recibir nuestros correos y te puedes 
-              desuscribir cuando lo desees.
+              Al introducir tu correo electronico, automáticamente quedas 
+              suscrito a recibir 
+              nuestras novedades,(correo)que puedes cancelar/dar de baja 
+              cuando lo desees
             </Text>
           </div>
         </div>

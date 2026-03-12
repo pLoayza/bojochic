@@ -1,12 +1,12 @@
 import { Card, Row, Col, Typography } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import arosImg from '../../assets/Categorias/aros.webp';
-import anillosImg from '../../assets/Categorias/panuelos.png';
-import panuelosImg from '../../assets/Categorias/panuelos.png';
-import pulserasImg from '../../assets/Categorias/pulseras.webp';
-import collaresImg from '../../assets/Categorias/collares.webp';
-import conjuntosImg from '../../assets/Categorias/liquidacion.webp';
+import arosImg from '../../assets/Categorias/aros.jpeg';
+import anillosImg from '../../assets/Categorias/anillos.jpeg';
+import panuelosImg from '../../assets/Categorias/otros.png';
+import pulserasImg from '../../assets/Categorias/pulseras.jpeg';
+import collaresImg from '../../assets/Categorias/collares.jpeg';
+import conjuntosImg from '../../assets/Categorias/conjuntos.jpeg';
 
 const { Title } = Typography;
 
@@ -31,9 +31,9 @@ const Categorias = () => {
       image: pulserasImg,
     },
     {
-      title: 'Pañuelos',
+      title: 'Conjuntos',
       path: '/panuelos',
-      image: panuelosImg,
+      image: conjuntosImg,
     },
     {
       title: 'Anillos',
@@ -41,10 +41,10 @@ const Categorias = () => {
       image: anillosImg,
     },
     {
-      title: 'Conjuntos',
-      path: '/conjuntos',
-      image: conjuntosImg,
-    },
+  title: 'Otros',
+  path: '/otros',
+  image: panuelosImg,
+},
   ];
 
   return (
@@ -59,7 +59,7 @@ const Categorias = () => {
           letterSpacing: '2px',
         }}
       >
-        Colección Verano 2026
+        Colección Otoño 2026
       </Title>
       <Row gutter={[24, 24]}>
         {categories.map((cat, index) => (
