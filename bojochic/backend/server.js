@@ -251,7 +251,7 @@ app.post('/api/webpay/confirm', verifyAuth, async (req, res) => {
       // 📧 Enviar correo de confirmación
       try {
         await resend.emails.send({
-          from: 'Bojo Chic <pedidos@bojo.cl>',
+          from: 'Bojo <Pedidos@bojo.cl>',
           to: orderData.shippingData.email,
           subject: `✨ ¡Pedido confirmado! Orden ${orderData.buyOrder}`,
           html: buildOrderEmail(

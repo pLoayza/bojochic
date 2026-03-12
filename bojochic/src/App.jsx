@@ -75,7 +75,7 @@ function App() {
               <Route path="pulseras"  element={<ProductosPage />} />
               <Route path="anillos"   element={<ProductosPage />} />
               <Route path="panuelos"  element={<ProductosPage />} />
-              <Route path="conjuntos" element={<ProductosPage />} />
+              <Route path="otros" element={<ProductosPage />} />
                {/* ✅ Nuevas colecciones */}
               <Route path="plateados" element={<ProductosPage />} />
               <Route path="dorados"   element={<ProductosPage />} />
