@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Row, Col, Spin, message } from 'antd';
 import { auth, db } from '../../firebase/config';
 import { collection, onSnapshot, doc, getDoc } from 'firebase/firestore';
-import CheckoutForm from '../../components/Payments/CheckoutForm';
+import CheckoutForm, { getCostoEnvio } from '../../components/Payments/CheckoutForm';
 import OrderSummary from '../../components/Payments/OrderSummary';
 
 const CheckoutPage = () => {
@@ -11,6 +11,7 @@ const CheckoutPage = () => {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
+  const [shipping, setShipping] = useState(0); // 0 hasta que elija región
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -21,12 +22,16 @@ const CheckoutPage = () => {
       return;
     }
 
-    // Cargar datos del usuario
     const loadUserData = async () => {
       try {
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         if (userDoc.exists()) {
-          setUserData({ ...userDoc.data(), email: user.email });
+          const data = userDoc.data();
+          setUserData({ ...data, email: user.email });
+          // Si el usuario ya tiene región guardada, precarga el costo
+          if (data.region) {
+            setShipping(getCostoEnvio(data.region));
+          }
         }
       } catch (error) {
         console.error('Error cargando datos del usuario:', error);
@@ -35,15 +40,12 @@ const CheckoutPage = () => {
 
     loadUserData();
 
-    // Listener del carrito
     const cartRef = collection(db, 'users', user.uid, 'cart');
     const unsubscribe = onSnapshot(cartRef, (snapshot) => {
       const items = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
-      
-      console.log('🔵 Carrito cargado en CheckoutPage:', items);
       
       if (items.length === 0) {
         message.info('Tu carrito está vacío');
@@ -57,59 +59,32 @@ const CheckoutPage = () => {
     return () => unsubscribe();
   }, [navigate]);
 
-  const calculateSubtotal = () => {
-    return cartItems.reduce((total, item) => {
-      return total + (item.price * item.quantity);
-    }, 0);
+  const handleRegionChange = (region) => {
+    setShipping(getCostoEnvio(region));
   };
 
-  const calculateShipping = () => {
-    const subtotal = calculateSubtotal();
-    /* return subtotal >= 20000 ? 0 : 3000; */
-    return 0
-    
-  };
-
-  const calculateTotal = () => {
-    return calculateSubtotal() + calculateShipping();
-  };
-
-  const subtotal = calculateSubtotal();
-  const shipping = calculateShipping();
-  const total = calculateTotal();
-
-  console.log('🔵 CheckoutPage - Total:', total);
-  console.log('🔵 CheckoutPage - Items:', cartItems);
+  const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+  const total = subtotal + shipping;
 
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '60vh' 
-      }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
         <Spin size="large" />
       </div>
     );
   }
 
   return (
-    <div style={{ 
-      maxWidth: '1200px', 
-      margin: '50px auto', 
-      padding: '0 20px',
-      minHeight: '70vh'
-    }}>
+    <div style={{ maxWidth: '1200px', margin: '50px auto', padding: '0 20px', minHeight: '70vh' }}>
       <Row gutter={[32, 32]}>
         <Col xs={24} lg={14}>
           <CheckoutForm 
             userData={userData}
-            cartItems={cartItems}      // ✅ AGREGADO
-            totalAmount={total}         // ✅ AGREGADO
+            cartItems={cartItems}
+            totalAmount={total}
+            onRegionChange={handleRegionChange}
           />
         </Col>
-
         <Col xs={24} lg={10}>
           <OrderSummary 
             cartItems={cartItems}

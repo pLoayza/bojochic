@@ -12,7 +12,6 @@ import { auth } from '../../firebase/config';
 const { Title } = Typography;
 const { Option } = Select;
 
-// Datos de regiones y comunas de Chile
 const REGIONES_COMUNAS = {
   'Arica y Parinacota': ['Arica', 'Camarones', 'Putre', 'General Lagos'],
   'Tarapacá': ['Iquique', 'Alto Hospicio', 'Pozo Almonte', 'Camiña', 'Colchane', 'Huara', 'Pica'],
@@ -32,7 +31,29 @@ const REGIONES_COMUNAS = {
   'Magallanes': ['Punta Arenas', 'Laguna Blanca', 'Río Verde', 'San Gregorio', 'Cabo de Hornos', 'Antártica', 'Porvenir', 'Primavera', 'Timaukel', 'Natales', 'Torres del Paine'],
 };
 
-const CheckoutForm = ({ userData, cartItems, totalAmount }) => {
+// ✅ Exportado para usarlo en CheckoutPage
+export const COSTO_ENVIO = {
+  'Arica y Parinacota': 7990,
+  'Tarapacá':           6990,
+  'Antofagasta':        6990,
+  'Atacama':            5990,
+  'Coquimbo':           5990,
+  'Valparaíso':         4990,
+  'Metropolitana':      3990,
+  'O\'Higgins':         4990,
+  'Maule':              5990,
+  'Ñuble':              5990,
+  'Biobío':             5990,
+  'La Araucanía':       5990,
+  'Los Ríos':           6990,
+  'Los Lagos':          6990,
+  'Aysén':              9990,
+  'Magallanes':         9990,
+};
+
+export const getCostoEnvio = (region) => COSTO_ENVIO[region] ?? 3000;
+
+const CheckoutForm = ({ userData, cartItems, totalAmount, onRegionChange }) => {
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
   const [regionSeleccionada, setRegionSeleccionada] = useState(null);
@@ -49,7 +70,6 @@ const CheckoutForm = ({ userData, cartItems, totalAmount }) => {
         region: userData.region || ''
       });
 
-      // Si el usuario ya tiene región guardada, cargar sus comunas
       if (userData.region && REGIONES_COMUNAS[userData.region]) {
         setRegionSeleccionada(userData.region);
         setComunasDisponibles(REGIONES_COMUNAS[userData.region]);
@@ -60,11 +80,11 @@ const CheckoutForm = ({ userData, cartItems, totalAmount }) => {
   const handleRegionChange = (region) => {
     setRegionSeleccionada(region);
     setComunasDisponibles(REGIONES_COMUNAS[region] || []);
-    form.setFieldValue('comuna', undefined); // Limpiar comuna al cambiar región
+    form.setFieldValue('comuna', undefined);
+    onRegionChange?.(region); // ✅ Notifica al padre
   };
 
   const handleSubmit = async (values) => {
-    console.log('🔵 === INICIO HANDLESUBMIT ===');
     setSubmitting(true);
 
     try {
@@ -84,7 +104,7 @@ const CheckoutForm = ({ userData, cartItems, totalAmount }) => {
       const token = await user.getIdToken();
 
       const requestBody = {
-        amount: totalAmount,
+        amount: totalAmount, // ✅ Ya incluye el envío dinámico calculado en el padre
         items: cartItems.map(item => ({
           id: item.id,
           name: item.name,
@@ -97,8 +117,6 @@ const CheckoutForm = ({ userData, cartItems, totalAmount }) => {
         shippingData: values
       };
 
-      console.log('🔵 Llamando al backend...');
-
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/webpay/create`, {
         method: 'POST',
         headers: {
@@ -109,13 +127,11 @@ const CheckoutForm = ({ userData, cartItems, totalAmount }) => {
       });
 
       const data = await response.json();
-      console.log('🔵 Response data:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Error al crear transacción');
       }
 
-      console.log('✅ Redirigiendo a Webpay...');
       const formElement = document.createElement('form');
       formElement.method = 'POST';
       formElement.action = data.url;
@@ -142,12 +158,8 @@ const CheckoutForm = ({ userData, cartItems, totalAmount }) => {
         Datos de Envío
       </Title>
 
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleSubmit}
-        autoComplete="off"
-      >
+      <Form form={form} layout="vertical" onFinish={handleSubmit} autoComplete="off">
+
         <Form.Item
           name="nombre"
           label="Nombre Completo"
@@ -167,9 +179,9 @@ const CheckoutForm = ({ userData, cartItems, totalAmount }) => {
             { type: 'email', message: 'Email inválido' }
           ]}
         >
-          <Input 
-            prefix={<UserOutlined />} 
-            placeholder="correo@ejemplo.com" 
+          <Input
+            prefix={<UserOutlined />}
+            placeholder="correo@ejemplo.com"
             size="large"
             disabled={!!userData?.email}
           />
@@ -194,10 +206,10 @@ const CheckoutForm = ({ userData, cartItems, totalAmount }) => {
             { min: 5, message: 'Dirección muy corta' }
           ]}
         >
-          <Input 
-            prefix={<HomeOutlined />} 
-            placeholder="Calle Ejemplo 123, Depto 45" 
-            size="large" 
+          <Input
+            prefix={<HomeOutlined />}
+            placeholder="Calle Ejemplo 123, Depto 45"
+            size="large"
           />
         </Form.Item>
 
@@ -249,11 +261,22 @@ const CheckoutForm = ({ userData, cartItems, totalAmount }) => {
         </Row>
 
         <Form.Item name="notas" label="Notas adicionales (opcional)">
-          <Input.TextArea 
+          <Input.TextArea
             placeholder="Ej: Dejar en conserjería, timbre no funciona, etc."
             rows={3}
           />
         </Form.Item>
+
+        {/* ✅ Muestra el costo de envío dinámico */}
+        {regionSeleccionada && (
+          <Alert
+            message={`Envío a ${regionSeleccionada}: $${getCostoEnvio(regionSeleccionada).toLocaleString('es-CL')}`}
+            type="success"
+            showIcon
+            icon={<EnvironmentOutlined />}
+            style={{ marginBottom: '12px' }}
+          />
+        )}
 
         <Alert
           message="Pago Seguro con Webpay"
@@ -265,15 +288,15 @@ const CheckoutForm = ({ userData, cartItems, totalAmount }) => {
         />
 
         <Form.Item>
-          <Button 
-            type="primary" 
-            htmlType="submit" 
-            size="large" 
+          <Button
+            type="primary"
+            htmlType="submit"
+            size="large"
             block
             loading={submitting}
             icon={<CreditCardOutlined />}
             style={{
-              background: 'linear-gradient(45deg,  #f33763, #FF6B9D)',
+              background: 'linear-gradient(45deg, #f33763, #FF6B9D)',
               border: 'none',
               height: '50px',
               fontSize: '16px',
