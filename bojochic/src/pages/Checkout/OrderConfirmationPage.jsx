@@ -181,7 +181,7 @@ const OrderConfirmationPage = () => {
                   <strong>12.345.678-9</strong>
                 </Descriptions.Item>
                 <Descriptions.Item label="Nombre">
-                  <strong>Bojo Chic SpA</strong>
+                  <strong>Bojo SpA</strong>
                 </Descriptions.Item>
                 <Descriptions.Item label="Email">
                   <strong>ventas@bojochic.cl</strong>
