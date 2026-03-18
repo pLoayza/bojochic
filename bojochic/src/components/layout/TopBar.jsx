@@ -30,7 +30,7 @@ const TopBar = () => {
           <Link to="/inicio">
             <img 
               src={logo} 
-              alt="Bojo Chic Logo" 
+              alt="Bojo  Logo" 
               style={{ 
                 height: '80px',
                 cursor: 'pointer'

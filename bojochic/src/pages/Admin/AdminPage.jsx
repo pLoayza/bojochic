@@ -31,7 +31,7 @@ const AdminPage = () => {
   return (
     <div style={{ maxWidth: '1200px', margin: '50px auto', padding: '0 20px' }}>
       <Card
-        title="Panel de Administración - Bojo Chic"
+        title="Panel de Administración - Bojo "
         extra={
           userRole === 'admin' && (
             <Button

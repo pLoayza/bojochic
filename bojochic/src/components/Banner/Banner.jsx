@@ -192,7 +192,7 @@ const Banner = () => {
         <div className="bojo-logo-wrap" style={{ zIndex: 1, textAlign: 'center' }}>
           <img
             src={bojoLogo}
-            alt="Bojo Chic Logo"
+            alt="Bojo Logo"
             style={{
               width: isMobile ? '200px' : '540px',
               display: 'block',

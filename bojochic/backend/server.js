@@ -91,19 +91,13 @@ const buildOrderEmail = (shippingData, items, amount, buyOrder, authorizationCod
       <div style="max-width: 600px; margin: 40px auto; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
         
         <!-- HEADER -->
-        <div style="background: #f33763; padding: 12px 32px; text-align: center; position: relative;">
-          <span style="position: absolute; color: rgba(252,228,236,0.35); font-size: 18px; top: 14px; left: 40px;">♥</span>
-          <span style="position: absolute; color: rgba(252,228,236,0.25); font-size: 11px; top: 36px; left: 80px;">♥</span>
-          <span style="position: absolute; color: rgba(252,228,236,0.30); font-size: 13px; top: 12px; right: 55px;">♥</span>
-          <span style="position: absolute; color: rgba(252,228,236,0.20); font-size: 20px; bottom: 12px; left: 140px;">♥</span>
-          <span style="position: absolute; color: rgba(252,228,236,0.25); font-size: 9px; bottom: 14px; right: 150px;">♥</span>
-          <img src="logo-bojo.png"
-            alt="Bojo"
-            style="height: 200px; width: auto; object-fit: contain; position: relative; z-index: 1;" />
-        </div>
-
+<div style="background: #f33763; padding: 20px 32px; text-align: center;">
+  <img src="https://firebasestorage.googleapis.com/v0/b/bojochic-21749.firebasestorage.app/o/logo-bojo.png?alt=media&token=dede7080-d9a2-4533-bb13-0e1c3b46137d"
+    alt="Bojo"
+    style="height: 200px; width: auto; display: block; margin: 0 auto;" />
+</div>
         <div style="padding: 32px; text-align: center; border-bottom: 1px solid #f0f0f0;">
-          <div style="font-size: 48px; margin-bottom: 16px;">🎉</div>
+          <div style="font-size: 48px; margin-bottom: 16px;"></div>
           <h2 style="margin: 0 0 8px; color: #1a1a1a; font-size: 24px;">¡Pedido confirmado, ${shippingData.nombre}!</h2>
           <p style="margin: 0; color: #666; font-size: 15px; line-height: 1.6;">Tu pago fue procesado exitosamente. Pronto nos pondremos en contacto para coordinar el envío.</p>
         </div>
@@ -155,7 +149,7 @@ const buildOrderEmail = (shippingData, items, amount, buyOrder, authorizationCod
         </div>
         <div style="padding: 28px 32px; text-align: center;">
           <p style="margin: 0 0 8px; color: #666; font-size: 14px; line-height: 1.6;">¿Tienes alguna duda? Escríbenos a <a href="mailto:contacto@bojo.cl" style="color: #f33763; text-decoration: none;">contacto@bojo.cl</a></p>
-          <p style="margin: 16px 0 0; color: #bbb; font-size: 12px;">© ${new Date().getFullYear()} Bojo Chic · Todos los derechos reservados</p>
+          <p style="margin: 16px 0 0; color: #bbb; font-size: 12px;">© ${new Date().getFullYear()} Bojo · Todos los derechos reservados</p>
         </div>
       </div>
     </body>
@@ -289,6 +283,11 @@ app.post('/api/webpay/confirm', verifyAuth, async (req, res) => {
   }
 });
 
+
+
+
+
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), environment: process.env.WEBPAY_ENV || 'integration' });
@@ -303,3 +302,4 @@ app.listen(PORT, () => {
   console.log(`🚀 Backend corriendo en http://localhost:${PORT}`);
   console.log(`📝 Ambiente: ${process.env.WEBPAY_ENV || 'integration'}`);
 });
+
