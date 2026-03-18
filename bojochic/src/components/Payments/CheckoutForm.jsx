@@ -51,7 +51,8 @@ export const COSTO_ENVIO = {
   'Magallanes':         9990,
 };
 
-export const getCostoEnvio = (region) => COSTO_ENVIO[region] ?? 3000;
+/* export const getCostoEnvio = (region) => COSTO_ENVIO[region] ?? 3000; */
+export const getCostoEnvio = (region) => 0;
 
 const CheckoutForm = ({ userData, cartItems, totalAmount, onRegionChange }) => {
   const [form] = Form.useForm();

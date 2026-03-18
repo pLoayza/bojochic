@@ -156,6 +156,7 @@ const buildOrderEmail = (shippingData, items, amount, buyOrder, authorizationCod
     </html>
   `;
 };
+
 // CREAR TRANSACCIÓN
 app.post('/api/webpay/create', verifyAuth, async (req, res) => {
   try {
@@ -192,7 +193,6 @@ app.post('/api/webpay/confirm', verifyAuth, async (req, res) => {
     const { token } = req.body;
     if (!token) return res.status(400).json({ error: 'Token no proporcionado' });
 
-    // 🔒 Buscar la orden ANTES de llamar a Transbank
     const ordersSnapshot = await db.collection('orders')
       .where('token', '==', token)
       .limit(1)
@@ -203,7 +203,6 @@ app.post('/api/webpay/confirm', verifyAuth, async (req, res) => {
     const orderDoc = ordersSnapshot.docs[0];
     const orderData = orderDoc.data();
 
-    // ✅ Si ya fue procesada, retornar datos guardados sin reenviar correo
     if (orderData.status === 'approved' || orderData.status === 'rejected') {
       console.log('⚠️ Orden ya procesada, ignorando:', orderData.buyOrder);
       return res.json({
@@ -217,7 +216,6 @@ app.post('/api/webpay/confirm', verifyAuth, async (req, res) => {
       });
     }
 
-    // 🔒 Marcar como 'processing' para evitar race conditions
     await orderDoc.ref.update({ status: 'processing' });
 
     const response = await axios.put(
@@ -249,6 +247,31 @@ app.post('/api/webpay/confirm', verifyAuth, async (req, res) => {
       cartSnapshot.docs.forEach(doc => batch.delete(doc.ref));
       await batch.commit();
       console.log('✅ Carrito limpiado');
+
+      // 📦 Bajar stock — solo si el pago fue aprobado
+      try {
+        const stockBatch = db.batch();
+        for (const item of orderData.items) {
+          if (!item.id) {
+            console.warn('⚠️ Item sin id, saltando:', item.name);
+            continue;
+          }
+          const productoRef = db.collection('productos').doc(item.id);
+          const productoSnap = await productoRef.get();
+          if (productoSnap.exists) {
+            const stockActual = productoSnap.data().stock || 0;
+            const nuevoStock = Math.max(0, stockActual - item.quantity);
+            stockBatch.update(productoRef, { stock: nuevoStock });
+            console.log(`📦 Stock ${item.name}: ${stockActual} → ${nuevoStock}`);
+          } else {
+            console.warn('⚠️ Producto no encontrado en Firestore:', item.id);
+          }
+        }
+        await stockBatch.commit();
+        console.log('✅ Stock actualizado');
+      } catch (stockError) {
+        console.error('⚠️ Error actualizando stock:', stockError.message);
+      }
 
       // 📧 Enviar correo de confirmación
       try {
@@ -283,11 +306,6 @@ app.post('/api/webpay/confirm', verifyAuth, async (req, res) => {
   }
 });
 
-
-
-
-
-
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), environment: process.env.WEBPAY_ENV || 'integration' });
@@ -302,4 +320,3 @@ app.listen(PORT, () => {
   console.log(`🚀 Backend corriendo en http://localhost:${PORT}`);
   console.log(`📝 Ambiente: ${process.env.WEBPAY_ENV || 'integration'}`);
 });
-

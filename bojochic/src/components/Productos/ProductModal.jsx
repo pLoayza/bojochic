@@ -46,14 +46,15 @@ const ProductModal = ({ visible, producto, onClose }) => {
       const cartItemRef = doc(db, 'users', user.uid, 'cart', producto.id);
 
       const cartItem = {
-        name: producto.nombre || producto.title,
-        price: producto.precio || producto.price,
-        image: imagenes[0], // Usar la primera imagen
-        quantity: 1,
-        addedAt: new Date().toISOString(),
-        size: producto.talla || null,
-        color: producto.color || null,
-      };
+  id: producto.id,        // ← AGREGAR ESTO
+  name: producto.nombre || producto.title,
+  price: producto.precio || producto.price,
+  image: imagenes[0],
+  quantity: 1,
+  addedAt: new Date().toISOString(),
+  size: producto.talla || null,
+  color: producto.color || null,
+};
 
       await setDoc(cartItemRef, cartItem, { merge: true });
 

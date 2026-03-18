@@ -74,15 +74,15 @@ const ProductCard = ({ producto }) => {
       const currentQty = existing.exists() ? (existing.data().quantity || 0) : 0;
 
       await setDoc(cartItemRef, {
-        name: producto.nombre || producto.title,
-        price: producto.precio || producto.price,
-        image: imagenPrincipal(),
-        quantity: currentQty + cantidad,
-        addedAt: new Date().toISOString(),
-        size: producto.talla || null,
-        color: producto.color || null,
-      });
-
+  id: producto.id,        // ← AGREGAR ESTO
+  name: producto.nombre || producto.title,
+  price: producto.precio || producto.price,
+  image: imagenPrincipal(),
+  quantity: currentQty + cantidad,
+  addedAt: new Date().toISOString(),
+  size: producto.talla || null,
+  color: producto.color || null,
+});
       setShowQuantityPopup(false);
       setCantidad(1);
       setAdded(true);
