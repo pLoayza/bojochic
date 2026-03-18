@@ -89,10 +89,19 @@ const buildOrderEmail = (shippingData, items, amount, buyOrder, authorizationCod
     </head>
     <body style="margin: 0; padding: 0; background-color: #f9f9f9; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
       <div style="max-width: 600px; margin: 40px auto; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
-        <div style="background: linear-gradient(135deg, #f33763, #FF6B9D); padding: 40px 32px; text-align: center;">
-          <h1 style="margin: 0; color: #fff; font-size: 28px; font-weight: 700; letter-spacing: 1px;">✨ Bojo Chic</h1>
-          <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">Accesorios con estilo</p>
+        
+        <!-- HEADER -->
+        <div style="background: #f33763; padding: 12px 32px; text-align: center; position: relative;">
+          <span style="position: absolute; color: rgba(252,228,236,0.35); font-size: 18px; top: 14px; left: 40px;">♥</span>
+          <span style="position: absolute; color: rgba(252,228,236,0.25); font-size: 11px; top: 36px; left: 80px;">♥</span>
+          <span style="position: absolute; color: rgba(252,228,236,0.30); font-size: 13px; top: 12px; right: 55px;">♥</span>
+          <span style="position: absolute; color: rgba(252,228,236,0.20); font-size: 20px; bottom: 12px; left: 140px;">♥</span>
+          <span style="position: absolute; color: rgba(252,228,236,0.25); font-size: 9px; bottom: 14px; right: 150px;">♥</span>
+          <img src="logo-bojo.png"
+            alt="Bojo"
+            style="height: 200px; width: auto; object-fit: contain; position: relative; z-index: 1;" />
         </div>
+
         <div style="padding: 32px; text-align: center; border-bottom: 1px solid #f0f0f0;">
           <div style="font-size: 48px; margin-bottom: 16px;">🎉</div>
           <h2 style="margin: 0 0 8px; color: #1a1a1a; font-size: 24px;">¡Pedido confirmado, ${shippingData.nombre}!</h2>
@@ -153,7 +162,6 @@ const buildOrderEmail = (shippingData, items, amount, buyOrder, authorizationCod
     </html>
   `;
 };
-
 // CREAR TRANSACCIÓN
 app.post('/api/webpay/create', verifyAuth, async (req, res) => {
   try {
