@@ -32,7 +32,7 @@ const Categorias = () => {
     },
     {
       title: 'Conjuntos',
-      path: '/panuelos',
+      path: '/conjuntos',
       image: conjuntosImg,
     },
     {
