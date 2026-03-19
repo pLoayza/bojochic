@@ -13,7 +13,6 @@ const Destacado = () => {
   const [hoveredCard, setHoveredCard] = useState(null);
   const [productosMap, setProductosMap] = useState({ plateados: [], dorados: [] });
 
-  // ✅ Cargar productos reales de Firebase al montar
   useEffect(() => {
     const cargarProductos = async () => {
       try {
@@ -26,7 +25,7 @@ const Destacado = () => {
               if (p.categorias && Array.isArray(p.categorias)) return p.categorias.includes(tipo);
               return p.categoria === tipo;
             })
-            .slice(0, 4); // Primeros 4
+            .slice(0, 4);
 
         setProductosMap({
           plateados: filtrar('plateados'),
@@ -57,7 +56,6 @@ const Destacado = () => {
     },
   ];
 
-  // Helper para obtener imagen del producto
   const getImagen = (producto) => {
     if (producto.imagenes?.length > 0) return producto.imagenes[0];
     return producto.img || producto.imagen || producto.image || '';
@@ -121,7 +119,7 @@ const Destacado = () => {
                   }}
                 />
 
-                {/* Título principal */}
+                {/* Título principal ✅ ahora responsivo */}
                 <div
                   style={{
                     position: 'absolute',
@@ -131,6 +129,8 @@ const Destacado = () => {
                     zIndex: 2,
                     opacity: hoveredCard === index ? 0.3 : 1,
                     pointerEvents: 'none',
+                    width: '100%',
+                    textAlign: 'center',
                   }}
                 >
                   <Title
@@ -138,10 +138,12 @@ const Destacado = () => {
                     style={{
                       color: '#fff',
                       margin: 0,
-                      fontSize: hoveredCard === index ? '60px' : '80px',
+                      fontSize: hoveredCard === index
+                        ? 'clamp(28px, 6vw, 60px)'   // ✅ responsivo en hover
+                        : 'clamp(36px, 8vw, 80px)',   // ✅ responsivo en reposo
                       fontWeight: 'bold',
                       textShadow: '4px 4px 15px rgba(0,0,0,0.9)',
-                      letterSpacing: '5px',
+                      letterSpacing: 'clamp(1px, 1vw, 5px)', // ✅ letterSpacing responsivo
                       transition: 'font-size 0.5s ease',
                     }}
                   >
@@ -175,7 +177,6 @@ const Destacado = () => {
                   }}
                 >
                   {productos.length === 0 ? (
-                    // ✅ Si no hay productos aún, mostrar mensaje sutil
                     <p style={{ color: 'rgba(255,255,255,0.7)', textAlign: 'center', fontSize: '14px' }}>
                       Cargando productos...
                     </p>

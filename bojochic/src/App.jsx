@@ -63,6 +63,7 @@ function App() {
               <Route path="/politicas/privacidad"  element={<Privacidad />} />
               <Route path="/politicas/reembolso"   element={<Reembolso />} />
               <Route path="/politicas/terminos"    element={<Terminos />} />
+              
               {/* Admin */}
               <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><AdminPage /></ProtectedRoute>} />
               <Route path="/admin/usuarios" element={<ProtectedRoute requireAdmin={true}><GestionUsuariosPage /></ProtectedRoute>} />
@@ -76,6 +77,7 @@ function App() {
               <Route path="anillos"   element={<ProductosPage />} />
               <Route path="panuelos"  element={<ProductosPage />} />
               <Route path="otros" element={<ProductosPage />} />
+               <Route path="conjuntos" element={<ProductosPage />} />
                {/* ✅ Nuevas colecciones */}
               <Route path="plateados" element={<ProductosPage />} />
               <Route path="dorados"   element={<ProductosPage />} />

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Card, Form, Input, Button, Row, Col, Alert, Typography, message, Select } from 'antd';
-import { 
-  UserOutlined, 
-  PhoneOutlined, 
+import {
+  UserOutlined,
+  PhoneOutlined,
   HomeOutlined,
   EnvironmentOutlined,
   CreditCardOutlined
@@ -31,7 +31,6 @@ const REGIONES_COMUNAS = {
   'Magallanes': ['Punta Arenas', 'Laguna Blanca', 'Río Verde', 'San Gregorio', 'Cabo de Hornos', 'Antártica', 'Porvenir', 'Primavera', 'Timaukel', 'Natales', 'Torres del Paine'],
 };
 
-// ✅ Exportado para usarlo en CheckoutPage
 export const COSTO_ENVIO = {
   'Arica y Parinacota': 7990,
   'Tarapacá':           6990,
@@ -51,10 +50,10 @@ export const COSTO_ENVIO = {
   'Magallanes':         9990,
 };
 
-/* export const getCostoEnvio = (region) => COSTO_ENVIO[region] ?? 3000; */
-export const getCostoEnvio = (region) => 0;
+export const getCostoEnvio = (region) => COSTO_ENVIO[region] ?? 3000;
 
-const CheckoutForm = ({ userData, cartItems, totalAmount, onRegionChange }) => {
+// ← shipping viene del padre, ya con el descuento aplicado
+const CheckoutForm = ({ userData, cartItems, totalAmount, onRegionChange, shipping }) => {
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
   const [regionSeleccionada, setRegionSeleccionada] = useState(null);
@@ -82,7 +81,7 @@ const CheckoutForm = ({ userData, cartItems, totalAmount, onRegionChange }) => {
     setRegionSeleccionada(region);
     setComunasDisponibles(REGIONES_COMUNAS[region] || []);
     form.setFieldValue('comuna', undefined);
-    onRegionChange?.(region); // ✅ Notifica al padre
+    onRegionChange?.(region);
   };
 
   const handleSubmit = async (values) => {
@@ -105,7 +104,7 @@ const CheckoutForm = ({ userData, cartItems, totalAmount, onRegionChange }) => {
       const token = await user.getIdToken();
 
       const requestBody = {
-        amount: totalAmount, // ✅ Ya incluye el envío dinámico calculado en el padre
+        amount: totalAmount,
         items: cartItems.map(item => ({
           id: item.id,
           name: item.name,
@@ -268,10 +267,14 @@ const CheckoutForm = ({ userData, cartItems, totalAmount, onRegionChange }) => {
           />
         </Form.Item>
 
-        {/* ✅ Muestra el costo de envío dinámico */}
+        {/* Muestra el costo de envío ya con descuento aplicado desde el padre */}
         {regionSeleccionada && (
           <Alert
-            message={`Envío a ${regionSeleccionada}: $${getCostoEnvio(regionSeleccionada).toLocaleString('es-CL')}`}
+            message={
+              shipping === 0
+                ? `🎉 ¡Envío gratis a ${regionSeleccionada}!`
+                : `Envío a ${regionSeleccionada}: $${shipping.toLocaleString('es-CL')}`
+            }
             type="success"
             showIcon
             icon={<EnvironmentOutlined />}

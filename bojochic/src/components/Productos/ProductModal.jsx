@@ -317,12 +317,12 @@ const ProductModal = ({ visible, producto, onClose }) => {
                 lineHeight: '1.8',
               }}
             >
-              ✓ Envío gratis en compras sobre $20.000
+              ✓ aplica descuento de 3990 en despacho por compras sobre 30000
               <br />
               ✓ Garantía de 30 días
               <br />
-              ✓ Materiales hipoalergénicos
-              <br />✓ Atención al cliente 24/7
+              ✓ Atención al cliente 24/7
+              <br />
             </p>
           </div>
 
