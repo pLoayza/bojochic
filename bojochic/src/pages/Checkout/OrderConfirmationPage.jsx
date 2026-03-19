@@ -184,7 +184,7 @@ const OrderConfirmationPage = () => {
                   <strong>Bojo SpA</strong>
                 </Descriptions.Item>
                 <Descriptions.Item label="Email">
-                  <strong>ventas@bojochic.cl</strong>
+                  <strong>ventas@bojo.cl</strong>
                 </Descriptions.Item>
                 <Descriptions.Item label="Monto a Transferir">
                   <strong style={{ color: ' #f33763', fontSize: '16px' }}>

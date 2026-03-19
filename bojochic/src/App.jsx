@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { App as AntApp } from 'antd';
 import { AuthProvider } from './contexts/AuthContext';
+import { useEffect } from 'react';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
 import ProductosLayout from './components/layout/ProductosLayout';
@@ -30,6 +31,8 @@ import Reembolso from './pages/politicas/Reembolso';
 import Terminos from './pages/politicas/Terminos';
 
 function App() {
+
+ 
   return (
     <BrowserRouter>
       <AntApp>
@@ -43,7 +46,6 @@ function App() {
           <Routes>
             {/* RUTAS CON LAYOUT GENERAL */}
             <Route element={<MainLayout />}>
-              {/* ✅ Home ahora es la ruta raíz */}
               <Route path="/" element={<Home />} />
               <Route path="/home" element={<Home />} />
 
@@ -63,7 +65,6 @@ function App() {
               <Route path="/politicas/privacidad"  element={<Privacidad />} />
               <Route path="/politicas/reembolso"   element={<Reembolso />} />
               <Route path="/politicas/terminos"    element={<Terminos />} />
-              
               {/* Admin */}
               <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><AdminPage /></ProtectedRoute>} />
               <Route path="/admin/usuarios" element={<ProtectedRoute requireAdmin={true}><GestionUsuariosPage /></ProtectedRoute>} />
@@ -76,9 +77,9 @@ function App() {
               <Route path="pulseras"  element={<ProductosPage />} />
               <Route path="anillos"   element={<ProductosPage />} />
               <Route path="panuelos"  element={<ProductosPage />} />
-              <Route path="otros" element={<ProductosPage />} />
-               <Route path="conjuntos" element={<ProductosPage />} />
-               {/* ✅ Nuevas colecciones */}
+              <Route path="otros"     element={<ProductosPage />} />
+              <Route path="conjuntos" element={<ProductosPage />} />
+              {/* ✅ Nuevas colecciones */}
               <Route path="plateados" element={<ProductosPage />} />
               <Route path="dorados"   element={<ProductosPage />} />
             </Route>
