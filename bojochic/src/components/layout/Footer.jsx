@@ -269,7 +269,7 @@ const Footer = () => {
           gap: '20px'
         }}>
           <a 
-            href="https://facebook.com/bojochic" 
+            href="https://www.facebook.com/Bohochichile" 
             target="_blank" 
             rel="noopener noreferrer"
             style={{ color: '#333', fontSize: '24px' }}
@@ -277,7 +277,7 @@ const Footer = () => {
             <FacebookOutlined />
           </a>
           <a 
-            href="https://instagram.com/bojochic" 
+            href="https://www.instagram.com/bojo.cl/" 
             target="_blank" 
             rel="noopener noreferrer"
             style={{ color: '#333', fontSize: '24px' }}

@@ -5,7 +5,8 @@ import {
   PhoneOutlined,
   HomeOutlined,
   EnvironmentOutlined,
-  CreditCardOutlined
+  CreditCardOutlined,
+  TagOutlined
 } from '@ant-design/icons';
 import { auth } from '../../firebase/config';
 
@@ -52,28 +53,29 @@ export const COSTO_ENVIO = {
 
 export const getCostoEnvio = (region) => COSTO_ENVIO[region] ?? 3000;
 
-// ← shipping viene del padre, ya con el descuento aplicado
-const CheckoutForm = ({ userData, cartItems, totalAmount, onRegionChange, shipping }) => {
+const CheckoutForm = ({ userData, cartItems, totalAmount, onRegionChange, shipping,
+  onAplicarCodigo, onQuitarCodigo, codigoAplicado, loadingCodigo, onConfirmarPago }) => {
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
-  const [regionSeleccionada, setRegionSeleccionada] = useState(null);
-  const [comunasDisponibles, setComunasDisponibles] = useState([]);
+  const [regionSeleccionada, setRegionSeleccionada] = useState('Metropolitana');
+  const [comunasDisponibles, setComunasDisponibles] = useState(REGIONES_COMUNAS['Metropolitana']);
+  const [codigoInput, setCodigoInput] = useState('');
 
   useEffect(() => {
     if (userData) {
+      const region = userData.region || 'Metropolitana';
       form.setFieldsValue({
         nombre: userData.nombre || '',
         email: userData.email || '',
         telefono: userData.telefono || '',
         direccion: userData.direccion || '',
         comuna: userData.comuna || '',
-        region: userData.region || ''
+        region: region
       });
-
-      if (userData.region && REGIONES_COMUNAS[userData.region]) {
-        setRegionSeleccionada(userData.region);
-        setComunasDisponibles(REGIONES_COMUNAS[userData.region]);
-      }
+      setRegionSeleccionada(region);
+      setComunasDisponibles(REGIONES_COMUNAS[region]);
+    } else {
+      form.setFieldsValue({ region: 'Metropolitana' });
     }
   }, [userData, form]);
 
@@ -102,6 +104,8 @@ const CheckoutForm = ({ userData, cartItems, totalAmount, onRegionChange, shippi
       }
 
       const token = await user.getIdToken();
+
+      await onConfirmarPago?.(); // 👈 marca el código como usado antes de redirigir
 
       const requestBody = {
         amount: totalAmount,
@@ -267,7 +271,46 @@ const CheckoutForm = ({ userData, cartItems, totalAmount, onRegionChange, shippi
           />
         </Form.Item>
 
-        {/* Muestra el costo de envío ya con descuento aplicado desde el padre */}
+        {/* CÓDIGO DE DESCUENTO */}
+        <Form.Item label="Código de descuento">
+          {codigoAplicado ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Alert
+                message={`Código "${codigoAplicado}" aplicado ✓`}
+                type="success"
+                style={{ flex: 1, margin: 0 }}
+              />
+              <Button danger onClick={onQuitarCodigo}>
+                Quitar
+              </Button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <Input
+                prefix={<TagOutlined />}
+                placeholder="Ingresa tu código"
+                value={codigoInput}
+                onChange={(e) => setCodigoInput(e.target.value)}
+                onPressEnter={() => onAplicarCodigo?.(codigoInput)}
+                size="large"
+                style={{ flex: 1 }}
+              />
+              <Button
+                size="large"
+                loading={loadingCodigo}
+                onClick={() => onAplicarCodigo?.(codigoInput)}
+                style={{
+                  background: 'linear-gradient(45deg, #f33763, #FF6B9D)',
+                  color: 'white',
+                  border: 'none'
+                }}
+              >
+                Aplicar
+              </Button>
+            </div>
+          )}
+        </Form.Item>
+
         {regionSeleccionada && (
           <Alert
             message={
