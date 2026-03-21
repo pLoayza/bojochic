@@ -58,7 +58,7 @@ const verifyAuth = async (req, res, next) => {
   }
 };
 
-// Template del correo
+// Template correo cliente
 const buildOrderEmail = (shippingData, items, amount, buyOrder, authorizationCode) => {
   const itemsHTML = items.map(item => `
     <tr>
@@ -89,13 +89,10 @@ const buildOrderEmail = (shippingData, items, amount, buyOrder, authorizationCod
     </head>
     <body style="margin: 0; padding: 0; background-color: #f9f9f9; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
       <div style="max-width: 600px; margin: 40px auto; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
-        
-        <!-- HEADER -->
-<div style="background: #f33763; padding: 20px 32px; text-align: center;">
-  <img src="https://firebasestorage.googleapis.com/v0/b/bojochic-21749.firebasestorage.app/o/logo-bojo.png?alt=media&token=dede7080-d9a2-4533-bb13-0e1c3b46137d"
-    alt="Bojo"
-    style="height: 200px; width: auto; display: block; margin: 0 auto;" />
-</div>
+        <div style="background: #f33763; padding: 20px 32px; text-align: center;">
+          <img src="https://firebasestorage.googleapis.com/v0/b/bojochic-21749.firebasestorage.app/o/logo-bojo.png?alt=media&token=dede7080-d9a2-4533-bb13-0e1c3b46137d"
+            alt="Bojo" style="height: 200px; width: auto; display: block; margin: 0 auto;" />
+        </div>
         <div style="padding: 32px; text-align: center; border-bottom: 1px solid #f0f0f0;">
           <div style="font-size: 48px; margin-bottom: 16px;"></div>
           <h2 style="margin: 0 0 8px; color: #1a1a1a; font-size: 24px;">¡Pedido confirmado, ${shippingData.nombre}!</h2>
@@ -150,6 +147,90 @@ const buildOrderEmail = (shippingData, items, amount, buyOrder, authorizationCod
         <div style="padding: 28px 32px; text-align: center;">
           <p style="margin: 0 0 8px; color: #666; font-size: 14px; line-height: 1.6;">¿Tienes alguna duda? Escríbenos a <a href="mailto:contacto@bojo.cl" style="color: #f33763; text-decoration: none;">contacto@bojo.cl</a></p>
           <p style="margin: 16px 0 0; color: #bbb; font-size: 12px;">© ${new Date().getFullYear()} Bojo · Todos los derechos reservados</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+// Template correo admin
+const buildAdminEmail = (shippingData, items, amount, buyOrder, authorizationCode) => {
+  const itemsHTML = items.map(item => `
+    <tr>
+      <td style="padding: 10px 12px; border-bottom: 1px solid #f0f0f0;">
+        <strong>${item.name}</strong>
+        ${item.size ? ` — Talla: ${item.size}` : ''}
+        ${item.color ? ` — Color: ${item.color}` : ''}
+      </td>
+      <td style="padding: 10px 12px; border-bottom: 1px solid #f0f0f0; text-align: center;">
+        x${item.quantity}
+      </td>
+      <td style="padding: 10px 12px; border-bottom: 1px solid #f0f0f0; text-align: right; color: #f33763; font-weight: 600;">
+        $${(item.price * item.quantity).toLocaleString('es-CL')}
+      </td>
+    </tr>
+  `).join('');
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8" /></head>
+    <body style="margin:0; padding:0; background:#f9f9f9; font-family: Helvetica, Arial, sans-serif;">
+      <div style="max-width:600px; margin:40px auto; background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+        <div style="background:#1a1a1a; padding:24px 32px; text-align:center;">
+          <h1 style="margin:0; color:#f33763; font-size:22px;">🛍️ Nueva venta en Bojo</h1>
+          <p style="margin:8px 0 0; color:#aaa; font-size:14px;">${new Date().toLocaleString('es-CL')}</p>
+        </div>
+        <div style="padding:24px 32px; background:#fafafa; border-bottom:1px solid #f0f0f0;">
+          <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div>
+              <p style="margin:0; font-size:12px; color:#999; text-transform:uppercase; letter-spacing:1px;">N° Orden</p>
+              <p style="margin:4px 0 0; font-size:16px; font-weight:700; color:#1a1a1a;">${buyOrder}</p>
+            </div>
+            <div>
+              <p style="margin:0; font-size:12px; color:#999; text-transform:uppercase; letter-spacing:1px;">Autorización</p>
+              <p style="margin:4px 0 0; font-size:16px; font-weight:700; color:#1a1a1a;">${authorizationCode}</p>
+            </div>
+            <div>
+              <p style="margin:0; font-size:12px; color:#999; text-transform:uppercase; letter-spacing:1px;">Total</p>
+              <p style="margin:4px 0 0; font-size:20px; font-weight:700; color:#f33763;">$${amount.toLocaleString('es-CL')}</p>
+            </div>
+          </div>
+        </div>
+        <div style="padding:24px 32px; border-bottom:1px solid #f0f0f0;">
+          <h3 style="margin:0 0 16px; font-size:15px; color:#1a1a1a;">👤 Datos del cliente</h3>
+          <table style="width:100%; border-collapse:collapse;">
+            <tr><td style="padding:5px 0; color:#999; font-size:14px; width:120px;">Nombre:</td><td style="padding:5px 0; font-size:14px; font-weight:500;">${shippingData.nombre}</td></tr>
+            <tr><td style="padding:5px 0; color:#999; font-size:14px;">Email:</td><td style="padding:5px 0; font-size:14px; font-weight:500;">${shippingData.email}</td></tr>
+            <tr><td style="padding:5px 0; color:#999; font-size:14px;">Teléfono:</td><td style="padding:5px 0; font-size:14px; font-weight:500;">${shippingData.telefono}</td></tr>
+            <tr><td style="padding:5px 0; color:#999; font-size:14px;">Dirección:</td><td style="padding:5px 0; font-size:14px; font-weight:500;">${shippingData.direccion}</td></tr>
+            <tr><td style="padding:5px 0; color:#999; font-size:14px;">Comuna:</td><td style="padding:5px 0; font-size:14px; font-weight:500;">${shippingData.comuna}</td></tr>
+            <tr><td style="padding:5px 0; color:#999; font-size:14px;">Región:</td><td style="padding:5px 0; font-size:14px; font-weight:500;">${shippingData.region}</td></tr>
+            ${shippingData.notas ? `<tr><td style="padding:5px 0; color:#999; font-size:14px;">Notas:</td><td style="padding:5px 0; font-size:14px; font-weight:500;">${shippingData.notas}</td></tr>` : ''}
+          </table>
+        </div>
+        <div style="padding:24px 32px;">
+          <h3 style="margin:0 0 16px; font-size:15px; color:#1a1a1a;">📦 Productos</h3>
+          <table style="width:100%; border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f9f9f9;">
+                <th style="padding:10px 12px; text-align:left; font-size:12px; color:#999; text-transform:uppercase;">Producto</th>
+                <th style="padding:10px 12px; text-align:center; font-size:12px; color:#999; text-transform:uppercase;">Cant.</th>
+                <th style="padding:10px 12px; text-align:right; font-size:12px; color:#999; text-transform:uppercase;">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>${itemsHTML}</tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="padding:16px 12px; text-align:right; font-size:15px; font-weight:700; color:#1a1a1a;">Total:</td>
+                <td style="padding:16px 12px; text-align:right; font-size:20px; font-weight:700; color:#f33763;">$${amount.toLocaleString('es-CL')}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div style="padding:20px 32px; background:#fafafa; text-align:center;">
+          <p style="margin:0; color:#bbb; font-size:12px;">Notificación automática de Bojo · ${new Date().getFullYear()}</p>
         </div>
       </div>
     </body>
@@ -248,7 +329,7 @@ app.post('/api/webpay/confirm', verifyAuth, async (req, res) => {
       await batch.commit();
       console.log('✅ Carrito limpiado');
 
-      // 📦 Bajar stock — solo si el pago fue aprobado
+      // 📦 Bajar stock
       try {
         const stockBatch = db.batch();
         for (const item of orderData.items) {
@@ -273,7 +354,7 @@ app.post('/api/webpay/confirm', verifyAuth, async (req, res) => {
         console.error('⚠️ Error actualizando stock:', stockError.message);
       }
 
-      // 📧 Enviar correo de confirmación
+      // 📧 Correo de confirmación al cliente
       try {
         await resend.emails.send({
           from: 'Bojo <Pedidos@bojo.cl>',
@@ -286,7 +367,23 @@ app.post('/api/webpay/confirm', verifyAuth, async (req, res) => {
         });
         console.log('✅ Correo enviado a:', orderData.shippingData.email);
       } catch (emailError) {
-        console.error('⚠️ Error enviando correo:', emailError.message);
+        console.error('⚠️ Error enviando correo al cliente:', emailError.message);
+      }
+
+      // 📧 Notificación al admin
+      try {
+        await resend.emails.send({
+          from: 'Bojo <Pedidos@bojo.cl>',
+          to: process.env.ADMIN_EMAIL,
+          subject: `🛍️ Nueva venta — ${orderData.buyOrder} — $${orderData.amount.toLocaleString('es-CL')}`,
+          html: buildAdminEmail(
+            orderData.shippingData, orderData.items, orderData.amount,
+            orderData.buyOrder, paymentData.authorization_code
+          )
+        });
+        console.log('✅ Notificación enviada al admin');
+      } catch (emailError) {
+        console.error('⚠️ Error enviando notificación al admin:', emailError.message);
       }
     }
 
@@ -320,3 +417,4 @@ app.listen(PORT, () => {
   console.log(`🚀 Backend corriendo en http://localhost:${PORT}`);
   console.log(`📝 Ambiente: ${process.env.WEBPAY_ENV || 'integration'}`);
 });
+
