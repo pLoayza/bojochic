@@ -369,7 +369,7 @@ app.post('/api/webpay/confirm', verifyAuth, async (req, res) => {
       } catch (emailError) {
         console.error('⚠️ Error enviando correo al cliente:', emailError.message);
       }
-
+      
       // 📧 Notificación al admin
       try {
         await resend.emails.send({
