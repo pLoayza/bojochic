@@ -93,6 +93,15 @@ const Popup = ({
         source: 'popup',
         status: 'active'
       });
+      try {
+  await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/subscribers/welcome`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email.toLowerCase() })
+  });
+} catch (err) {
+  console.warn('No se pudo enviar correo de bienvenida:', err.message);
+}
 
       api.success({
         message: `¡Gracias por suscribirte! 🎉`,
