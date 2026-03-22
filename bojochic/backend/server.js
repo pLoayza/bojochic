@@ -58,7 +58,9 @@ const verifyAuth = async (req, res, next) => {
   }
 };
 
-// Template correo cliente
+// ─────────────────────────────────────────
+// Template correo cliente (orden confirmada)
+// ─────────────────────────────────────────
 const buildOrderEmail = (shippingData, items, amount, buyOrder, authorizationCode) => {
   const itemsHTML = items.map(item => `
     <tr>
@@ -94,7 +96,7 @@ const buildOrderEmail = (shippingData, items, amount, buyOrder, authorizationCod
             alt="Bojo" style="height: 200px; width: auto; display: block; margin: 0 auto;" />
         </div>
         <div style="padding: 32px; text-align: center; border-bottom: 1px solid #f0f0f0;">
-          <div style="font-size: 48px; margin-bottom: 16px;"></div>
+          <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
           <h2 style="margin: 0 0 8px; color: #1a1a1a; font-size: 24px;">¡Pedido confirmado, ${shippingData.nombre}!</h2>
           <p style="margin: 0; color: #666; font-size: 15px; line-height: 1.6;">Tu pago fue procesado exitosamente. Pronto nos pondremos en contacto para coordinar el envío.</p>
         </div>
@@ -154,7 +156,9 @@ const buildOrderEmail = (shippingData, items, amount, buyOrder, authorizationCod
   `;
 };
 
+// ─────────────────────────────────────────
 // Template correo admin
+// ─────────────────────────────────────────
 const buildAdminEmail = (shippingData, items, amount, buyOrder, authorizationCode) => {
   const itemsHTML = items.map(item => `
     <tr>
@@ -238,7 +242,82 @@ const buildAdminEmail = (shippingData, items, amount, buyOrder, authorizationCod
   `;
 };
 
+// ─────────────────────────────────────────
+// Template correo bienvenida suscriptor
+// ─────────────────────────────────────────
+const buildWelcomeEmail = () => {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #f9f9f9; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+      <div style="max-width: 600px; margin: 40px auto; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
+
+        <!-- Header rosado con logo -->
+        <div style="background: #f33763; padding: 20px 32px; text-align: center;">
+          <img src="https://firebasestorage.googleapis.com/v0/b/bojochic-21749.firebasestorage.app/o/logo-bojo.png?alt=media&token=dede7080-d9a2-4533-bb13-0e1c3b46137d"
+            alt="Bojo" style="height: 200px; width: auto; display: block; margin: 0 auto;" />
+        </div>
+
+        <!-- Bienvenida -->
+        <div style="padding: 36px 32px; text-align: center; border-bottom: 1px solid #f0f0f0;">
+          <div style="font-size: 48px; margin-bottom: 16px;">🎉</div>
+          <h2 style="margin: 0 0 12px; color: #1a1a1a; font-size: 24px;">¡Bienvenida a la comunidad Bojo!</h2>
+          <p style="margin: 0; color: #666; font-size: 15px; line-height: 1.7;">
+            Gracias por suscribirte. Ahora serás la primera en enterarte de nuestras novedades, lanzamientos y ofertas exclusivas. 💖
+          </p>
+        </div>
+
+        <!-- Código de descuento -->
+        <div style="padding: 36px 32px; text-align: center; border-bottom: 1px solid #f0f0f0;">
+          <p style="margin: 0 0 24px; color: #444; font-size: 15px; line-height: 1.6;">
+            Como prometimos, aquí está tu regalo de bienvenida:
+          </p>
+          <div style="background: linear-gradient(135deg, #f33763 0%, #ff6bb3 100%); border-radius: 12px; padding: 28px 32px;">
+            <p style="margin: 0 0 8px; color: rgba(255,255,255,0.85); font-size: 13px; text-transform: uppercase; letter-spacing: 2px;">Tu código exclusivo</p>
+            <h1 style="margin: 0 0 8px; color: #fff; font-size: 42px; letter-spacing: 6px; font-weight: 800;">BOJO10</h1>
+            <p style="margin: 0; color: rgba(255,255,255,0.9); font-size: 14px;">10% de descuento en tu primera compra</p>
+          </div>
+          <p style="margin: 24px 0 0; color: #888; font-size: 13px; line-height: 1.6;">
+            Ingresa el código al momento del pago en el checkout 🛍️
+          </p>
+        </div>
+
+        <!-- CTA -->
+        <div style="padding: 32px; text-align: center; border-bottom: 1px solid #f0f0f0;">
+          <p style="margin: 0 0 20px; color: #555; font-size: 15px;">¿Lista para tu primera compra?</p>
+          <a href="https://www.bojo.cl"
+            style="display: inline-block; background: #f33763; color: #fff; text-decoration: none;
+                   padding: 14px 36px; border-radius: 8px; font-weight: 700; font-size: 15px;">
+            Ver colección →
+          </a>
+        </div>
+
+        <!-- Footer -->
+        <div style="padding: 28px 32px; text-align: center;">
+          <p style="margin: 0 0 8px; color: #666; font-size: 14px; line-height: 1.6;">
+            ¿Tienes alguna duda? Escríbenos a
+            <a href="mailto:contacto@bojo.cl" style="color: #f33763; text-decoration: none;">contacto@bojo.cl</a>
+          </p>
+          <p style="margin: 12px 0 0; color: #bbb; font-size: 11px; line-height: 1.6;">
+            Recibiste este correo porque te suscribiste en bojo.cl.
+            Puedes darte de baja cuando quieras.
+          </p>
+          <p style="margin: 8px 0 0; color: #bbb; font-size: 12px;">© ${new Date().getFullYear()} Bojo · Todos los derechos reservados</p>
+        </div>
+
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+// ─────────────────────────────────────────
 // CREAR TRANSACCIÓN
+// ─────────────────────────────────────────
 app.post('/api/webpay/create', verifyAuth, async (req, res) => {
   try {
     const { amount, items, shippingData } = req.body;
@@ -268,7 +347,9 @@ app.post('/api/webpay/create', verifyAuth, async (req, res) => {
   }
 });
 
+// ─────────────────────────────────────────
 // CONFIRMAR TRANSACCIÓN
+// ─────────────────────────────────────────
 app.post('/api/webpay/confirm', verifyAuth, async (req, res) => {
   try {
     const { token } = req.body;
@@ -369,7 +450,7 @@ app.post('/api/webpay/confirm', verifyAuth, async (req, res) => {
       } catch (emailError) {
         console.error('⚠️ Error enviando correo al cliente:', emailError.message);
       }
-      
+
       // 📧 Notificación al admin
       try {
         await resend.emails.send({
@@ -403,7 +484,34 @@ app.post('/api/webpay/confirm', verifyAuth, async (req, res) => {
   }
 });
 
+// ─────────────────────────────────────────
+// CORREO BIENVENIDA SUSCRIPTOR
+// ─────────────────────────────────────────
+app.post('/api/subscribers/welcome', async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) return res.status(400).json({ error: 'Email requerido' });
+
+  try {
+    await resend.emails.send({
+      from: 'Bojo <contacto@bojo.cl>',
+      to: email,
+      subject: '🎉 ¡Bienvenida a Bojo! Tu código de descuento te espera',
+      html: buildWelcomeEmail()
+    });
+
+    console.log('✅ Correo de bienvenida enviado a:', email);
+    res.json({ ok: true });
+
+  } catch (error) {
+    console.error('⚠️ Error enviando correo de bienvenida:', error.message);
+    res.status(500).json({ error: 'Error al enviar correo' });
+  }
+});
+
+// ─────────────────────────────────────────
 // Health check
+// ─────────────────────────────────────────
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), environment: process.env.WEBPAY_ENV || 'integration' });
 });
@@ -417,4 +525,3 @@ app.listen(PORT, () => {
   console.log(`🚀 Backend corriendo en http://localhost:${PORT}`);
   console.log(`📝 Ambiente: ${process.env.WEBPAY_ENV || 'integration'}`);
 });
-
