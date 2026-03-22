@@ -1,9 +1,8 @@
-
 import { Card, List, Typography, Space, Divider, Alert } from 'antd';
 
 const { Title, Text } = Typography;
 
-const OrderSummary = ({ cartItems, subtotal, shipping, total }) => {
+const OrderSummary = ({ cartItems, subtotal, shipping, total, descuento, codigoAplicado }) => {
   return (
     <Card 
       title="Resumen del Pedido" 
@@ -39,7 +38,7 @@ const OrderSummary = ({ cartItems, subtotal, shipping, total }) => {
               }
             />
             <div>
-              <Text strong style={{ color: ' #f33763' }}>
+              <Text strong style={{ color: '#f33763' }}>
                 ${(item.price * item.quantity).toLocaleString('es-CL')}
               </Text>
             </div>
@@ -54,6 +53,15 @@ const OrderSummary = ({ cartItems, subtotal, shipping, total }) => {
           <Text>Subtotal:</Text>
           <Text strong>${subtotal.toLocaleString('es-CL')}</Text>
         </div>
+        {/* 👇 Línea de descuento — solo aparece si hay código aplicado */}
+        {descuento > 0 && codigoAplicado && (
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <Text>Descuento <Text code style={{ fontSize: 12 }}>{codigoAplicado}</Text>:</Text>
+            <Text strong style={{ color: '#52c41a' }}>
+              -${descuento.toLocaleString('es-CL')}
+            </Text>
+          </div>
+        )}
 
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <Text>Envío:</Text>
@@ -61,6 +69,8 @@ const OrderSummary = ({ cartItems, subtotal, shipping, total }) => {
             {shipping === 0 ? '¡GRATIS!' : `$${shipping.toLocaleString('es-CL')}`}
           </Text>
         </div>
+
+      
 
         {subtotal < 20000 && subtotal > 0 && (
           <Alert
@@ -79,7 +89,7 @@ const OrderSummary = ({ cartItems, subtotal, shipping, total }) => {
           alignItems: 'center'
         }}>
           <Title level={4} style={{ margin: 0 }}>Total:</Title>
-          <Title level={3} style={{ margin: 0, color: ' #f33763' }}>
+          <Title level={3} style={{ margin: 0, color: '#f33763' }}>
             ${total.toLocaleString('es-CL')}
           </Title>
         </div>
