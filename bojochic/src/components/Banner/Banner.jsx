@@ -267,9 +267,9 @@ const Banner = () => {
         </Dropdown>
 
         <span className="bojo-nav-sep">|</span>
-        <a className="bojo-nav-link" onClick={() => navigate('/novedades')}>Novedades</a>
+        <a className="bojo-nav-link" onClick={() => navigate('/#')}>Novedades</a>
         <span className="bojo-nav-sep">|</span>
-        <a className="bojo-nav-link" onClick={() => navigate('/promociones')}>Promociones</a>
+        <a className="bojo-nav-link" onClick={() => navigate('/#')}>Promociones</a>
       </nav>
 
       <SearchModal
