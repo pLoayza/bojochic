@@ -173,7 +173,7 @@ function CartPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                     <Text>Envío:</Text>
                     <Text>
-                      {calculateTotal() >= 20000 ? (
+                      {calculateTotal() >= 29990 ? (
                         <Text type="success">¡GRATIS!</Text>
                       ) : (
                         `$${(3000).toLocaleString('es-CL')}`
@@ -184,14 +184,14 @@ function CartPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Title level={4} style={{ margin: 0 }}>Total:</Title>
                     <Title level={3} style={{ margin: 0, color: '#1890ff' }}>
-                      ${(calculateTotal() + (calculateTotal() >= 20000 ? 0 : 3000)).toLocaleString('es-CL')}
+                      ${(calculateTotal() + (calculateTotal() >= 29990 ? 0 : 3000)).toLocaleString('es-CL')}
                     </Title>
                   </div>
                 </div>
 
-                {calculateTotal() < 20000 && (
+                {calculateTotal() < 29990 && (
                   <Text type="secondary" style={{ fontSize: '12px' }}>
-                    Te faltan ${(20000 - calculateTotal()).toLocaleString('es-CL')} para envío gratis
+                    Te faltan ${(29990 - calculateTotal()).toLocaleString('es-CL')} para envío gratis
                   </Text>
                 )}
 
