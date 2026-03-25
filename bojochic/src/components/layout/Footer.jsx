@@ -109,7 +109,7 @@ const Footer = () => {
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <Link 
-                  to="/inicio" 
+                  to="/home" 
                   style={{ 
                     color: '#666', 
                     textDecoration: 'none',
@@ -121,7 +121,7 @@ const Footer = () => {
                 >
                   Inicio
                 </Link>
-                <Link 
+                {/* <Link 
                   to="/catalogo" 
                   style={{ 
                     color: '#666', 
@@ -133,7 +133,7 @@ const Footer = () => {
                   onMouseLeave={(e) => e.target.style.color = '#666'}
                 >
                   Catálogo
-                </Link>
+                </Link> */}
               </div>
             </Col>
 
