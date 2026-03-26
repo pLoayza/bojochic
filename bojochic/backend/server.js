@@ -45,7 +45,9 @@ const WEBPAY = {
     : '579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C'
 };
 
-// Middleware Auth
+// ─────────────────────────────────────────
+// Middleware Auth — obligatorio
+// ─────────────────────────────────────────
 const verifyAuth = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split('Bearer ')[1];
@@ -55,6 +57,26 @@ const verifyAuth = async (req, res, next) => {
     next();
   } catch (error) {
     return res.status(401).json({ error: 'Token inválido' });
+  }
+};
+
+// ─────────────────────────────────────────
+// Middleware Auth — opcional (permite guests)
+// ─────────────────────────────────────────
+const verifyAuthOptional = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split('Bearer ')[1];
+    if (token) {
+      const decodedToken = await admin.auth().verifyIdToken(token);
+      req.user = decodedToken; // usuario registrado
+    } else {
+      req.user = null; // guest
+    }
+    next();
+  } catch (error) {
+    // Token inválido → tratarlo como guest en vez de rechazar
+    req.user = null;
+    next();
   }
 };
 
@@ -159,7 +181,7 @@ const buildOrderEmail = (shippingData, items, amount, buyOrder, authorizationCod
 // ─────────────────────────────────────────
 // Template correo admin
 // ─────────────────────────────────────────
-const buildAdminEmail = (shippingData, items, amount, buyOrder, authorizationCode) => {
+const buildAdminEmail = (shippingData, items, amount, buyOrder, authorizationCode, isGuest = false) => {
   const itemsHTML = items.map(item => `
     <tr>
       <td style="padding: 10px 12px; border-bottom: 1px solid #f0f0f0;">
@@ -200,6 +222,11 @@ const buildAdminEmail = (shippingData, items, amount, buyOrder, authorizationCod
               <p style="margin:0; font-size:12px; color:#999; text-transform:uppercase; letter-spacing:1px;">Total</p>
               <p style="margin:4px 0 0; font-size:20px; font-weight:700; color:#f33763;">$${amount.toLocaleString('es-CL')}</p>
             </div>
+            ${isGuest ? `
+            <div>
+              <p style="margin:0; font-size:12px; color:#999; text-transform:uppercase; letter-spacing:1px;">Tipo</p>
+              <p style="margin:4px 0 0; font-size:14px; font-weight:700; color:#ff9800;">👤 Invitado</p>
+            </div>` : ''}
           </div>
         </div>
         <div style="padding:24px 32px; border-bottom:1px solid #f0f0f0;">
@@ -255,14 +282,10 @@ const buildWelcomeEmail = () => {
     </head>
     <body style="margin: 0; padding: 0; background-color: #f9f9f9; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
       <div style="max-width: 600px; margin: 40px auto; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
-
-        <!-- Header rosado con logo -->
         <div style="background: #f33763; padding: 20px 32px; text-align: center;">
           <img src="https://firebasestorage.googleapis.com/v0/b/bojochic-21749.firebasestorage.app/o/logo-bojo.png?alt=media&token=dede7080-d9a2-4533-bb13-0e1c3b46137d"
             alt="Bojo" style="height: 200px; width: auto; display: block; margin: 0 auto;" />
         </div>
-
-        <!-- Bienvenida -->
         <div style="padding: 36px 32px; text-align: center; border-bottom: 1px solid #f0f0f0;">
           <div style="font-size: 48px; margin-bottom: 16px;">🎉</div>
           <h2 style="margin: 0 0 12px; color: #1a1a1a; font-size: 24px;">¡Bienvenida a la comunidad Bojo!</h2>
@@ -270,8 +293,6 @@ const buildWelcomeEmail = () => {
             Gracias por suscribirte. Ahora serás la primera en enterarte de nuestras novedades, lanzamientos y ofertas exclusivas. 💖
           </p>
         </div>
-
-        <!-- Código de descuento -->
         <div style="padding: 36px 32px; text-align: center; border-bottom: 1px solid #f0f0f0;">
           <p style="margin: 0 0 24px; color: #444; font-size: 15px; line-height: 1.6;">
             Como prometimos, aquí está tu regalo de bienvenida:
@@ -285,8 +306,6 @@ const buildWelcomeEmail = () => {
             Ingresa el código al momento del pago en el checkout 🛍️
           </p>
         </div>
-
-        <!-- CTA -->
         <div style="padding: 32px; text-align: center; border-bottom: 1px solid #f0f0f0;">
           <p style="margin: 0 0 20px; color: #555; font-size: 15px;">¿Lista para tu primera compra?</p>
           <a href="https://www.bojo.cl"
@@ -295,8 +314,6 @@ const buildWelcomeEmail = () => {
             Ver colección →
           </a>
         </div>
-
-        <!-- Footer -->
         <div style="padding: 28px 32px; text-align: center;">
           <p style="margin: 0 0 8px; color: #666; font-size: 14px; line-height: 1.6;">
             ¿Tienes alguna duda? Escríbenos a
@@ -308,7 +325,6 @@ const buildWelcomeEmail = () => {
           </p>
           <p style="margin: 8px 0 0; color: #bbb; font-size: 12px;">© ${new Date().getFullYear()} Bojo · Todos los derechos reservados</p>
         </div>
-
       </div>
     </body>
     </html>
@@ -317,14 +333,17 @@ const buildWelcomeEmail = () => {
 
 // ─────────────────────────────────────────
 // CREAR TRANSACCIÓN
+// Usa verifyAuthOptional → acepta usuarios registrados Y guests
 // ─────────────────────────────────────────
-app.post('/api/webpay/create', verifyAuth, async (req, res) => {
+app.post('/api/webpay/create', verifyAuthOptional, async (req, res) => {
   try {
-    const { amount, items, shippingData } = req.body;
+    const { amount, items, shippingData, isGuest, guestEmail } = req.body;
+
     if (!amount || amount <= 0) return res.status(400).json({ error: 'Monto inválido' });
 
-    const buyOrder = `ORD-${Date.now()}`;
-    const sessionId = req.user.uid;
+    const buyOrder  = `ORD-${Date.now()}`;
+    // sessionId: uid si es usuario registrado, email del guest si no
+    const sessionId = req.user ? req.user.uid : (guestEmail || `guest-${Date.now()}`);
     const returnUrl = `${process.env.FRONTEND_URL}/webpay/return`;
 
     const response = await axios.post(
@@ -333,24 +352,34 @@ app.post('/api/webpay/create', verifyAuth, async (req, res) => {
       { headers: { 'Tbk-Api-Key-Id': WEBPAY.commerceCode, 'Tbk-Api-Key-Secret': WEBPAY.apiKey, 'Content-Type': 'application/json' } }
     );
 
+    // Guardar orden — userId es null para guests
     await db.collection('orders').doc(buyOrder).set({
-      userId: req.user.uid, buyOrder, sessionId, amount, items, shippingData,
-      token: response.data.token, status: 'pending', paymentStatus: 'pending',
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
+      userId:      req.user ? req.user.uid : null,
+      isGuest:     isGuest || false,
+      buyOrder,
+      sessionId,
+      amount,
+      items,
+      shippingData,
+      token:       response.data.token,
+      status:      'pending',
+      paymentStatus: 'pending',
+      createdAt:   admin.firestore.FieldValue.serverTimestamp()
     });
 
     res.json({ success: true, token: response.data.token, url: response.data.url, buyOrder });
 
   } catch (error) {
-    console.error('❌ Error:', error.response?.data || error.message);
+    console.error('❌ Error create:', error.response?.data || error.message);
     res.status(500).json({ error: error.response?.data?.error_message || error.message });
   }
 });
 
 // ─────────────────────────────────────────
 // CONFIRMAR TRANSACCIÓN
+// Usa verifyAuthOptional → funciona para usuarios Y guests
 // ─────────────────────────────────────────
-app.post('/api/webpay/confirm', verifyAuth, async (req, res) => {
+app.post('/api/webpay/confirm', verifyAuthOptional, async (req, res) => {
   try {
     const { token } = req.body;
     if (!token) return res.status(400).json({ error: 'Token no proporcionado' });
@@ -362,7 +391,7 @@ app.post('/api/webpay/confirm', verifyAuth, async (req, res) => {
 
     if (ordersSnapshot.empty) return res.status(404).json({ error: 'Orden no encontrada' });
 
-    const orderDoc = ordersSnapshot.docs[0];
+    const orderDoc  = ordersSnapshot.docs[0];
     const orderData = orderDoc.data();
 
     if (orderData.status === 'approved' || orderData.status === 'rejected') {
@@ -387,28 +416,34 @@ app.post('/api/webpay/confirm', verifyAuth, async (req, res) => {
     );
 
     const paymentData = response.data;
-    const isApproved = paymentData.response_code === 0;
+    const isApproved  = paymentData.response_code === 0;
 
     await orderDoc.ref.update({
-      status: isApproved ? 'approved' : 'rejected',
-      paymentStatus: isApproved ? 'paid' : 'failed',
-      vci: paymentData.vci,
-      cardNumber: paymentData.card_detail?.card_number,
+      status:          isApproved ? 'approved' : 'rejected',
+      paymentStatus:   isApproved ? 'paid' : 'failed',
+      vci:             paymentData.vci,
+      cardNumber:      paymentData.card_detail?.card_number,
       authorizationCode: paymentData.authorization_code,
       transactionDate: paymentData.transaction_date,
       paymentTypeCode: paymentData.payment_type_code,
-      responseCode: paymentData.response_code,
-      installments: paymentData.installments_number || 0,
-      confirmedAt: admin.firestore.FieldValue.serverTimestamp()
+      responseCode:    paymentData.response_code,
+      installments:    paymentData.installments_number || 0,
+      confirmedAt:     admin.firestore.FieldValue.serverTimestamp()
     });
 
     if (isApproved) {
-      // Limpiar carrito
-      const cartSnapshot = await db.collection('users').doc(req.user.uid).collection('cart').get();
-      const batch = db.batch();
-      cartSnapshot.docs.forEach(doc => batch.delete(doc.ref));
-      await batch.commit();
-      console.log('✅ Carrito limpiado');
+      // Limpiar carrito — solo si era usuario registrado (guests no tienen carrito en Firestore)
+      if (!orderData.isGuest && orderData.userId) {
+        try {
+          const cartSnapshot = await db.collection('users').doc(orderData.userId).collection('cart').get();
+          const batch = db.batch();
+          cartSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+          await batch.commit();
+          console.log('✅ Carrito limpiado');
+        } catch (cartError) {
+          console.error('⚠️ Error limpiando carrito:', cartError.message);
+        }
+      }
 
       // 📦 Bajar stock
       try {
@@ -418,11 +453,11 @@ app.post('/api/webpay/confirm', verifyAuth, async (req, res) => {
             console.warn('⚠️ Item sin id, saltando:', item.name);
             continue;
           }
-          const productoRef = db.collection('productos').doc(item.id);
+          const productoRef  = db.collection('productos').doc(item.id);
           const productoSnap = await productoRef.get();
           if (productoSnap.exists) {
             const stockActual = productoSnap.data().stock || 0;
-            const nuevoStock = Math.max(0, stockActual - item.quantity);
+            const nuevoStock  = Math.max(0, stockActual - item.quantity);
             stockBatch.update(productoRef, { stock: nuevoStock });
             console.log(`📦 Stock ${item.name}: ${stockActual} → ${nuevoStock}`);
           } else {
@@ -438,10 +473,10 @@ app.post('/api/webpay/confirm', verifyAuth, async (req, res) => {
       // 📧 Correo de confirmación al cliente
       try {
         await resend.emails.send({
-          from: 'Bojo <Pedidos@bojo.cl>',
-          to: orderData.shippingData.email,
+          from:    'Bojo <Pedidos@bojo.cl>',
+          to:      orderData.shippingData.email,
           subject: `✨ ¡Pedido confirmado! Orden ${orderData.buyOrder}`,
-          html: buildOrderEmail(
+          html:    buildOrderEmail(
             orderData.shippingData, orderData.items, orderData.amount,
             orderData.buyOrder, paymentData.authorization_code
           )
@@ -451,15 +486,16 @@ app.post('/api/webpay/confirm', verifyAuth, async (req, res) => {
         console.error('⚠️ Error enviando correo al cliente:', emailError.message);
       }
 
-      // 📧 Notificación al admin
+      // 📧 Notificación al admin (incluye badge "Invitado" si aplica)
       try {
         await resend.emails.send({
-          from: 'Bojo <Pedidos@bojo.cl>',
-          to: process.env.ADMIN_EMAIL,
-          subject: `🛍️ Nueva venta — ${orderData.buyOrder} — $${orderData.amount.toLocaleString('es-CL')}`,
-          html: buildAdminEmail(
+          from:    'Bojo <Pedidos@bojo.cl>',
+          to:      process.env.ADMIN_EMAIL,
+          subject: `🛍️ Nueva venta — ${orderData.buyOrder} — $${orderData.amount.toLocaleString('es-CL')}${orderData.isGuest ? ' [Invitado]' : ''}`,
+          html:    buildAdminEmail(
             orderData.shippingData, orderData.items, orderData.amount,
-            orderData.buyOrder, paymentData.authorization_code
+            orderData.buyOrder, paymentData.authorization_code,
+            orderData.isGuest
           )
         });
         console.log('✅ Notificación enviada al admin');
@@ -469,17 +505,17 @@ app.post('/api/webpay/confirm', verifyAuth, async (req, res) => {
     }
 
     res.json({
-      success: isApproved,
-      buyOrder: paymentData.buy_order,
-      amount: paymentData.amount,
+      success:           isApproved,
+      buyOrder:          paymentData.buy_order,
+      amount:            paymentData.amount,
       authorizationCode: paymentData.authorization_code,
-      responseCode: paymentData.response_code,
-      status: paymentData.status,
-      cardNumber: paymentData.card_detail?.card_number
+      responseCode:      paymentData.response_code,
+      status:            paymentData.status,
+      cardNumber:        paymentData.card_detail?.card_number
     });
 
   } catch (error) {
-    console.error('❌ Error:', error.response?.data || error.message);
+    console.error('❌ Error confirm:', error.response?.data || error.message);
     res.status(500).json({ error: error.response?.data?.error_message || error.message });
   }
 });
@@ -489,20 +525,17 @@ app.post('/api/webpay/confirm', verifyAuth, async (req, res) => {
 // ─────────────────────────────────────────
 app.post('/api/subscribers/welcome', async (req, res) => {
   const { email } = req.body;
-
   if (!email) return res.status(400).json({ error: 'Email requerido' });
 
   try {
     await resend.emails.send({
-      from: 'Bojo <contacto@bojo.cl>',
-      to: email,
+      from:    'Bojo <contacto@bojo.cl>',
+      to:      email,
       subject: '🎉 ¡Bienvenida a Bojo! Tu código de descuento te espera',
-      html: buildWelcomeEmail()
+      html:    buildWelcomeEmail()
     });
-
     console.log('✅ Correo de bienvenida enviado a:', email);
     res.json({ ok: true });
-
   } catch (error) {
     console.error('⚠️ Error enviando correo de bienvenida:', error.message);
     res.status(500).json({ error: 'Error al enviar correo' });
