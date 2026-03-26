@@ -7,6 +7,19 @@ import { auth, db } from '../../firebase/config';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import ProductModal from '../../components/Productos/ProductModal';
 
+// ─── Helpers localStorage (guest) ────────────────────────────────────────────
+const CART_KEY = 'bojo_guest_cart';
+
+const getGuestCart = () => {
+  try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); }
+  catch { return []; }
+};
+
+const saveGuestCart = (items) => {
+  localStorage.setItem(CART_KEY, JSON.stringify(items));
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
 const ProductCard = ({ producto }) => {
   const navigate = useNavigate();
   const [modalVisible, setModalVisible] = useState(false);
@@ -49,44 +62,72 @@ const ProductCard = ({ producto }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showQuantityPopup]);
 
+  // ── Click en el botón principal ──────────────────────────────────────────
+  // Ya no redirige al login — guests pueden agregar al carrito
   const handleCartButtonClick = (e) => {
     e.stopPropagation();
-    const user = auth.currentUser;
-    if (!user) {
-      message.warning('Debes iniciar sesión para agregar productos al carrito');
-      navigate('/login');
-      return;
-    }
     setShowQuantityPopup(prev => !prev);
   };
 
+  // ── Confirmar agregar al carrito ─────────────────────────────────────────
   const confirmarAgregarAlCarrito = async (e) => {
     e.stopPropagation();
+
     const user = auth.currentUser;
-    if (!user) return;
 
     try {
       setAddingToCart(true);
-      const cartItemRef = doc(db, 'users', user.uid, 'cart', producto.id);
 
-      // Sumar a cantidad existente si ya está en carrito
-      const existing = await getDoc(cartItemRef);
-      const currentQty = existing.exists() ? (existing.data().quantity || 0) : 0;
+      if (user) {
+        // ── Usuario registrado: guardar en Firestore ──
+        const cartItemRef = doc(db, 'users', user.uid, 'cart', producto.id);
+        const existing = await getDoc(cartItemRef);
+        const currentQty = existing.exists() ? (existing.data().quantity || 0) : 0;
 
-      await setDoc(cartItemRef, {
-  id: producto.id,        // ← AGREGAR ESTO
-  name: producto.nombre || producto.title,
-  price: producto.precio || producto.price,
-  image: imagenPrincipal(),
-  quantity: currentQty + cantidad,
-  addedAt: new Date().toISOString(),
-  size: producto.talla || null,
-  color: producto.color || null,
-});
+        await setDoc(cartItemRef, {
+          id:       producto.id,
+          name:     producto.nombre  || producto.title,
+          price:    producto.precio  || producto.price,
+          image:    imagenPrincipal(),
+          quantity: currentQty + cantidad,
+          addedAt:  new Date().toISOString(),
+          size:     producto.talla || null,
+          color:    producto.color || null,
+        });
+
+      } else {
+        // ── Guest: guardar en localStorage ──
+        const cart = getGuestCart();
+        const existingIndex = cart.findIndex(item => item.id === producto.id);
+
+        if (existingIndex >= 0) {
+          // Ya estaba en el carrito → sumar cantidad
+          cart[existingIndex].quantity += cantidad;
+        } else {
+          // Producto nuevo
+          cart.push({
+            id:       producto.id,
+            name:     producto.nombre  || producto.title,
+            price:    producto.precio  || producto.price,
+            image:    imagenPrincipal(),
+            quantity: cantidad,
+            addedAt:  new Date().toISOString(),
+            size:     producto.talla || null,
+            color:    producto.color || null,
+          });
+        }
+
+        saveGuestCart(cart);
+
+        // Disparar evento para que ShoppingCart.jsx se actualice
+        window.dispatchEvent(new CustomEvent('guestCartUpdated'));
+      }
+
       setShowQuantityPopup(false);
       setCantidad(1);
       setAdded(true);
       setTimeout(() => setAdded(false), 2000);
+
     } catch (error) {
       console.error('Error agregando al carrito:', error);
       message.error('Error al agregar al carrito');

@@ -13,7 +13,6 @@ const UMBRAL_DESCUENTO = 30000;
 const CODIGOS_DESCUENTO = {
   'BOJO10': { tipo: 'porcentaje', valor: 10 },
   'AMIGASBOJO': { tipo: 'porcentaje', valor: 20 }
-  // agrega más códigos aquí
 };
 
 const calcularEnvio = (region, subtotalProductos) => {
@@ -23,11 +22,28 @@ const calcularEnvio = (region, subtotalProductos) => {
     : costoBase;
 };
 
+// ─── Helpers para carrito guest (localStorage) ───────────────────────────────
+const CART_KEY = 'bojo_guest_cart';
+
+const getGuestCart = () => {
+  try {
+    return JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+  } catch {
+    return [];
+  }
+};
+
+const clearGuestCart = () => {
+  localStorage.removeItem(CART_KEY);
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
+  const [isGuest, setIsGuest] = useState(false);
   const [shipping, setShipping] = useState(calcularEnvio('Metropolitana', 0));
   const [regionGuardada, setRegionGuardada] = useState('Metropolitana');
   const [descuento, setDescuento] = useState(0);
@@ -37,46 +53,63 @@ const CheckoutPage = () => {
   useEffect(() => {
     const user = auth.currentUser;
 
-    if (!user) {
-      message.warning('Debes iniciar sesión para continuar');
-      navigate('/login');
-      return;
-    }
+    // ── USUARIO REGISTRADO ──────────────────────────────────────────────────
+    if (user) {
+      setIsGuest(false);
 
-    const loadUserData = async () => {
-      try {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          setUserData({ ...data, email: user.email });
-          if (data.region) {
-            setRegionGuardada(data.region);
+      const loadUserData = async () => {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            setUserData({ ...data, email: user.email });
+            if (data.region) {
+              setRegionGuardada(data.region);
+            }
           }
+        } catch (error) {
+          console.error('Error cargando datos del usuario:', error);
         }
-      } catch (error) {
-        console.error('Error cargando datos del usuario:', error);
-      }
-    };
+      };
 
-    loadUserData();
+      loadUserData();
 
-    const cartRef = collection(db, 'users', user.uid, 'cart');
-    const unsubscribe = onSnapshot(cartRef, (snapshot) => {
-      const items = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      // Carrito desde Firestore
+      const cartRef = collection(db, 'users', user.uid, 'cart');
+      const unsubscribe = onSnapshot(cartRef, (snapshot) => {
+        const items = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        if (items.length === 0) {
+          message.info('Tu carrito está vacío');
+          navigate('/');
+        }
+
+        setCartItems(items);
+        setLoading(false);
+      });
+
+      return () => unsubscribe();
+
+    // ── GUEST ───────────────────────────────────────────────────────────────
+    } else {
+      setIsGuest(true);
+      setUserData(null);
+
+      // Carrito desde localStorage
+      const items = getGuestCart();
 
       if (items.length === 0) {
         message.info('Tu carrito está vacío');
         navigate('/');
+        return;
       }
 
       setCartItems(items);
       setLoading(false);
-    });
-
-    return () => unsubscribe();
+    }
   }, [navigate]);
 
   useEffect(() => {
@@ -86,7 +119,7 @@ const CheckoutPage = () => {
     }
   }, [cartItems, regionGuardada]);
 
-  // Si el subtotal cambia y hay código aplicado, recalcula el descuento
+  // Recalcula descuento si cambia el subtotal
   useEffect(() => {
     if (codigoAplicado) {
       const promo = CODIGOS_DESCUENTO[codigoAplicado];
@@ -94,9 +127,11 @@ const CheckoutPage = () => {
         setDescuento(Math.round(subtotal * promo.valor / 100));
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cartItems, codigoAplicado]);
 
   const handleRegionChange = (region) => {
+    setRegionGuardada(region);
     setShipping(calcularEnvio(region, subtotal));
   };
 
@@ -105,24 +140,24 @@ const CheckoutPage = () => {
     setLoadingCodigo(true);
 
     try {
-      // 1. Verificar que el código existe
       const promo = CODIGOS_DESCUENTO[codigoUpper];
       if (!promo) {
         message.error('Código de descuento inválido');
         return;
       }
 
-      // 2. Verificar que el usuario no lo haya usado antes
-      const user = auth.currentUser;
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
-      const codigosUsados = userDoc.data()?.codigosUsados || [];
+      // Solo verifica uso previo si hay usuario registrado
+      if (!isGuest) {
+        const user = auth.currentUser;
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        const codigosUsados = userDoc.data()?.codigosUsados || [];
 
-      if (codigosUsados.includes(codigoUpper)) {
-        message.error('Este código ya fue utilizado en tu cuenta');
-        return;
+        if (codigosUsados.includes(codigoUpper)) {
+          message.error('Este código ya fue utilizado en tu cuenta');
+          return;
+        }
       }
 
-      // 3. Calcular y aplicar descuento
       const descuentoCalculado = promo.tipo === 'porcentaje'
         ? Math.round(subtotal * promo.valor / 100)
         : promo.valor;
@@ -144,10 +179,10 @@ const CheckoutPage = () => {
     setCodigoAplicado(null);
   };
 
-  // El registro de que fue usado se hace en el backend al confirmar el pago,
-  // pero como fallback también lo puedes hacer aquí si quieres (opcional)
   const marcarCodigoUsado = async () => {
-    if (!codigoAplicado) return;
+    // Los guests no tienen cuenta, no se marca nada
+    if (isGuest || !codigoAplicado) return;
+
     try {
       const user = auth.currentUser;
       await updateDoc(doc(db, 'users', user.uid), {
@@ -156,6 +191,15 @@ const CheckoutPage = () => {
     } catch (error) {
       console.error('Error marcando código como usado:', error);
     }
+  };
+
+  // Limpia el carrito guest después de que el pago fue aprobado
+  // Llama esto desde CheckoutForm cuando Webpay retorne OK
+  const onPagoConfirmado = () => {
+    if (isGuest) {
+      clearGuestCart();
+    }
+    marcarCodigoUsado();
   };
 
   const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
@@ -180,6 +224,7 @@ const CheckoutPage = () => {
           <Col xs={24} lg={14}>
             <CheckoutForm
               userData={userData}
+              isGuest={isGuest}
               cartItems={cartItems}
               totalAmount={total}
               onRegionChange={handleRegionChange}
@@ -188,7 +233,7 @@ const CheckoutPage = () => {
               onQuitarCodigo={quitarCodigo}
               codigoAplicado={codigoAplicado}
               loadingCodigo={loadingCodigo}
-              onConfirmarPago={marcarCodigoUsado}
+              onConfirmarPago={onPagoConfirmado}
             />
           </Col>
           <Col xs={24} lg={10}>

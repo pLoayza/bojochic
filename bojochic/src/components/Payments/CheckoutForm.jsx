@@ -53,8 +53,20 @@ export const COSTO_ENVIO = {
 
 export const getCostoEnvio = (region) => COSTO_ENVIO[region] ?? 3000;
 /* export const getCostoEnvio = (region) => 0; FOR TESTING*/
-const CheckoutForm = ({ userData, cartItems, totalAmount, onRegionChange, shipping,
-  onAplicarCodigo, onQuitarCodigo, codigoAplicado, loadingCodigo, onConfirmarPago }) => {
+
+const CheckoutForm = ({
+  userData,
+  isGuest,           // 👈 prop nuevo
+  cartItems,
+  totalAmount,
+  onRegionChange,
+  shipping,
+  onAplicarCodigo,
+  onQuitarCodigo,
+  codigoAplicado,
+  loadingCodigo,
+  onConfirmarPago
+}) => {
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
   const [regionSeleccionada, setRegionSeleccionada] = useState('Metropolitana');
@@ -63,18 +75,20 @@ const CheckoutForm = ({ userData, cartItems, totalAmount, onRegionChange, shippi
 
   useEffect(() => {
     if (userData) {
+      // Usuario registrado: pre-rellenar con datos del perfil
       const region = userData.region || 'Metropolitana';
       form.setFieldsValue({
-        nombre: userData.nombre || '',
-        email: userData.email || '',
-        telefono: userData.telefono || '',
+        nombre:    userData.nombre   || '',
+        email:     userData.email    || '',
+        telefono:  userData.telefono || '',
         direccion: userData.direccion || '',
-        comuna: userData.comuna || '',
-        region: region
+        comuna:    userData.comuna   || '',
+        region:    region
       });
       setRegionSeleccionada(region);
-      setComunasDisponibles(REGIONES_COMUNAS[region]);
+      setComunasDisponibles(REGIONES_COMUNAS[region] || []);
     } else {
+      // Guest: solo setear región default
       form.setFieldsValue({ region: 'Metropolitana' });
     }
   }, [userData, form]);
@@ -96,37 +110,39 @@ const CheckoutForm = ({ userData, cartItems, totalAmount, onRegionChange, shippi
         return;
       }
 
+      // ── Obtener token de autorización ────────────────────────────────────
+      // Si hay usuario registrado → token Firebase
+      // Si es guest → se manda sin Authorization header (el backend lo permite)
       const user = auth.currentUser;
-      if (!user) {
-        message.error('Debes iniciar sesión');
-        setSubmitting(false);
-        return;
+      const headers = { 'Content-Type': 'application/json' };
+
+      if (user) {
+        const token = await user.getIdToken();
+        headers['Authorization'] = `Bearer ${token}`;
       }
+      // ────────────────────────────────────────────────────────────────────
 
-      const token = await user.getIdToken();
-
-      await onConfirmarPago?.(); // 👈 marca el código como usado antes de redirigir
+      await onConfirmarPago?.(); // marca código como usado (no-op para guests)
 
       const requestBody = {
         amount: totalAmount,
+        isGuest: isGuest,                  // 👈 el backend lo recibe para saber si guardar userId
+        guestEmail: isGuest ? values.email : null, // 👈 para enviar el correo de confirmación
         items: cartItems.map(item => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
+          id:       item.id,
+          name:     item.name,
+          price:    item.price,
           quantity: item.quantity,
-          image: item.image,
-          size: item.size || null,
-          color: item.color || null
+          image:    item.image,
+          size:     item.size  || null,
+          color:    item.color || null
         })),
         shippingData: values
       };
 
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/webpay/create`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers,
         body: JSON.stringify(requestBody)
       });
 
@@ -136,13 +152,14 @@ const CheckoutForm = ({ userData, cartItems, totalAmount, onRegionChange, shippi
         throw new Error(data.error || 'Error al crear transacción');
       }
 
+      // Redirigir a Webpay (mismo flujo de siempre)
       const formElement = document.createElement('form');
       formElement.method = 'POST';
       formElement.action = data.url;
 
       const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = 'token_ws';
+      input.type  = 'hidden';
+      input.name  = 'token_ws';
       input.value = data.token;
 
       formElement.appendChild(input);
@@ -161,6 +178,17 @@ const CheckoutForm = ({ userData, cartItems, totalAmount, onRegionChange, shippi
       <Title level={3} style={{ marginBottom: '24px' }}>
         Datos de Envío
       </Title>
+
+      {/* Aviso sutil para guests, sin obligar a registrarse */}
+      {isGuest && (
+        <Alert
+          message="Comprando como invitado"
+          description="Recibirás la confirmación de tu pedido por email. Si quieres ver tu historial de compras, puedes crear una cuenta."
+          type="info"
+          showIcon
+          style={{ marginBottom: '20px' }}
+        />
+      )}
 
       <Form form={form} layout="vertical" onFinish={handleSubmit} autoComplete="off">
 
@@ -187,7 +215,8 @@ const CheckoutForm = ({ userData, cartItems, totalAmount, onRegionChange, shippi
             prefix={<UserOutlined />}
             placeholder="correo@ejemplo.com"
             size="large"
-            disabled={!!userData?.email}
+            // Deshabilitado solo si es usuario registrado con email ya cargado
+            disabled={!isGuest && !!userData?.email}
           />
         </Form.Item>
 
