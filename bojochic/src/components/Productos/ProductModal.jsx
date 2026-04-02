@@ -1,4 +1,5 @@
 // src/components/Productos/ProductModal.jsx
+import { useState } from 'react';
 import { Modal, Image, Button, Tag, Descriptions, Space, message, Carousel } from 'antd';
 import { ShoppingCartOutlined, CloseOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { auth, db } from '../../firebase/config';
@@ -22,8 +23,14 @@ const saveGuestCart = (items) => {
 const ProductModal = ({ visible, producto, onClose }) => {
   const navigate = useNavigate();
   const carouselRef = useRef(null);
+  const [selectedSize, setSelectedSize] = useState(null); // ← NUEVO
 
   if (!producto) return null;
+
+  // ── Tallas: solo si el producto tiene tieneTallas: true y array con elementos ──
+  const tallas = producto.tieneTallas && Array.isArray(producto.tallas) && producto.tallas.length > 0
+    ? producto.tallas
+    : null;
 
   const imagenes = producto.imagenes && Array.isArray(producto.imagenes) && producto.imagenes.length > 0
     ? producto.imagenes
@@ -42,10 +49,15 @@ const ProductModal = ({ visible, producto, onClose }) => {
   const agregarAlCarrito = async () => {
     const user = auth.currentUser;
 
+    // ── Construir key único: si tiene talla, el id incluye la talla ──
+    const cartItemId = tallas && selectedSize
+      ? `${producto.id}_${selectedSize}`
+      : producto.id;
+
     try {
       if (user) {
         // ── Usuario registrado: Firestore ──
-        const cartItemRef = doc(db, 'users', user.uid, 'cart', producto.id);
+        const cartItemRef = doc(db, 'users', user.uid, 'cart', cartItemId);
         const existing = await getDoc(cartItemRef);
         const currentQty = existing.exists() ? (existing.data().quantity || 0) : 0;
 
@@ -56,14 +68,17 @@ const ProductModal = ({ visible, producto, onClose }) => {
           image:    imagenes[0],
           quantity: currentQty + 1,
           addedAt:  new Date().toISOString(),
-          size:     producto.talla || null,
+          size:     selectedSize || null, // ← CAMBIADO
           color:    producto.color || null,
         });
 
       } else {
         // ── Guest: localStorage ──
         const cart = getGuestCart();
-        const existingIndex = cart.findIndex(item => item.id === producto.id);
+        const existingIndex = cart.findIndex(item => {
+          const itemKey = item.size ? `${item.id}_${item.size}` : item.id;
+          return itemKey === cartItemId;
+        });
 
         if (existingIndex >= 0) {
           cart[existingIndex].quantity += 1;
@@ -75,17 +90,17 @@ const ProductModal = ({ visible, producto, onClose }) => {
             image:    imagenes[0],
             quantity: 1,
             addedAt:  new Date().toISOString(),
-            size:     producto.talla || null,
+            size:     selectedSize || null, // ← CAMBIADO
             color:    producto.color || null,
           });
         }
 
         saveGuestCart(cart);
-        // Notificar a ShoppingCart para que actualice el badge al instante
         window.dispatchEvent(new CustomEvent('guestCartUpdated'));
       }
 
       message.success('¡Producto agregado al carrito!');
+      setSelectedSize(null); // reset al cerrar
       onClose();
 
     } catch (error) {
@@ -94,10 +109,18 @@ const ProductModal = ({ visible, producto, onClose }) => {
     }
   };
 
+  const handleClose = () => {
+    setSelectedSize(null);
+    onClose();
+  };
+
+  const sinStock = producto.stock === 0 || producto.activo === false;
+  const addDisabled = sinStock || (tallas && !selectedSize); // ← NUEVO
+
   return (
     <Modal
       open={visible}
-      onCancel={onClose}
+      onCancel={handleClose}
       footer={null}
       width="90%"
       style={{ maxWidth: '900px', top: 20 }}
@@ -180,7 +203,7 @@ const ProductModal = ({ visible, producto, onClose }) => {
             {producto.nombre || producto.title}
           </h2>
 
-          <div style={{ fontSize: 'clamp(26px, 6vw, 32px)', fontWeight: 'bold', color: ' #f33763', marginBottom: '20px' }}>
+          <div style={{ fontSize: 'clamp(26px, 6vw, 32px)', fontWeight: 'bold', color: '#f33763', marginBottom: '20px' }}>
             {formatearPrecio(producto.precio || producto.price)}
           </div>
 
@@ -207,29 +230,63 @@ const ProductModal = ({ visible, producto, onClose }) => {
             </div>
           )}
 
-          {(producto.material || producto.talla || producto.color || producto.peso) && (
-            <Descriptions column={1} bordered size="small" style={{ marginBottom: '25px' }}>
-              {producto.material && (
-                <Descriptions.Item label="Material" labelStyle={{ fontWeight: '600', width: '100px' }}>
-                  {producto.material}
-                </Descriptions.Item>
+          {/* ── Selector de talla interactivo (reemplaza el campo estático) ── */}
+          {tallas ? (
+            <div style={{ marginBottom: '25px' }}>
+              <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>Talla:</h4>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {tallas.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setSelectedSize(t)}
+                    style={{
+                      padding: '8px 18px',
+                      border: selectedSize === t ? '2px solid #f33763' : '1.5px solid #ddd',
+                      borderRadius: '8px',
+                      background: selectedSize === t ? '#fff0f4' : '#fff',
+                      color: selectedSize === t ? '#f33763' : '#555',
+                      fontWeight: selectedSize === t ? '700' : '500',
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+              {!selectedSize && (
+                <p style={{ color: '#f33763', fontSize: '12px', margin: '8px 0 0 0' }}>
+                  * Selecciona una talla para agregar al carrito
+                </p>
               )}
-              {producto.talla && (
-                <Descriptions.Item label="Tamaño" labelStyle={{ fontWeight: '600', width: '100px' }}>
-                  {producto.talla}
-                </Descriptions.Item>
-              )}
-              {producto.color && (
-                <Descriptions.Item label="Color" labelStyle={{ fontWeight: '600', width: '100px' }}>
-                  {producto.color}
-                </Descriptions.Item>
-              )}
-              {producto.peso && (
-                <Descriptions.Item label="Peso" labelStyle={{ fontWeight: '600', width: '100px' }}>
-                  {producto.peso}
-                </Descriptions.Item>
-              )}
-            </Descriptions>
+            </div>
+          ) : (
+            /* Tabla de detalles estáticos solo si no hay tallas dinámicas */
+            (producto.material || producto.talla || producto.color || producto.peso) && (
+              <Descriptions column={1} bordered size="small" style={{ marginBottom: '25px' }}>
+                {producto.material && (
+                  <Descriptions.Item label="Material" labelStyle={{ fontWeight: '600', width: '100px' }}>
+                    {producto.material}
+                  </Descriptions.Item>
+                )}
+                {producto.talla && (
+                  <Descriptions.Item label="Tamaño" labelStyle={{ fontWeight: '600', width: '100px' }}>
+                    {producto.talla}
+                  </Descriptions.Item>
+                )}
+                {producto.color && (
+                  <Descriptions.Item label="Color" labelStyle={{ fontWeight: '600', width: '100px' }}>
+                    {producto.color}
+                  </Descriptions.Item>
+                )}
+                {producto.peso && (
+                  <Descriptions.Item label="Peso" labelStyle={{ fontWeight: '600', width: '100px' }}>
+                    {producto.peso}
+                  </Descriptions.Item>
+                )}
+              </Descriptions>
+            )
           )}
 
           <div style={{ backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '8px', marginBottom: '25px' }}>
@@ -247,9 +304,9 @@ const ProductModal = ({ visible, producto, onClose }) => {
               block
               icon={<ShoppingCartOutlined />}
               onClick={agregarAlCarrito}
-              disabled={producto.stock === 0 || producto.activo === false}
+              disabled={addDisabled} // ← CAMBIADO
               style={{
-                background: producto.stock === 0 || producto.activo === false
+                background: addDisabled
                   ? '#d9d9d9'
                   : 'linear-gradient(45deg, #f33763, #FF6B9D)',
                 border: 'none',
@@ -259,16 +316,18 @@ const ProductModal = ({ visible, producto, onClose }) => {
                 fontSize: '16px',
               }}
             >
-              {producto.stock === 0 || producto.activo === false
+              {sinStock
                 ? 'Producto no disponible'
-                : 'Agregar al carrito'}
+                : (tallas && !selectedSize)
+                  ? 'Selecciona una talla'
+                  : 'Agregar al carrito'}
             </Button>
 
             <Button
               size="large"
               block
-              onClick={onClose}
-              style={{ borderRadius: '8px', fontWeight: '600', height: '45px', borderColor: ' #f33763', color: ' #f33763' }}
+              onClick={handleClose}
+              style={{ borderRadius: '8px', fontWeight: '600', height: '45px', borderColor: '#f33763', color: '#f33763' }}
             >
               Seguir comprando
             </Button>
