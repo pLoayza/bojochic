@@ -27,8 +27,14 @@ const ProductCard = ({ producto }) => {
   const [cantidad, setCantidad] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
   const [added, setAdded] = useState(false);
+  const [selectedSize, setSelectedSize] = useState(null); // ← NUEVO
   const popupRef = useRef(null);
   const btnRef = useRef(null);
+
+  // ── Tallas: solo si el producto tiene tieneTallas: true y array con elementos ──
+  const tallas = producto.tieneTallas && Array.isArray(producto.tallas) && producto.tallas.length > 0
+    ? producto.tallas
+    : null;
 
   const formatearPrecio = (precio) => {
     if (typeof precio === 'number') return `$${precio.toLocaleString('es-CL')}`;
@@ -54,6 +60,7 @@ const ProductCard = ({ producto }) => {
       ) {
         setShowQuantityPopup(false);
         setCantidad(1);
+        setSelectedSize(null); // ← NUEVO: reset talla al cerrar
       }
     };
     if (showQuantityPopup) {
@@ -63,9 +70,9 @@ const ProductCard = ({ producto }) => {
   }, [showQuantityPopup]);
 
   // ── Click en el botón principal ──────────────────────────────────────────
-  // Ya no redirige al login — guests pueden agregar al carrito
   const handleCartButtonClick = (e) => {
     e.stopPropagation();
+    setSelectedSize(null); // ← NUEVO: reset talla al abrir popup
     setShowQuantityPopup(prev => !prev);
   };
 
@@ -78,9 +85,15 @@ const ProductCard = ({ producto }) => {
     try {
       setAddingToCart(true);
 
+      // ── Construir key único: si tiene talla, el id incluye la talla ──
+      // Así el mismo producto en talla S y M son items separados en el carrito
+      const cartItemId = tallas && selectedSize
+        ? `${producto.id}_${selectedSize}`
+        : producto.id;
+
       if (user) {
         // ── Usuario registrado: guardar en Firestore ──
-        const cartItemRef = doc(db, 'users', user.uid, 'cart', producto.id);
+        const cartItemRef = doc(db, 'users', user.uid, 'cart', cartItemId);
         const existing = await getDoc(cartItemRef);
         const currentQty = existing.exists() ? (existing.data().quantity || 0) : 0;
 
@@ -91,20 +104,22 @@ const ProductCard = ({ producto }) => {
           image:    imagenPrincipal(),
           quantity: currentQty + cantidad,
           addedAt:  new Date().toISOString(),
-          size:     producto.talla || null,
+          size:     selectedSize || null, // ← CAMBIADO
           color:    producto.color || null,
         });
 
       } else {
         // ── Guest: guardar en localStorage ──
         const cart = getGuestCart();
-        const existingIndex = cart.findIndex(item => item.id === producto.id);
+        // Buscar por cartItemId (id + talla) para separar tallas correctamente
+        const existingIndex = cart.findIndex(item => {
+          const itemKey = item.size ? `${item.id}_${item.size}` : item.id;
+          return itemKey === cartItemId;
+        });
 
         if (existingIndex >= 0) {
-          // Ya estaba en el carrito → sumar cantidad
           cart[existingIndex].quantity += cantidad;
         } else {
-          // Producto nuevo
           cart.push({
             id:       producto.id,
             name:     producto.nombre  || producto.title,
@@ -112,19 +127,18 @@ const ProductCard = ({ producto }) => {
             image:    imagenPrincipal(),
             quantity: cantidad,
             addedAt:  new Date().toISOString(),
-            size:     producto.talla || null,
+            size:     selectedSize || null, // ← CAMBIADO
             color:    producto.color || null,
           });
         }
 
         saveGuestCart(cart);
-
-        // Disparar evento para que ShoppingCart.jsx se actualice
         window.dispatchEvent(new CustomEvent('guestCartUpdated'));
       }
 
       setShowQuantityPopup(false);
       setCantidad(1);
+      setSelectedSize(null);
       setAdded(true);
       setTimeout(() => setAdded(false), 2000);
 
@@ -138,6 +152,9 @@ const ProductCard = ({ producto }) => {
 
   const agotado = producto.stock === 0 || producto.activo === false;
   const segundaImagen = imagenSecundaria();
+
+  // ── El botón confirmar se deshabilita si hay tallas y no se eligió una ──
+  const confirmDisabled = addingToCart || (tallas && !selectedSize);
 
   return (
     <>
@@ -280,6 +297,42 @@ const ProductCard = ({ producto }) => {
           letter-spacing: 0.4px;
           text-transform: uppercase;
         }
+
+        /* ── Size selector ── */
+        .pc-size-grid {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          justify-content: center;
+          margin-bottom: 10px;
+        }
+        .pc-size-btn {
+          padding: 5px 11px;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          border: 1.5px solid #e0e0e0;
+          background: #fafafa;
+          color: #555;
+        }
+        .pc-size-btn:hover {
+          border-color: #f33763;
+          color: #f33763;
+        }
+        .pc-size-btn.active {
+          border: 2px solid #f33763;
+          background: #fff0f4;
+          color: #f33763;
+        }
+        .pc-size-hint {
+          font-size: 11px;
+          color: #f33763;
+          text-align: center;
+          margin: 4px 0 8px 0;
+        }
+
         .pc-qty-row {
           display: flex;
           align-items: center;
@@ -365,6 +418,27 @@ const ProductCard = ({ producto }) => {
                 className="pc-popup"
                 onClick={(e) => e.stopPropagation()}
               >
+                {/* ── Selector de talla (solo si el producto tiene tallas) ── */}
+                {tallas && (
+                  <>
+                    <p className="pc-popup-label">Elige tu talla</p>
+                    <div className="pc-size-grid">
+                      {tallas.map((t) => (
+                        <button
+                          key={t}
+                          className={`pc-size-btn${selectedSize === t ? ' active' : ''}`}
+                          onClick={(e) => { e.stopPropagation(); setSelectedSize(t); }}
+                        >
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                    {!selectedSize && (
+                      <p className="pc-size-hint">* Selecciona una talla para continuar</p>
+                    )}
+                  </>
+                )}
+
                 <p className="pc-popup-label">¿Cuántas unidades?</p>
                 <div className="pc-qty-row">
                   <button
@@ -386,7 +460,7 @@ const ProductCard = ({ producto }) => {
                 <button
                   className="pc-confirm-btn"
                   onClick={confirmarAgregarAlCarrito}
-                  disabled={addingToCart}
+                  disabled={confirmDisabled} // ← CAMBIADO
                 >
                   <ShoppingCartOutlined />
                   {addingToCart
