@@ -12,7 +12,9 @@ const UMBRAL_DESCUENTO = 30000;
 
 const CODIGOS_DESCUENTO = {
   'BOJO10': { tipo: 'porcentaje', valor: 10 },
-  'AMIGASBOJO': { tipo: 'porcentaje', valor: 20 }
+  'AMIGASBOJO': { tipo: 'porcentaje', valor: 20 },
+  'ANJUBOJO': { tipo: 'porcentaje', valor: 20 }
+  
 };
 
 const calcularEnvio = (region, subtotalProductos) => {
