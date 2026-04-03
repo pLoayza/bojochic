@@ -35,7 +35,10 @@ function ShoppingCart({ iconColor = ' #ffffff', iconSize = '22px', showInNavbar 
       // ── Usuario registrado: escuchar Firestore en tiempo real ──
       const cartRef = collection(db, 'users', user.uid, 'cart');
       const unsubscribe = onSnapshot(cartRef, (snapshot) => {
-        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const items = snapshot.docs.map(docSnap => ({
+          cartKey: docSnap.id,   // ← key real del documento (puede ser "abc123_7")
+          ...docSnap.data(),     // ← incluye id: "abc123" (id del producto)
+        }));
         setCartItems(items);
       });
       return () => unsubscribe();
@@ -43,8 +46,6 @@ function ShoppingCart({ iconColor = ' #ffffff', iconSize = '22px', showInNavbar 
       // ── Guest: cargar desde localStorage ──
       setCartItems(getGuestCart());
 
-      // 'storage'        → sincroniza entre pestañas distintas
-      // 'guestCartUpdated' → sincroniza en la misma pestaña (disparado por ProductCard)
       const handleStorage   = (e) => { if (e.key === CART_KEY) setCartItems(getGuestCart()); };
       const handleGuestCart = () => setCartItems(getGuestCart());
 
@@ -61,14 +62,16 @@ function ShoppingCart({ iconColor = ' #ffffff', iconSize = '22px', showInNavbar 
   const onClose  = () => setOpen(false);
 
   // ── Actualizar cantidad ──────────────────────────────────────────────────
-  const updateQuantity = async (itemId, newQuantity) => {
+  const updateQuantity = async (item, newQuantity) => {
     if (newQuantity < 1) return;
 
     const user = auth.currentUser;
 
     if (user) {
       try {
-        const itemRef = doc(db, 'users', user.uid, 'cart', itemId);
+        // Usar cartKey (key real del doc) en vez de item.id
+        const docKey  = item.cartKey || item.id;
+        const itemRef = doc(db, 'users', user.uid, 'cart', docKey);
         await updateDoc(itemRef, { quantity: newQuantity });
         message.success('Cantidad actualizada');
       } catch (error) {
@@ -76,9 +79,12 @@ function ShoppingCart({ iconColor = ' #ffffff', iconSize = '22px', showInNavbar 
         message.error('Error al actualizar');
       }
     } else {
-      const updated = getGuestCart().map(item =>
-        item.id === itemId ? { ...item, quantity: newQuantity } : item
-      );
+      // Guest: buscar por cartKey (que incluye la talla si aplica)
+      const cartKey = item.cartKey || (item.size ? `${item.id}_${item.size}` : item.id);
+      const updated = getGuestCart().map(i => {
+        const iKey = i.size ? `${i.id}_${i.size}` : i.id;
+        return iKey === cartKey ? { ...i, quantity: newQuantity } : i;
+      });
       saveGuestCart(updated);
       setCartItems(updated);
       message.success('Cantidad actualizada');
@@ -86,12 +92,14 @@ function ShoppingCart({ iconColor = ' #ffffff', iconSize = '22px', showInNavbar 
   };
 
   // ── Eliminar ítem ────────────────────────────────────────────────────────
-  const removeItem = async (itemId) => {
+  const removeItem = async (item) => {
     const user = auth.currentUser;
 
     if (user) {
       try {
-        const itemRef = doc(db, 'users', user.uid, 'cart', itemId);
+        // Usar cartKey (key real del doc) en vez de item.id
+        const docKey  = item.cartKey || item.id;
+        const itemRef = doc(db, 'users', user.uid, 'cart', docKey);
         await deleteDoc(itemRef);
         message.success('Producto eliminado del carrito');
       } catch (error) {
@@ -99,7 +107,12 @@ function ShoppingCart({ iconColor = ' #ffffff', iconSize = '22px', showInNavbar 
         message.error('Error al eliminar');
       }
     } else {
-      const updated = getGuestCart().filter(item => item.id !== itemId);
+      // Guest: filtrar por cartKey
+      const cartKey = item.cartKey || (item.size ? `${item.id}_${item.size}` : item.id);
+      const updated = getGuestCart().filter(i => {
+        const iKey = i.size ? `${i.id}_${i.size}` : i.id;
+        return iKey !== cartKey;
+      });
       saveGuestCart(updated);
       setCartItems(updated);
       message.success('Producto eliminado del carrito');
@@ -238,7 +251,7 @@ function ShoppingCart({ iconColor = ' #ffffff', iconSize = '22px', showInNavbar 
                       type="text"
                       danger
                       icon={<DeleteOutlined style={{ fontSize: '18px' }} />}
-                      onClick={() => removeItem(item.id)}
+                      onClick={() => removeItem(item)}
                       style={{ height: '44px', minWidth: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
                       {isMobile && <span style={{ marginLeft: '4px' }}>Eliminar</span>}
@@ -278,7 +291,7 @@ function ShoppingCart({ iconColor = ' #ffffff', iconSize = '22px', showInNavbar 
                           <InputNumber
                             min={1} max={99}
                             value={item.quantity}
-                            onChange={(value) => updateQuantity(item.id, value)}
+                            onChange={(value) => updateQuantity(item, value)}
                             size="large"
                             style={{ width: '90px', fontSize: '16px' }}
                           />
