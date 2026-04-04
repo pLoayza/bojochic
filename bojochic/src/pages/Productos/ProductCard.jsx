@@ -27,7 +27,7 @@ const ProductCard = ({ producto }) => {
   const [cantidad, setCantidad] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
   const [added, setAdded] = useState(false);
-  const [selectedSize, setSelectedSize] = useState(null); // ← NUEVO
+  const [selectedSize, setSelectedSize] = useState(null);
   const popupRef = useRef(null);
   const btnRef = useRef(null);
 
@@ -60,7 +60,7 @@ const ProductCard = ({ producto }) => {
       ) {
         setShowQuantityPopup(false);
         setCantidad(1);
-        setSelectedSize(null); // ← NUEVO: reset talla al cerrar
+        setSelectedSize(null);
       }
     };
     if (showQuantityPopup) {
@@ -69,10 +69,9 @@ const ProductCard = ({ producto }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showQuantityPopup]);
 
-  // ── Click en el botón principal ──────────────────────────────────────────
   const handleCartButtonClick = (e) => {
     e.stopPropagation();
-    setSelectedSize(null); // ← NUEVO: reset talla al abrir popup
+    setSelectedSize(null);
     setShowQuantityPopup(prev => !prev);
   };
 
@@ -82,39 +81,39 @@ const ProductCard = ({ producto }) => {
 
     const user = auth.currentUser;
 
+    // cartKey: key único del documento — incluye talla si aplica
+    const cartKey = tallas && selectedSize
+      ? `${producto.id}_${selectedSize}`
+      : producto.id;
+
     try {
       setAddingToCart(true);
 
-      // ── Construir key único: si tiene talla, el id incluye la talla ──
-      // Así el mismo producto en talla S y M son items separados en el carrito
-      const cartItemId = tallas && selectedSize
-        ? `${producto.id}_${selectedSize}`
-        : producto.id;
-
       if (user) {
-        // ── Usuario registrado: guardar en Firestore ──
-        const cartItemRef = doc(db, 'users', user.uid, 'cart', cartItemId);
-        const existing = await getDoc(cartItemRef);
-        const currentQty = existing.exists() ? (existing.data().quantity || 0) : 0;
+        // ── Usuario registrado: Firestore ──
+        const cartItemRef = doc(db, 'users', user.uid, 'cart', cartKey);
+        const existing    = await getDoc(cartItemRef);
+        const currentQty  = existing.exists() ? (existing.data().quantity || 0) : 0;
 
         await setDoc(cartItemRef, {
-          id:       producto.id,
-          name:     producto.nombre  || producto.title,
+          id:       producto.id,       // id real del producto
+          name:     producto.nombre || producto.title,
           price:    producto.precio  || producto.price,
           image:    imagenPrincipal(),
           quantity: currentQty + cantidad,
           addedAt:  new Date().toISOString(),
-          size:     selectedSize || null, // ← CAMBIADO
+          size:     selectedSize || null,
           color:    producto.color || null,
         });
 
       } else {
-        // ── Guest: guardar en localStorage ──
+        // ── Guest: localStorage ──
         const cart = getGuestCart();
-        // Buscar por cartItemId (id + talla) para separar tallas correctamente
+
+        // Buscar por cartKey (id + talla) para separar tallas correctamente
         const existingIndex = cart.findIndex(item => {
-          const itemKey = item.size ? `${item.id}_${item.size}` : item.id;
-          return itemKey === cartItemId;
+          const iKey = item.size ? `${item.id}_${item.size}` : item.id;
+          return iKey === cartKey;
         });
 
         if (existingIndex >= 0) {
@@ -122,12 +121,13 @@ const ProductCard = ({ producto }) => {
         } else {
           cart.push({
             id:       producto.id,
-            name:     producto.nombre  || producto.title,
-            price:    producto.precio  || producto.price,
+            cartKey,                    // ← guardamos el cartKey para que ShoppingCart lo use
+            name:     producto.nombre || producto.title,
+            price:    producto.precio || producto.price,
             image:    imagenPrincipal(),
             quantity: cantidad,
             addedAt:  new Date().toISOString(),
-            size:     selectedSize || null, // ← CAMBIADO
+            size:     selectedSize || null,
             color:    producto.color || null,
           });
         }
@@ -152,8 +152,6 @@ const ProductCard = ({ producto }) => {
 
   const agotado = producto.stock === 0 || producto.activo === false;
   const segundaImagen = imagenSecundaria();
-
-  // ── El botón confirmar se deshabilita si hay tallas y no se eligió una ──
   const confirmDisabled = addingToCart || (tallas && !selectedSize);
 
   return (
@@ -230,7 +228,6 @@ const ProductCard = ({ producto }) => {
           margin-bottom: 12px;
         }
 
-        /* ── Botón agregar ── */
         .pc-cart-btn {
           width: 100%;
           padding: 11px 0;
@@ -262,7 +259,6 @@ const ProductCard = ({ producto }) => {
           background: linear-gradient(45deg, #22c55e, #4ade80);
         }
 
-        /* ── Quantity popup ── */
         .pc-popup {
           position: absolute;
           bottom: calc(100% + 10px);
@@ -298,7 +294,6 @@ const ProductCard = ({ producto }) => {
           text-transform: uppercase;
         }
 
-        /* ── Size selector ── */
         .pc-size-grid {
           display: flex;
           flex-wrap: wrap;
@@ -386,39 +381,23 @@ const ProductCard = ({ producto }) => {
 
       <div className="pc-root" onClick={() => !showQuantityPopup && setModalVisible(true)}>
 
-        {/* Imagen */}
         <div className="pc-img-wrapper">
           {agotado && <span className="pc-badge">Agotado</span>}
-          <img
-            src={imagenPrincipal()}
-            alt={producto.nombre || producto.title}
-            className="pc-img pc-img-primary"
-          />
+          <img src={imagenPrincipal()} alt={producto.nombre || producto.title} className="pc-img pc-img-primary" />
           {segundaImagen && (
-            <img
-              src={segundaImagen}
-              alt={`${producto.nombre || producto.title} - 2`}
-              className="pc-img pc-img-secondary"
-            />
+            <img src={segundaImagen} alt={`${producto.nombre || producto.title} - 2`} className="pc-img pc-img-secondary" />
           )}
         </div>
 
-        {/* Info */}
         <div className="pc-info">
           <p className="pc-name">{producto.nombre || producto.title}</p>
           <div className="pc-price">{formatearPrecio(producto.precio || producto.price)}</div>
 
-          {/* Zona relativa para el popup */}
           <div style={{ position: 'relative' }}>
 
-            {/* Quantity popup */}
             {showQuantityPopup && (
-              <div
-                ref={popupRef}
-                className="pc-popup"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {/* ── Selector de talla (solo si el producto tiene tallas) ── */}
+              <div ref={popupRef} className="pc-popup" onClick={(e) => e.stopPropagation()}>
+
                 {tallas && (
                   <>
                     <p className="pc-popup-label">Elige tu talla</p>
@@ -433,44 +412,27 @@ const ProductCard = ({ producto }) => {
                         </button>
                       ))}
                     </div>
-                    {!selectedSize && (
-                      <p className="pc-size-hint">* Selecciona una talla para continuar</p>
-                    )}
+                    {!selectedSize && <p className="pc-size-hint">* Selecciona una talla para continuar</p>}
                   </>
                 )}
 
                 <p className="pc-popup-label">¿Cuántas unidades?</p>
                 <div className="pc-qty-row">
-                  <button
-                    className="pc-qty-btn"
-                    onClick={(e) => { e.stopPropagation(); setCantidad(c => Math.max(1, c - 1)); }}
-                    disabled={cantidad <= 1}
-                  >
+                  <button className="pc-qty-btn" onClick={(e) => { e.stopPropagation(); setCantidad(c => Math.max(1, c - 1)); }} disabled={cantidad <= 1}>
                     <MinusOutlined />
                   </button>
                   <span className="pc-qty-value">{cantidad}</span>
-                  <button
-                    className="pc-qty-btn"
-                    onClick={(e) => { e.stopPropagation(); setCantidad(c => Math.min(producto.stock || 99, c + 1)); }}
-                    disabled={cantidad >= (producto.stock || 99)}
-                  >
+                  <button className="pc-qty-btn" onClick={(e) => { e.stopPropagation(); setCantidad(c => Math.min(producto.stock || 99, c + 1)); }} disabled={cantidad >= (producto.stock || 99)}>
                     <PlusOutlined />
                   </button>
                 </div>
-                <button
-                  className="pc-confirm-btn"
-                  onClick={confirmarAgregarAlCarrito}
-                  disabled={confirmDisabled} // ← CAMBIADO
-                >
+                <button className="pc-confirm-btn" onClick={confirmarAgregarAlCarrito} disabled={confirmDisabled}>
                   <ShoppingCartOutlined />
-                  {addingToCart
-                    ? 'Agregando...'
-                    : `Agregar${cantidad > 1 ? ` (${cantidad})` : ''} al carrito`}
+                  {addingToCart ? 'Agregando...' : `Agregar${cantidad > 1 ? ` (${cantidad})` : ''} al carrito`}
                 </button>
               </div>
             )}
 
-            {/* Botón principal */}
             <button
               ref={btnRef}
               className={`pc-cart-btn${added ? ' pc-added' : ''}`}
@@ -487,11 +449,7 @@ const ProductCard = ({ producto }) => {
         </div>
       </div>
 
-      <ProductModal
-        visible={modalVisible}
-        producto={producto}
-        onClose={() => setModalVisible(false)}
-      />
+      <ProductModal visible={modalVisible} producto={producto} onClose={() => setModalVisible(false)} />
     </>
   );
 };
