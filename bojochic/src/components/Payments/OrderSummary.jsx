@@ -74,7 +74,7 @@ const OrderSummary = ({ cartItems, subtotal, shipping, total, descuento, codigoA
 
         {subtotal < 29990 && subtotal > 0 && (
           <Alert
-            message={`Te faltan $${(29990 - subtotal).toLocaleString('es-CL')} para descuento en envío. Tope de descuento 3990`}
+            message={`Te faltan $${(29990 - subtotal).toLocaleString('es-CL')} para envío gratis.`}
             type="warning"
             showIcon
             style={{ fontSize: '12px' }}
