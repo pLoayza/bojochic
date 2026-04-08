@@ -51,12 +51,30 @@ export const COSTO_ENVIO = {
   'Magallanes':         9990,
 };
 
-export const getCostoEnvio = (region) => COSTO_ENVIO[region] ?? 3000;
+const REGIONES_SIN_ENVIO_GRATIS = [
+  'Arica y Parinacota',
+  'Tarapacá',
+  'Aysén',
+  'Magallanes'
+];
+
+export const getCostoEnvio = (region, total = 0) => {
+  const costo = COSTO_ENVIO[region] ?? 3990;
+
+  if (total >= 30000) {
+    if (REGIONES_SIN_ENVIO_GRATIS.includes(region)) {
+      return Math.max(0, costo - 3990); // descuento parcial de $3.990
+    }
+    return 0; // envío gratis
+  }
+
+  return costo;
+};
 /* export const getCostoEnvio = (region) => 0; FOR TESTING*/
 
 const CheckoutForm = ({
   userData,
-  isGuest,           // 👈 prop nuevo
+  isGuest,
   cartItems,
   totalAmount,
   onRegionChange,
@@ -75,7 +93,6 @@ const CheckoutForm = ({
 
   useEffect(() => {
     if (userData) {
-      // Usuario registrado: pre-rellenar con datos del perfil
       const region = userData.region || 'Metropolitana';
       form.setFieldsValue({
         nombre:    userData.nombre   || '',
@@ -88,7 +105,6 @@ const CheckoutForm = ({
       setRegionSeleccionada(region);
       setComunasDisponibles(REGIONES_COMUNAS[region] || []);
     } else {
-      // Guest: solo setear región default
       form.setFieldsValue({ region: 'Metropolitana' });
     }
   }, [userData, form]);
@@ -110,9 +126,6 @@ const CheckoutForm = ({
         return;
       }
 
-      // ── Obtener token de autorización ────────────────────────────────────
-      // Si hay usuario registrado → token Firebase
-      // Si es guest → se manda sin Authorization header (el backend lo permite)
       const user = auth.currentUser;
       const headers = { 'Content-Type': 'application/json' };
 
@@ -120,14 +133,13 @@ const CheckoutForm = ({
         const token = await user.getIdToken();
         headers['Authorization'] = `Bearer ${token}`;
       }
-      // ────────────────────────────────────────────────────────────────────
 
-      await onConfirmarPago?.(); // marca código como usado (no-op para guests)
+      await onConfirmarPago?.();
 
       const requestBody = {
         amount: totalAmount,
-        isGuest: isGuest,                  // 👈 el backend lo recibe para saber si guardar userId
-        guestEmail: isGuest ? values.email : null, // 👈 para enviar el correo de confirmación
+        isGuest: isGuest,
+        guestEmail: isGuest ? values.email : null,
         items: cartItems.map(item => ({
           id:       item.id,
           name:     item.name,
@@ -152,7 +164,6 @@ const CheckoutForm = ({
         throw new Error(data.error || 'Error al crear transacción');
       }
 
-      // Redirigir a Webpay (mismo flujo de siempre)
       const formElement = document.createElement('form');
       formElement.method = 'POST';
       formElement.action = data.url;
@@ -179,7 +190,6 @@ const CheckoutForm = ({
         Datos de Envío
       </Title>
 
-      {/* Aviso sutil para guests, sin obligar a registrarse */}
       {isGuest && (
         <Alert
           message="Comprando como invitado"
@@ -215,7 +225,6 @@ const CheckoutForm = ({
             prefix={<UserOutlined />}
             placeholder="correo@ejemplo.com"
             size="large"
-            // Deshabilitado solo si es usuario registrado con email ya cargado
             disabled={!isGuest && !!userData?.email}
           />
         </Form.Item>

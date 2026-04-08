@@ -7,21 +7,10 @@ import CheckoutForm, { getCostoEnvio } from '../../components/Payments/CheckoutF
 import OrderSummary from '../../components/Payments/OrderSummary';
 import Banner from '../../components/Banner/Banner';
 
-const DESCUENTO_ENVIO = 3990;
-const UMBRAL_DESCUENTO = 30000;
-
 const CODIGOS_DESCUENTO = {
-  'BOJO10': { tipo: 'porcentaje', valor: 10 },
+  'BOJO10':     { tipo: 'porcentaje', valor: 10 },
   'AMIGASBOJO': { tipo: 'porcentaje', valor: 20 },
-  'ANJUBOJO': { tipo: 'porcentaje', valor: 20 }
-  
-};
-
-const calcularEnvio = (region, subtotalProductos) => {
-  const costoBase = getCostoEnvio(region);
-  return subtotalProductos >= UMBRAL_DESCUENTO
-    ? Math.max(0, costoBase - DESCUENTO_ENVIO)
-    : costoBase;
+  'ANJUBOJO':   { tipo: 'porcentaje', valor: 20 }
 };
 
 // ─── Helpers para carrito guest (localStorage) ───────────────────────────────
@@ -46,7 +35,7 @@ const CheckoutPage = () => {
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
   const [isGuest, setIsGuest] = useState(false);
-  const [shipping, setShipping] = useState(calcularEnvio('Metropolitana', 0));
+  const [shipping, setShipping] = useState(getCostoEnvio('Metropolitana', 0));
   const [regionGuardada, setRegionGuardada] = useState('Metropolitana');
   const [descuento, setDescuento] = useState(0);
   const [codigoAplicado, setCodigoAplicado] = useState(null);
@@ -100,7 +89,6 @@ const CheckoutPage = () => {
       setIsGuest(true);
       setUserData(null);
 
-      // Carrito desde localStorage
       const items = getGuestCart();
 
       if (items.length === 0) {
@@ -114,10 +102,11 @@ const CheckoutPage = () => {
     }
   }, [navigate]);
 
+  // Recalcula envío cuando cambian los items o la región
   useEffect(() => {
     if (regionGuardada && cartItems.length > 0) {
       const sub = cartItems.reduce((t, i) => t + (i.price * i.quantity), 0);
-      setShipping(calcularEnvio(regionGuardada, sub));
+      setShipping(getCostoEnvio(regionGuardada, sub)); // 👈 ahora usa getCostoEnvio directo
     }
   }, [cartItems, regionGuardada]);
 
@@ -134,7 +123,7 @@ const CheckoutPage = () => {
 
   const handleRegionChange = (region) => {
     setRegionGuardada(region);
-    setShipping(calcularEnvio(region, subtotal));
+    setShipping(getCostoEnvio(region, subtotal)); // 👈 ahora usa getCostoEnvio directo
   };
 
   const aplicarCodigo = async (codigo) => {
@@ -148,7 +137,6 @@ const CheckoutPage = () => {
         return;
       }
 
-      // Solo verifica uso previo si hay usuario registrado
       if (!isGuest) {
         const user = auth.currentUser;
         const userDoc = await getDoc(doc(db, 'users', user.uid));
@@ -182,7 +170,6 @@ const CheckoutPage = () => {
   };
 
   const marcarCodigoUsado = async () => {
-    // Los guests no tienen cuenta, no se marca nada
     if (isGuest || !codigoAplicado) return;
 
     try {
@@ -195,8 +182,6 @@ const CheckoutPage = () => {
     }
   };
 
-  // Limpia el carrito guest después de que el pago fue aprobado
-  // Llama esto desde CheckoutForm cuando Webpay retorne OK
   const onPagoConfirmado = () => {
     if (isGuest) {
       clearGuestCart();
