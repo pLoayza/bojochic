@@ -10,7 +10,12 @@ import Banner from '../../components/Banner/Banner';
 const CODIGOS_DESCUENTO = {
   'BOJO10':     { tipo: 'porcentaje', valor: 10 },
   'AMIGASBOJO': { tipo: 'porcentaje', valor: 20 },
-  'ANJUBOJO':   { tipo: 'porcentaje', valor: 20 }
+  'ANJUBOJO':   { tipo: 'porcentaje', valor: 20 },
+  'Bojofer':   { tipo: 'porcentaje', valor: 10 },
+  'Bojonaomi':   { tipo: 'porcentaje', valor: 10 },
+  'Bojobianca':   { tipo: 'porcentaje', valor: 10 }
+
+
 };
 
 // ─── Helpers para carrito guest (localStorage) ───────────────────────────────
