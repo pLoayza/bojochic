@@ -13,6 +13,7 @@ import Registro from './pages/Registro';
 import Nosotros from './pages/Nosotros';
 import Catalogo from './pages/Catalogo';
 import ProductosPage from './pages/Productos/ProductosPage';
+import ProductoDetallePage from './pages/Productos/ProductoDetallePage'; // ← NUEVO
 import EstadisticasPage from './pages/Estadisticas/EstadisticasPage';
 import Popup from './components/popup/popup';
 import LoginPage from './pages/LoginPage';
@@ -31,8 +32,6 @@ import Reembolso from './pages/politicas/Reembolso';
 import Terminos from './pages/politicas/Terminos';
 
 function App() {
-
- 
   return (
     <BrowserRouter>
       <AntApp>
@@ -60,6 +59,10 @@ function App() {
               <Route path="/perfil"     element={<Profile />} />
               <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
               <Route path="/orders"     element={<MyOrders />} />
+
+              {/* ← NUEVA RUTA: página de detalle de producto */}
+              <Route path="/producto/:id" element={<ProductoDetallePage />} />
+
               {/* Políticas */}
               <Route path="/politicas/envio"       element={<Envio />} />
               <Route path="/politicas/privacidad"  element={<Privacidad />} />
@@ -70,7 +73,7 @@ function App() {
               <Route path="/admin/usuarios" element={<ProtectedRoute requireAdmin={true}><GestionUsuariosPage /></ProtectedRoute>} />
             </Route>
 
-            {/* ✅ RUTAS DE CATEGORÍAS */}
+            {/* RUTAS DE CATEGORÍAS */}
             <Route element={<ProductosLayout />}>
               <Route path="aros"      element={<ProductosPage />} />
               <Route path="collares"  element={<ProductosPage />} />
@@ -79,7 +82,7 @@ function App() {
               <Route path="panuelos"  element={<ProductosPage />} />
               <Route path="otros"     element={<ProductosPage />} />
               <Route path="conjuntos" element={<ProductosPage />} />
-              {/* ✅ Nuevas colecciones */}
+              {/* Colecciones */}
               <Route path="plateados" element={<ProductosPage />} />
               <Route path="dorados"   element={<ProductosPage />} />
             </Route>

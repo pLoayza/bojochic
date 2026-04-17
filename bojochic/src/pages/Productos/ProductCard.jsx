@@ -1,11 +1,10 @@
-// src/components/Productos/ProductCard.jsx
+// src/pages/Productos/ProductCard.jsx
 import { useState, useRef, useEffect } from 'react';
 import { message } from 'antd';
 import { ShoppingCartOutlined, PlusOutlined, MinusOutlined, CheckOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../../firebase/config';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import ProductModal from '../../components/Productos/ProductModal';
 
 // ─── Helpers localStorage (guest) ────────────────────────────────────────────
 const CART_KEY = 'bojo_guest_cart';
@@ -22,7 +21,6 @@ const saveGuestCart = (items) => {
 
 const ProductCard = ({ producto }) => {
   const navigate = useNavigate();
-  const [modalVisible, setModalVisible] = useState(false);
   const [showQuantityPopup, setShowQuantityPopup] = useState(false);
   const [cantidad, setCantidad] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
@@ -75,13 +73,19 @@ const ProductCard = ({ producto }) => {
     setShowQuantityPopup(prev => !prev);
   };
 
+  // ── Navegar a la página de detalle del producto ───────────────────────────
+  const handleCardClick = () => {
+    if (showQuantityPopup) return;
+    // Pasamos el producto en el state para evitar un fetch extra
+    navigate(`/producto/${producto.id}`, { state: { producto } });
+  };
+
   // ── Confirmar agregar al carrito ─────────────────────────────────────────
   const confirmarAgregarAlCarrito = async (e) => {
     e.stopPropagation();
 
     const user = auth.currentUser;
 
-    // cartKey: key único del documento — incluye talla si aplica
     const cartKey = tallas && selectedSize
       ? `${producto.id}_${selectedSize}`
       : producto.id;
@@ -96,7 +100,7 @@ const ProductCard = ({ producto }) => {
         const currentQty  = existing.exists() ? (existing.data().quantity || 0) : 0;
 
         await setDoc(cartItemRef, {
-          id:       producto.id,       // id real del producto
+          id:       producto.id,
           name:     producto.nombre || producto.title,
           price:    producto.precio  || producto.price,
           image:    imagenPrincipal(),
@@ -110,7 +114,6 @@ const ProductCard = ({ producto }) => {
         // ── Guest: localStorage ──
         const cart = getGuestCart();
 
-        // Buscar por cartKey (id + talla) para separar tallas correctamente
         const existingIndex = cart.findIndex(item => {
           const iKey = item.size ? `${item.id}_${item.size}` : item.id;
           return iKey === cartKey;
@@ -121,7 +124,7 @@ const ProductCard = ({ producto }) => {
         } else {
           cart.push({
             id:       producto.id,
-            cartKey,                    // ← guardamos el cartKey para que ShoppingCart lo use
+            cartKey,
             name:     producto.nombre || producto.title,
             price:    producto.precio || producto.price,
             image:    imagenPrincipal(),
@@ -379,7 +382,8 @@ const ProductCard = ({ producto }) => {
         .pc-confirm-btn:disabled { background: #ccc; cursor: not-allowed; }
       `}</style>
 
-      <div className="pc-root" onClick={() => !showQuantityPopup && setModalVisible(true)}>
+      {/* ← CAMBIO: onClick navega a la URL del producto */}
+      <div className="pc-root" onClick={handleCardClick}>
 
         <div className="pc-img-wrapper">
           {agotado && <span className="pc-badge">Agotado</span>}
@@ -449,7 +453,7 @@ const ProductCard = ({ producto }) => {
         </div>
       </div>
 
-      <ProductModal visible={modalVisible} producto={producto} onClose={() => setModalVisible(false)} />
+      {/* ProductModal eliminado — ahora el detalle vive en /producto/:id */}
     </>
   );
 };
