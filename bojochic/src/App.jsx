@@ -15,7 +15,7 @@ import Catalogo from './pages/Catalogo';
 import ProductosPage from './pages/Productos/ProductosPage';
 import ProductoDetallePage from './pages/Productos/ProductoDetallePage'; // ← NUEVO
 import EstadisticasPage from './pages/Estadisticas/EstadisticasPage';
-import Popup from './components/popup/popup';
+// import Popup from './components/popup/popup';
 import LoginPage from './pages/LoginPage';
 import Profile from './pages/profile';
 import CheckoutPage from './pages/Checkout/CheckoutPage';
@@ -36,11 +36,11 @@ function App() {
     <BrowserRouter>
       <AntApp>
         <AuthProvider>
-          <Popup
+          {/* <Popup
             delaySeconds={3}
             discountPercent={10}
             showEveryMinutes={1}
-          />
+          /> */}
 
           <Routes>
             {/* RUTAS CON LAYOUT GENERAL */}
