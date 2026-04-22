@@ -2,23 +2,24 @@
 import { Dropdown } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { SearchOutlined, UserOutlined, LogoutOutlined, ShoppingOutlined } from '@ant-design/icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import ShoppingCart from '../Carrito/shoppingcart';
 import SearchModal from '../search/SearchModal';
 import { useResponsive } from '../../hooks/useResponsive';
+import banner1 from '../../assets/Categorias/bojo1.png';
+import banner2 from '../../assets/Categorias/bojo2.png';
+import banner3 from '../../assets/Categorias/bojo3.png';
 import bojoLogo from '../../assets/Categorias/logo-bojo.png';
 
-/* ─── Paleta ─────────────────────────────────────────── */
+const banners = [banner1, banner2, banner3];
+
 const C = {
-  bg:     '#f7d5d7',  // rosa claro (color del logo)
-  hot:    '#f33763',  // fondo header y ticker
-  pink:   '#f690a8',  // acento corazones
-  light:  '#fce4ec',  // texto nav (rosa muy claro)
-  white:  '#ffffff',
+  bg:    '#f7d5d7',
+  hot:   '#f33763',
+  white: '#ffffff',
 };
 
-/* ─── Estilos globales ─────────────────────────────────── */
 const globalStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&display=swap');
 
@@ -26,23 +27,11 @@ const globalStyles = `
     0%   { transform: translateX(0); }
     100% { transform: translateX(-50%); }
   }
-  @keyframes floatHeart {
-    0%, 100% { transform: translateY(0) scale(1); opacity: 0.25; }
-    50%       { transform: translateY(-5px) scale(1.15); opacity: 0.4; }
-  }
-  @keyframes fadeDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
 
   .bojo-ticker-inner {
     display: inline-block;
     white-space: nowrap;
     animation: tickerMove 24s linear infinite;
-  }
-
-  .bojo-logo-wrap {
-    animation: fadeDown 0.7s ease both;
   }
 
   .bojo-nav-link {
@@ -60,8 +49,7 @@ const globalStyles = `
     cursor: pointer;
   }
   .bojo-nav-link:hover {
-    color: #fff !important;
-    background: rgba(255,255,255,0.12);
+    color: #f33763 !important;
     border-bottom-color: #f33763;
   }
   .bojo-nav-sep {
@@ -69,32 +57,48 @@ const globalStyles = `
     font-size: 10px;
     user-select: none;
   }
+
+  .bojo-carousel-slide {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center bottom;
+    transition: opacity 0.9s ease-in-out;
+  }
+
+  .bojo-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    padding: 0;
+  }
+  .bojo-dot.active {
+    background: #ffffff;
+    width: 24px;
+    border-radius: 4px;
+  }
 `;
 
-/* ─── Corazón decorativo ─────────────────────────────── */
-const Heart = ({ style }) => (
-  <span
-    style={{
-      position: 'absolute',
-      color: C.light,
-      opacity: 0.25,
-      animation: 'floatHeart 4s ease-in-out infinite',
-      pointerEvents: 'none',
-      ...style,
-    }}
-  >
-    ♥
-  </span>
-);
-
-/* ════════════════════════════════════════════════════════
-   COMPONENTE PRINCIPAL
-═══════════════════════════════════════════════════════ */
 const Banner = () => {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
   const [searchModalVisible, setSearchModalVisible] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
   const { isMobile } = useResponsive();
+
+  // Avanza automáticamente cada 4 segundos
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % banners.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -121,10 +125,9 @@ const Banner = () => {
     { key: 'conjuntos', label: 'Conjuntos', onClick: () => navigate('/conjuntos') },
   ];
 
-  /* Iconos blancos sobre fondo hot */
   const iconStyle = {
-    fontSize: isMobile ? '20px' : '22px',
-    color: C.white,
+    fontSize: '20px',
+    color: C.hot,
     cursor: 'pointer',
     transition: 'all 0.25s ease',
   };
@@ -140,8 +143,8 @@ const Banner = () => {
       {/* ── TICKER ── */}
       <div
         style={{
-          background: '#f7d5d7',
-          color: '#f33763',
+          background: C.hot,
+          color: C.white,
           fontSize: '11px',
           letterSpacing: '0.12em',
           fontWeight: 500,
@@ -149,7 +152,6 @@ const Banner = () => {
           overflow: 'hidden',
           whiteSpace: 'nowrap',
           padding: '7px 0',
-          borderBottom: '1px solid rgba(255,255,255,0.1)',
         }}
       >
         <div className="bojo-ticker-inner">
@@ -164,113 +166,162 @@ const Banner = () => {
         </div>
       </div>
 
-      {/* ── HEADER — altura fija para no empujar el contenido ── */}
-      <div
+      {/* ── NAVBAR ── */}
+      <nav
         style={{
-          background: C.hot,
-          position: 'relative',
+          background: C.white,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          height: isMobile ? '120px' : '280px',  // ← más alto para el logo
-          overflow: 'hidden',
-          padding: `0 ${isMobile ? '20px' : '60px'}`,
+          justifyContent: 'space-between',
+          position: 'sticky',
+          top: 0,
+          zIndex: 100,
+          padding: isMobile ? '10px 20px' : '0 60px',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+          borderBottom: `1px solid ${C.bg}`,
+          height: isMobile ? '60px' : '70px',
         }}
       >
-        {/* Corazones decorativos */}
+        {/* Logo */}
+        <img
+          src={bojoLogo}
+          alt="Bojo"
+          style={{ height: isMobile ? '36px' : '44px', cursor: 'pointer', objectFit: 'contain' }}
+          onClick={() => navigate('/home')}
+        />
+
+        {/* Links centro */}
         {!isMobile && (
-          <>
-            <Heart style={{ fontSize: '18px', top: '18px',   left: '60px',   animationDelay: '0s'   }} />
-            <Heart style={{ fontSize: '11px', top: '46px',   left: '108px',  animationDelay: '1.5s' }} />
-            <Heart style={{ fontSize: '13px', top: '16px',   right: '80px',  animationDelay: '0.8s' }} />
-            <Heart style={{ fontSize: '20px', bottom: '16px',left: '180px',  animationDelay: '2.2s' }} />
-            <Heart style={{ fontSize: '9px',  bottom: '20px',right: '200px', animationDelay: '1.1s' }} />
-          </>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <a className="bojo-nav-link" onClick={() => navigate('/home')}>Inicio</a>
+            <span className="bojo-nav-sep">|</span>
+            <Dropdown menu={{ items: catalogoMenuItems }} placement="bottom" trigger={['hover']}>
+              <a className="bojo-nav-link">
+                Catálogo <span style={{ fontSize: '9px' }}>▾</span>
+              </a>
+            </Dropdown>
+            <span className="bojo-nav-sep">|</span>
+            <a className="bojo-nav-link" onClick={() => navigate('/#')}>Novedades</a>
+            <span className="bojo-nav-sep">|</span>
+            <a className="bojo-nav-link" onClick={() => navigate('/#')}>Promociones</a>
+          </div>
         )}
 
-        {/* Logo — grande pero contenido en la altura fija */}
-        <div className="bojo-logo-wrap" style={{ zIndex: 1, textAlign: 'center' }}>
-          <img
-            src={bojoLogo}
-            alt="Bojo Logo"
-            style={{
-              width: isMobile ? '200px' : '540px',
-              display: 'block',
-              margin: '0 auto',
-            }}
-          />
-        </div>
-
-        {/* Iconos — blancos a la derecha */}
-        <div
-          style={{
-            position: 'absolute',
-            right: isMobile ? '20px' : '60px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            display: 'flex',
-            gap: isMobile ? '14px' : '20px',
-            alignItems: 'center',
-            zIndex: 2,
-          }}
-        >
-          <SearchOutlined
-            style={iconStyle}
-            onClick={() => setSearchModalVisible(true)}
-            {...hoverScale}
-          />
-
+        {/* Iconos derecha */}
+        <div style={{ display: 'flex', gap: '18px', alignItems: 'center' }}>
+          <SearchOutlined style={iconStyle} onClick={() => setSearchModalVisible(true)} {...hoverScale} />
           {currentUser ? (
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>
               <UserOutlined style={iconStyle} {...hoverScale} />
             </Dropdown>
           ) : (
-            <UserOutlined
-              style={iconStyle}
-              onClick={() => navigate('/login')}
-              {...hoverScale}
-            />
+            <UserOutlined style={iconStyle} onClick={() => navigate('/login')} {...hoverScale} />
           )}
-
-          <div style={{ color: C.white, fontSize: isMobile ? '20px' : '22px', display: 'flex', alignItems: 'center' }}>
-            <ShoppingCart />
+          <div style={{ color: C.hot, fontSize: '20px', display: 'flex', alignItems: 'center' }}>
+            <ShoppingCart color={C.hot} iconColor={C.hot} style={{ color: C.hot }} />
           </div>
         </div>
-      </div>
+      </nav>
 
-      {/* ── NAVBAR ── */}
-      <nav
+      {/* ── CAROUSEL ── */}
+      <div
         style={{
-          background: '#f7d5d7',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          position: 'sticky',
-          top: 0,
-          zIndex: 100,
-          boxShadow: '0 3px 16px rgba(246,144,168,0.4)',
-          borderTop: '1px solid rgba(255,255,255,0.15)',
-          flexWrap: isMobile ? 'wrap' : 'nowrap',
+          position: 'relative',
+          width: '100%',
+          height: isMobile ? '260px' : '85vh',
+          overflow: 'hidden',
         }}
       >
-        <a className="bojo-nav-link" onClick={() => navigate('/home')}>Inicio</a>
-        <span className="bojo-nav-sep">|</span>
+        {/* Slides */}
+        {banners.map((src, i) => (
+          <img
+            key={i}
+            src={src}
+            alt={`Banner ${i + 1}`}
+            className="bojo-carousel-slide"
+            style={{ opacity: i === currentSlide ? 1 : 0 }}
+          />
+        ))}
 
-        <Dropdown
-          menu={{ items: catalogoMenuItems }}
-          placement="bottom"
-          trigger={isMobile ? ['click'] : ['hover']}
+        {/* Flecha izquierda */}
+        <button
+          onClick={() => setCurrentSlide((prev) => (prev - 1 + banners.length) % banners.length)}
+          style={{
+            position: 'absolute',
+            left: '20px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            background: 'rgba(255,255,255,0.25)',
+            border: 'none',
+            borderRadius: '50%',
+            width: '42px',
+            height: '42px',
+            fontSize: '18px',
+            color: C.white,
+            cursor: 'pointer',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10,
+            transition: 'background 0.2s',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.45)')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.25)')}
         >
-          <a className="bojo-nav-link">
-            Catálogo <span style={{ fontSize: '9px' }}>▾</span>
-          </a>
-        </Dropdown>
+          ‹
+        </button>
 
-        <span className="bojo-nav-sep">|</span>
-        <a className="bojo-nav-link" onClick={() => navigate('/#')}>Novedades</a>
-        <span className="bojo-nav-sep">|</span>
-        <a className="bojo-nav-link" onClick={() => navigate('/#')}>Promociones</a>
-      </nav>
+        {/* Flecha derecha */}
+        <button
+          onClick={() => setCurrentSlide((prev) => (prev + 1) % banners.length)}
+          style={{
+            position: 'absolute',
+            right: '20px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            background: 'rgba(255,255,255,0.25)',
+            border: 'none',
+            borderRadius: '50%',
+            width: '42px',
+            height: '42px',
+            fontSize: '18px',
+            color: C.white,
+            cursor: 'pointer',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10,
+            transition: 'background 0.2s',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.45)')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.25)')}
+        >
+          ›
+        </button>
+
+        {/* Dots indicadores */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '18px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            display: 'flex',
+            gap: '8px',
+            zIndex: 10,
+          }}
+        >
+          {banners.map((_, i) => (
+            <button
+              key={i}
+              className={`bojo-dot ${i === currentSlide ? 'active' : ''}`}
+              onClick={() => setCurrentSlide(i)}
+            />
+          ))}
+        </div>
+      </div>
 
       <SearchModal
         visible={searchModalVisible}
