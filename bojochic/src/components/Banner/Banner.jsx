@@ -1,7 +1,7 @@
 // src/components/Banner/Banner.jsx
 import { Dropdown } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { SearchOutlined, UserOutlined, LogoutOutlined, ShoppingOutlined } from '@ant-design/icons';
+import { SearchOutlined, UserOutlined, LogoutOutlined, ShoppingOutlined, MenuOutlined, CloseOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import ShoppingCart from '../Carrito/shoppingcart';
@@ -26,6 +26,10 @@ const globalStyles = `
   @keyframes tickerMove {
     0%   { transform: translateX(0); }
     100% { transform: translateX(-50%); }
+  }
+  @keyframes slideIn {
+    from { transform: translateX(-100%); }
+    to   { transform: translateX(0); }
   }
 
   .bojo-ticker-inner {
@@ -64,7 +68,7 @@ const globalStyles = `
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center bottom;
+    object-position: center center;
     transition: opacity 0.9s ease-in-out;
   }
 
@@ -83,6 +87,63 @@ const globalStyles = `
     width: 24px;
     border-radius: 4px;
   }
+
+  .bojo-mobile-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 300;
+  }
+  .bojo-mobile-drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 78%;
+    max-width: 300px;
+    background: #fff;
+    z-index: 301;
+    display: flex;
+    flex-direction: column;
+    animation: slideIn 0.28s ease;
+    overflow-y: auto;
+  }
+  .bojo-mobile-link {
+    color: #f33763 !important;
+    font-family: 'Jost', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.14em;
+    font-weight: 500;
+    text-transform: uppercase;
+    padding: 15px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #fce4ec;
+    cursor: pointer;
+    text-decoration: none !important;
+    transition: background 0.2s;
+  }
+  .bojo-mobile-link:hover {
+    background: #fef0f2;
+  }
+  .bojo-mobile-sublink {
+    color: #f33763 !important;
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    padding: 12px 28px 12px 44px;
+    display: block;
+    border-bottom: 1px solid #fce4ec;
+    cursor: pointer;
+    text-decoration: none !important;
+    transition: background 0.2s;
+    opacity: 0.75;
+  }
+  .bojo-mobile-sublink:hover {
+    background: #fef0f2;
+    opacity: 1;
+  }
 `;
 
 const Banner = () => {
@@ -90,15 +151,21 @@ const Banner = () => {
   const { currentUser, logout } = useAuth();
   const [searchModalVisible, setSearchModalVisible] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [catalogoOpen, setCatalogoOpen] = useState(false);
   const { isMobile } = useResponsive();
 
-  // Avanza automáticamente cada 4 segundos
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % banners.length);
     }, 4000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = drawerOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [drawerOpen]);
 
   const handleLogout = async () => {
     try {
@@ -109,6 +176,11 @@ const Banner = () => {
     }
   };
 
+  const goTo = (path) => {
+    setDrawerOpen(false);
+    navigate(path);
+  };
+
   const userMenuItems = [
     { key: 'perfil',      icon: <UserOutlined />,    label: 'Mi Perfil',     onClick: () => navigate('/perfil') },
     { key: 'mis-pedidos', icon: <ShoppingOutlined />, label: 'Mis Pedidos',   onClick: () => navigate('/orders') },
@@ -116,14 +188,20 @@ const Banner = () => {
     { key: 'logout',      icon: <LogoutOutlined />,   label: 'Cerrar Sesión', onClick: handleLogout, danger: true },
   ];
 
-  const catalogoMenuItems = [
-    { key: 'aros',      label: 'Aros',      onClick: () => navigate('/aros') },
-    { key: 'collares',  label: 'Collares',  onClick: () => navigate('/collares') },
-    { key: 'pulseras',  label: 'Pulseras',  onClick: () => navigate('/pulseras') },
-    { key: 'panuelos',  label: 'Pañuelos',  onClick: () => navigate('/panuelos') },
-    { key: 'anillos',   label: 'Anillos',   onClick: () => navigate('/anillos') },
-    { key: 'conjuntos', label: 'Conjuntos', onClick: () => navigate('/conjuntos') },
+  const catalogoItems = [
+    { key: 'aros',      label: 'Aros' },
+    { key: 'collares',  label: 'Collares' },
+    { key: 'pulseras',  label: 'Pulseras' },
+    { key: 'panuelos',  label: 'Pañuelos' },
+    { key: 'anillos',   label: 'Anillos' },
+    { key: 'conjuntos', label: 'Conjuntos' },
   ];
+
+  const catalogoMenuItems = catalogoItems.map((item) => ({
+    key: item.key,
+    label: item.label,
+    onClick: () => navigate(`/${item.key}`),
+  }));
 
   const iconStyle = {
     fontSize: '20px',
@@ -175,23 +253,44 @@ const Banner = () => {
           justifyContent: 'space-between',
           position: 'sticky',
           top: 0,
-          zIndex: 100,
-          padding: isMobile ? '10px 20px' : '0 60px',
+          zIndex: 200,
+          padding: isMobile ? '0 16px' : '0 60px',
           boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
           borderBottom: `1px solid ${C.bg}`,
-          height: isMobile ? '60px' : '70px',
+          height: isMobile ? '56px' : '70px',
         }}
       >
-        {/* Logo */}
-        <img
-          src={bojoLogo}
-          alt="Bojo"
-          style={{ height: isMobile ? '36px' : '44px', cursor: 'pointer', objectFit: 'contain' }}
-          onClick={() => navigate('/home')}
-        />
+        {/* Izquierda */}
+        {isMobile ? (
+          <MenuOutlined
+            style={{ fontSize: '20px', color: C.hot, cursor: 'pointer' }}
+            onClick={() => setDrawerOpen(true)}
+          />
+        ) : (
+          <img
+            src={bojoLogo}
+            alt="Bojo"
+            style={{ height: '44px', cursor: 'pointer', objectFit: 'contain' }}
+            onClick={() => navigate('/home')}
+          />
+        )}
 
-        {/* Links centro */}
-        {!isMobile && (
+        {/* Centro */}
+        {isMobile ? (
+          <img
+            src={bojoLogo}
+            alt="Bojo"
+            style={{
+              height: '32px',
+              cursor: 'pointer',
+              objectFit: 'contain',
+              position: 'absolute',
+              left: '50%',
+              transform: 'translateX(-50%)',
+            }}
+            onClick={() => navigate('/home')}
+          />
+        ) : (
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <a className="bojo-nav-link" onClick={() => navigate('/home')}>Inicio</a>
             <span className="bojo-nav-sep">|</span>
@@ -207,8 +306,8 @@ const Banner = () => {
           </div>
         )}
 
-        {/* Iconos derecha */}
-        <div style={{ display: 'flex', gap: '18px', alignItems: 'center' }}>
+        {/* Derecha: iconos */}
+        <div style={{ display: 'flex', gap: isMobile ? '12px' : '18px', alignItems: 'center' }}>
           <SearchOutlined style={iconStyle} onClick={() => setSearchModalVisible(true)} {...hoverScale} />
           {currentUser ? (
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>
@@ -218,21 +317,114 @@ const Banner = () => {
             <UserOutlined style={iconStyle} onClick={() => navigate('/login')} {...hoverScale} />
           )}
           <div style={{ color: C.hot, fontSize: '20px', display: 'flex', alignItems: 'center' }}>
-            <ShoppingCart color={C.hot} iconColor={C.hot} style={{ color: C.hot }} />
+            <ShoppingCart />
           </div>
         </div>
       </nav>
+
+      {/* ── DRAWER MÓVIL ── */}
+      {drawerOpen && (
+        <div className="bojo-mobile-overlay" onClick={() => setDrawerOpen(false)}>
+          <div className="bojo-mobile-drawer" onClick={(e) => e.stopPropagation()}>
+
+            {/* Header drawer */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '16px 20px',
+              borderBottom: `2px solid ${C.bg}`,
+            }}>
+              <img src={bojoLogo} alt="Bojo" style={{ height: '30px', objectFit: 'contain' }} />
+              <CloseOutlined
+                style={{ fontSize: '18px', color: C.hot, cursor: 'pointer' }}
+                onClick={() => setDrawerOpen(false)}
+              />
+            </div>
+
+            {/* Links */}
+            <div className="bojo-mobile-link" onClick={() => goTo('/home')}>
+              Inicio
+            </div>
+
+            {/* Catálogo expandible */}
+            <div
+              className="bojo-mobile-link"
+              onClick={() => setCatalogoOpen((v) => !v)}
+            >
+              <span>Catálogo</span>
+              <span style={{ fontSize: '10px' }}>{catalogoOpen ? '▲' : '▾'}</span>
+            </div>
+            {catalogoOpen && catalogoItems.map((item) => (
+              <div
+                key={item.key}
+                className="bojo-mobile-sublink"
+                onClick={() => goTo(`/${item.key}`)}
+              >
+                {item.label}
+              </div>
+            ))}
+
+            <div className="bojo-mobile-link" onClick={() => goTo('/#')}>
+              Novedades
+            </div>
+            <div className="bojo-mobile-link" onClick={() => goTo('/#')}>
+              Promociones
+            </div>
+
+            {/* Login / cuenta */}
+            <div style={{ marginTop: 'auto', padding: '20px' }}>
+              {currentUser ? (
+                <>
+                  <div className="bojo-mobile-link" onClick={() => goTo('/perfil')}>
+                    Mi Perfil
+                  </div>
+                  <div className="bojo-mobile-link" onClick={() => goTo('/orders')}>
+                    Mis Pedidos
+                  </div>
+                  <div
+                    className="bojo-mobile-link"
+                    onClick={() => { handleLogout(); setDrawerOpen(false); }}
+                    style={{ color: '#cc0000 !important' }}
+                  >
+                    Cerrar Sesión
+                  </div>
+                </>
+              ) : (
+                <button
+                  onClick={() => goTo('/login')}
+                  style={{
+                    width: '100%',
+                    background: C.hot,
+                    color: C.white,
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    fontFamily: "'Jost', sans-serif",
+                    fontSize: '13px',
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Iniciar Sesión
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── CAROUSEL ── */}
       <div
         style={{
           position: 'relative',
           width: '100%',
-          height: isMobile ? '260px' : '85vh',
+          height: isMobile ? '56vw' : '85vh',
           overflow: 'hidden',
+          background: C.bg,
         }}
       >
-        {/* Slides */}
         {banners.map((src, i) => (
           <img
             key={i}
@@ -248,15 +440,15 @@ const Banner = () => {
           onClick={() => setCurrentSlide((prev) => (prev - 1 + banners.length) % banners.length)}
           style={{
             position: 'absolute',
-            left: '20px',
+            left: '12px',
             top: '50%',
             transform: 'translateY(-50%)',
             background: 'rgba(255,255,255,0.25)',
             border: 'none',
             borderRadius: '50%',
-            width: '42px',
-            height: '42px',
-            fontSize: '18px',
+            width: isMobile ? '30px' : '42px',
+            height: isMobile ? '30px' : '42px',
+            fontSize: isMobile ? '16px' : '22px',
             color: C.white,
             cursor: 'pointer',
             backdropFilter: 'blur(4px)',
@@ -268,24 +460,22 @@ const Banner = () => {
           }}
           onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.45)')}
           onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.25)')}
-        >
-          ‹
-        </button>
+        >‹</button>
 
         {/* Flecha derecha */}
         <button
           onClick={() => setCurrentSlide((prev) => (prev + 1) % banners.length)}
           style={{
             position: 'absolute',
-            right: '20px',
+            right: '12px',
             top: '50%',
             transform: 'translateY(-50%)',
             background: 'rgba(255,255,255,0.25)',
             border: 'none',
             borderRadius: '50%',
-            width: '42px',
-            height: '42px',
-            fontSize: '18px',
+            width: isMobile ? '30px' : '42px',
+            height: isMobile ? '30px' : '42px',
+            fontSize: isMobile ? '16px' : '22px',
             color: C.white,
             cursor: 'pointer',
             backdropFilter: 'blur(4px)',
@@ -297,15 +487,13 @@ const Banner = () => {
           }}
           onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.45)')}
           onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.25)')}
-        >
-          ›
-        </button>
+        >›</button>
 
-        {/* Dots indicadores */}
+        {/* Dots */}
         <div
           style={{
             position: 'absolute',
-            bottom: '18px',
+            bottom: '14px',
             left: '50%',
             transform: 'translateX(-50%)',
             display: 'flex',
