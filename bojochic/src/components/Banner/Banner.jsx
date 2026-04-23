@@ -46,7 +46,7 @@ const globalStyles = `
     letter-spacing: 0.18em;
     font-weight: 500;
     text-transform: uppercase;
-    padding: 15px 26px;
+    padding: 10px 26px;
     display: inline-block;
     border-bottom: 2px solid transparent;
     transition: all 0.25s;
@@ -68,7 +68,7 @@ const globalStyles = `
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center center;
+    object-position: center 55%;
     transition: opacity 0.9s ease-in-out;
   }
 
@@ -257,7 +257,7 @@ const Banner = () => {
           padding: isMobile ? '0 16px' : '0 60px',
           boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
           borderBottom: `1px solid ${C.bg}`,
-          height: isMobile ? '56px' : '70px',
+          height: isMobile ? '56px' : '58px',
         }}
       >
         {/* Izquierda */}
@@ -270,7 +270,7 @@ const Banner = () => {
           <img
             src={bojoLogo}
             alt="Bojo"
-            style={{ height: '44px', cursor: 'pointer', objectFit: 'contain' }}
+            style={{ height: '36px', cursor: 'pointer', objectFit: 'contain' }}
             onClick={() => navigate('/home')}
           />
         )}
@@ -316,9 +316,7 @@ const Banner = () => {
           ) : (
             <UserOutlined style={iconStyle} onClick={() => navigate('/login')} {...hoverScale} />
           )}
-          <div style={{ color: C.hot, fontSize: '20px', display: 'flex', alignItems: 'center' }}>
-            <ShoppingCart />
-          </div>
+          <ShoppingCart color={C.hot} iconColor={C.hot} style={{ color: C.hot }} />
         </div>
       </nav>
 
@@ -327,7 +325,6 @@ const Banner = () => {
         <div className="bojo-mobile-overlay" onClick={() => setDrawerOpen(false)}>
           <div className="bojo-mobile-drawer" onClick={(e) => e.stopPropagation()}>
 
-            {/* Header drawer */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -342,46 +339,26 @@ const Banner = () => {
               />
             </div>
 
-            {/* Links */}
-            <div className="bojo-mobile-link" onClick={() => goTo('/home')}>
-              Inicio
-            </div>
+            <div className="bojo-mobile-link" onClick={() => goTo('/home')}>Inicio</div>
 
-            {/* Catálogo expandible */}
-            <div
-              className="bojo-mobile-link"
-              onClick={() => setCatalogoOpen((v) => !v)}
-            >
+            <div className="bojo-mobile-link" onClick={() => setCatalogoOpen((v) => !v)}>
               <span>Catálogo</span>
               <span style={{ fontSize: '10px' }}>{catalogoOpen ? '▲' : '▾'}</span>
             </div>
             {catalogoOpen && catalogoItems.map((item) => (
-              <div
-                key={item.key}
-                className="bojo-mobile-sublink"
-                onClick={() => goTo(`/${item.key}`)}
-              >
+              <div key={item.key} className="bojo-mobile-sublink" onClick={() => goTo(`/${item.key}`)}>
                 {item.label}
               </div>
             ))}
 
-            <div className="bojo-mobile-link" onClick={() => goTo('/#')}>
-              Novedades
-            </div>
-            <div className="bojo-mobile-link" onClick={() => goTo('/#')}>
-              Promociones
-            </div>
+            <div className="bojo-mobile-link" onClick={() => goTo('/#')}>Novedades</div>
+            <div className="bojo-mobile-link" onClick={() => goTo('/#')}>Promociones</div>
 
-            {/* Login / cuenta */}
             <div style={{ marginTop: 'auto', padding: '20px' }}>
               {currentUser ? (
                 <>
-                  <div className="bojo-mobile-link" onClick={() => goTo('/perfil')}>
-                    Mi Perfil
-                  </div>
-                  <div className="bojo-mobile-link" onClick={() => goTo('/orders')}>
-                    Mis Pedidos
-                  </div>
+                  <div className="bojo-mobile-link" onClick={() => goTo('/perfil')}>Mi Perfil</div>
+                  <div className="bojo-mobile-link" onClick={() => goTo('/orders')}>Mis Pedidos</div>
                   <div
                     className="bojo-mobile-link"
                     onClick={() => { handleLogout(); setDrawerOpen(false); }}
@@ -420,7 +397,7 @@ const Banner = () => {
         style={{
           position: 'relative',
           width: '100%',
-          height: isMobile ? '56vw' : '85vh',
+          height: isMobile ? '56vw' : '92vh',
           overflow: 'hidden',
           background: C.bg,
         }}
@@ -435,72 +412,40 @@ const Banner = () => {
           />
         ))}
 
-        {/* Flecha izquierda */}
         <button
           onClick={() => setCurrentSlide((prev) => (prev - 1 + banners.length) % banners.length)}
           style={{
-            position: 'absolute',
-            left: '12px',
-            top: '50%',
+            position: 'absolute', left: '12px', top: '50%',
             transform: 'translateY(-50%)',
-            background: 'rgba(255,255,255,0.25)',
-            border: 'none',
-            borderRadius: '50%',
-            width: isMobile ? '30px' : '42px',
-            height: isMobile ? '30px' : '42px',
-            fontSize: isMobile ? '16px' : '22px',
-            color: C.white,
-            cursor: 'pointer',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 10,
-            transition: 'background 0.2s',
+            background: 'rgba(255,255,255,0.25)', border: 'none', borderRadius: '50%',
+            width: isMobile ? '30px' : '42px', height: isMobile ? '30px' : '42px',
+            fontSize: isMobile ? '16px' : '22px', color: C.white, cursor: 'pointer',
+            backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', zIndex: 10, transition: 'background 0.2s',
           }}
           onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.45)')}
           onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.25)')}
         >‹</button>
 
-        {/* Flecha derecha */}
         <button
           onClick={() => setCurrentSlide((prev) => (prev + 1) % banners.length)}
           style={{
-            position: 'absolute',
-            right: '12px',
-            top: '50%',
+            position: 'absolute', right: '12px', top: '50%',
             transform: 'translateY(-50%)',
-            background: 'rgba(255,255,255,0.25)',
-            border: 'none',
-            borderRadius: '50%',
-            width: isMobile ? '30px' : '42px',
-            height: isMobile ? '30px' : '42px',
-            fontSize: isMobile ? '16px' : '22px',
-            color: C.white,
-            cursor: 'pointer',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 10,
-            transition: 'background 0.2s',
+            background: 'rgba(255,255,255,0.25)', border: 'none', borderRadius: '50%',
+            width: isMobile ? '30px' : '42px', height: isMobile ? '30px' : '42px',
+            fontSize: isMobile ? '16px' : '22px', color: C.white, cursor: 'pointer',
+            backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', zIndex: 10, transition: 'background 0.2s',
           }}
           onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.45)')}
           onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.25)')}
         >›</button>
 
-        {/* Dots */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '14px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            display: 'flex',
-            gap: '8px',
-            zIndex: 10,
-          }}
-        >
+        <div style={{
+          position: 'absolute', bottom: '14px', left: '50%',
+          transform: 'translateX(-50%)', display: 'flex', gap: '8px', zIndex: 10,
+        }}>
           {banners.map((_, i) => (
             <button
               key={i}
