@@ -70,6 +70,7 @@ const globalStyles = `
     object-fit: cover;
     object-position: center 55%;
     transition: opacity 0.9s ease-in-out;
+    cursor: pointer;
   }
 
   .bojo-dot {
@@ -195,6 +196,8 @@ const Banner = () => {
     { key: 'panuelos',  label: 'Pañuelos' },
     { key: 'anillos',   label: 'Anillos' },
     { key: 'conjuntos', label: 'Conjuntos' },
+    { key: 'otros',     label: 'Otros' },
+    { key: 'mama',      label: 'Mamá' },
   ];
 
   const catalogoMenuItems = catalogoItems.map((item) => ({
@@ -300,9 +303,9 @@ const Banner = () => {
               </a>
             </Dropdown>
             <span className="bojo-nav-sep">|</span>
-            <a className="bojo-nav-link" onClick={() => navigate('/#')}>Novedades</a>
+            <a className="bojo-nav-link" onClick={() => navigate('/novedades')}>Novedades</a>  {/* ← */}
             <span className="bojo-nav-sep">|</span>
-            <a className="bojo-nav-link" onClick={() => navigate('/#')}>Promociones</a>
+            <a className="bojo-nav-link" onClick={() => navigate('/promociones')}>Promociones</a>  {/* ← */}
           </div>
         )}
 
@@ -351,8 +354,8 @@ const Banner = () => {
               </div>
             ))}
 
-            <div className="bojo-mobile-link" onClick={() => goTo('/#')}>Novedades</div>
-            <div className="bojo-mobile-link" onClick={() => goTo('/#')}>Promociones</div>
+            <div className="bojo-mobile-link" onClick={() => goTo('/novedades')}>Novedades</div>   {/* ← */}
+            <div className="bojo-mobile-link" onClick={() => goTo('/promociones')}>Promociones</div> {/* ← */}
 
             <div style={{ marginTop: 'auto', padding: '20px' }}>
               {currentUser ? (
@@ -409,6 +412,7 @@ const Banner = () => {
             alt={`Banner ${i + 1}`}
             className="bojo-carousel-slide"
             style={{ opacity: i === currentSlide ? 1 : 0 }}
+            onClick={() => navigate('/mama')}
           />
         ))}
 

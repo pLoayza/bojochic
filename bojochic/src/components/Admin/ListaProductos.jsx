@@ -26,7 +26,11 @@ const ListaProductos = () => {
     { value: 'dorados', label: 'Dorados' },
     { value: 'plateados', label: 'Plateados' },
     { value: 'conjuntos', label: 'Conjuntos' },
-    { value: 'otros', label: 'Otros' }
+    { value: 'otros', label: 'Otros' },
+    { value: 'mama',      label: 'Mamá' },
+    { value: 'novedades',   label: 'Novedades' },
+  { value: 'promociones', label: 'Promociones' }
+    
   ];
 
   useEffect(() => {

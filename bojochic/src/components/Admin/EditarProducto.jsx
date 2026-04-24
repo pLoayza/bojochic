@@ -21,7 +21,7 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
 
   const categorias = [
     'aros', 'collares', 'pulseras', 'panuelos',
-    'anillos', 'dorados', 'plateados', 'conjuntos', 'otros'
+    'anillos', 'dorados', 'plateados', 'conjuntos', 'otros', 'mama'
   ];
 
   // Cargar datos del producto al abrir el modal
