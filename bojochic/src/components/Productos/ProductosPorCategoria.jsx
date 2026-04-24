@@ -7,15 +7,14 @@ import ProductCard from '../../pages/Productos/ProductCard';
 const { Title } = Typography;
 const { Option } = Select;
 
-const ProductosPorCategoria = ({ categoria, productos }) => {
+const ProductosPorCategoria = ({ categoria, productos, categoriaNombre }) => {
   const [productosFiltrados, setProductosFiltrados] = useState([]);
   const [ordenamiento, setOrdenamiento] = useState('nombre-az');
 
-  const tituloCategoria = categoria
+  const tituloCategoria = categoriaNombre || (categoria
     ? categoria.charAt(0).toUpperCase() + categoria.slice(1)
-    : '';
+    : '');
 
-  // Función para ordenar productos
   const ordenarProductos = (prods, tipo) => {
     const productosOrdenados = [...prods];
 
@@ -24,29 +23,24 @@ const ProductosPorCategoria = ({ categoria, productos }) => {
         return productosOrdenados.sort((a, b) => 
           (a.precio || 0) - (b.precio || 0)
         );
-      
       case 'precio-mayor':
         return productosOrdenados.sort((a, b) => 
           (b.precio || 0) - (a.precio || 0)
         );
-      
       case 'nombre-az':
         return productosOrdenados.sort((a, b) => 
           (a.nombre || '').localeCompare(b.nombre || '')
         );
-      
       default:
         return productosOrdenados;
     }
   };
 
-  // Actualizar productos cuando cambie el ordenamiento o los productos originales
   useEffect(() => {
     const productosOrdenados = ordenarProductos(productos, ordenamiento);
     setProductosFiltrados(productosOrdenados);
   }, [productos, ordenamiento]);
 
-  // Manejar cambio de ordenamiento
   const handleOrdenamiento = (value) => {
     setOrdenamiento(value);
   };
@@ -54,26 +48,17 @@ const ProductosPorCategoria = ({ categoria, productos }) => {
   return (
     <div style={{ minHeight: '70vh', backgroundColor: '#f8f9fa' }}>
       {/* Breadcrumb */}
-      <div
-        style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px 20px 0' }}
-      >
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px 20px 0' }}>
         <Breadcrumb
           items={[
-            {
-              href: '/',
-              title: <HomeOutlined />,
-            },
-            {
-              title: tituloCategoria,
-            },
+            { href: '/', title: <HomeOutlined /> },
+            { title: tituloCategoria },
           ]}
         />
       </div>
 
       {/* Contenido principal */}
-      <div
-        style={{ maxWidth: '1200px', margin: '40px auto', padding: '0 20px' }}
-      >
+      <div style={{ maxWidth: '1200px', margin: '40px auto', padding: '0 20px' }}>
         {/* Header con título y filtro */}
         <div
           style={{
@@ -89,7 +74,7 @@ const ProductosPorCategoria = ({ categoria, productos }) => {
             level={1}
             style={{
               margin: 0,
-              color: ' #f33763',
+              color: '#f33763',
               textTransform: 'uppercase',
               letterSpacing: '2px',
               fontSize: 'clamp(24px, 5vw, 36px)',
@@ -102,14 +87,14 @@ const ProductosPorCategoria = ({ categoria, productos }) => {
           {productos && productos.length > 0 && (
             <div style={{ minWidth: '280px' }}>
               <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                <div style={{ 
-                  fontSize: '13px', 
-                  color: '#888', 
+                <div style={{
+                  fontSize: '13px',
+                  color: '#888',
                   fontWeight: '600',
                   letterSpacing: '0.5px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px'
+                  gap: '8px',
                 }}>
                   <SortAscendingOutlined style={{ fontSize: '16px' }} />
                   ORDENAR POR
@@ -150,14 +135,7 @@ const ProductosPorCategoria = ({ categoria, productos }) => {
 
         {/* Contador de productos */}
         {productos && productos.length > 0 && (
-          <div
-            style={{
-              marginBottom: '30px',
-              color: '#666',
-              fontSize: '14px',
-              fontWeight: '500',
-            }}
-          >
+          <div style={{ marginBottom: '30px', color: '#666', fontSize: '14px', fontWeight: '500' }}>
             Mostrando {productosFiltrados.length} {productosFiltrados.length === 1 ? 'producto' : 'productos'}
           </div>
         )}

@@ -31,6 +31,7 @@ import Privacidad from './pages/politicas/Privacidad';
 import Reembolso from './pages/politicas/Reembolso';
 import Terminos from './pages/politicas/Terminos';
 
+
 function App() {
   return (
     <BrowserRouter>
@@ -59,6 +60,7 @@ function App() {
               <Route path="/perfil"     element={<Profile />} />
               <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
               <Route path="/orders"     element={<MyOrders />} />
+              
 
               {/* ← NUEVA RUTA: página de detalle de producto */}
               <Route path="/producto/:id" element={<ProductoDetallePage />} />
@@ -85,6 +87,9 @@ function App() {
               {/* Colecciones */}
               <Route path="plateados" element={<ProductosPage />} />
               <Route path="dorados"   element={<ProductosPage />} />
+              <Route path="mama" element={<ProductosPage />} />
+              <Route path="novedades"   element={<ProductosPage />} />
+              <Route path="promociones" element={<ProductosPage />} />
             </Route>
           </Routes>
         </AuthProvider>

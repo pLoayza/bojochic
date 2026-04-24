@@ -1,13 +1,27 @@
 import { useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { collection, getDocs } from 'firebase/firestore'; // ← QUITÉ "query, where"
+import { collection, getDocs } from 'firebase/firestore';
 import { Spin, Alert } from 'antd';
 import { db } from '../../firebase/config.js';
 import ProductosPorCategoria from '../../components/Productos/ProductosPorCategoria';
 
+const categoryNames = {
+  aros:      'Aros',
+  collares:  'Collares',
+  pulseras:  'Pulseras',
+  anillos:   'Anillos',
+  panuelos:  'Pañuelos',
+  conjuntos: 'Conjuntos',
+  otros:     'Otros',
+  plateados: 'Plateados',
+  dorados:   'Dorados',
+  mama:      'Mamá',
+};
+
 const ProductosPage = () => {
   const location = useLocation();
   const categoria = location.pathname.slice(1);
+  const categoriaNombre = categoryNames[categoria] || categoria;
 
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,24 +35,17 @@ const ProductosPage = () => {
 
         console.log('🔍 Buscando productos para categoría:', categoria);
 
-        // ← CAMBIO: Ya NO usamos "where" porque necesitamos filtrar en el cliente
-        // Firebase no puede hacer queries con "array-contains" de forma eficiente en este caso
-        
-        // Obtener TODOS los productos
         const querySnapshot = await getDocs(collection(db, 'productos'));
         
-        // ← CAMBIO: Filtrar en el cliente para buscar en el array de categorías
         const productosData = querySnapshot.docs
           .map((doc) => ({
             id: doc.id,
             ...doc.data(),
           }))
           .filter((producto) => {
-            // Si tiene array de categorías, buscar en el array
             if (producto.categorias && Array.isArray(producto.categorias)) {
               return producto.categorias.includes(categoria);
             }
-            // Fallback: si solo tiene categoría única (compatibilidad)
             return producto.categoria === categoria;
           });
 
@@ -56,13 +63,11 @@ const ProductosPage = () => {
       }
     };
 
-    // Solo hacer la consulta si hay una categoría válida
     if (categoria) {
       obtenerProductos();
     }
   }, [categoria]);
 
-  // Loading state
   if (loading) {
     return (
       <div
@@ -77,12 +82,11 @@ const ProductosPage = () => {
       >
         <Spin size="large" />
         <p>Conectando con Firebase...</p>
-        <p style={{ color: '#666' }}>Categoría: {categoria}</p>
+        <p style={{ color: '#666' }}>Categoría: {categoriaNombre}</p>
       </div>
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div
@@ -105,7 +109,7 @@ const ProductosPage = () => {
     );
   }
 
-  return <ProductosPorCategoria categoria={categoria} productos={productos} />;
+  return <ProductosPorCategoria categoria={categoria} productos={productos} categoriaNombre={categoriaNombre} />;
 };
 
 export default ProductosPage;
