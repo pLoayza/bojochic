@@ -1,7 +1,7 @@
 // src/components/Admin/AgregarProducto.jsx
 import { useState } from 'react';
 import { Form, Input, InputNumber, Button, Select, message, Space, List, Image, Switch, Tag } from 'antd';
-import { PlusOutlined, DeleteOutlined, TagOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, TagOutlined, PercentageOutlined } from '@ant-design/icons';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 
@@ -13,11 +13,9 @@ const AgregarProducto = () => {
   const [imagenes, setImagenes] = useState([]);
   const [nuevaImagenUrl, setNuevaImagenUrl] = useState('');
 
-  // ── Tallas ────────────────────────────────────────────────────────────────
   const [tieneTallas, setTieneTallas] = useState(false);
   const [tallas, setTallas] = useState([]);
   const [nuevaTalla, setNuevaTalla] = useState('');
-  // ─────────────────────────────────────────────────────────────────────────
 
   const categorias = [
     'aros', 'collares', 'pulseras', 'panuelos',
@@ -38,7 +36,6 @@ const AgregarProducto = () => {
     message.info('Imagen eliminada');
   };
 
-  // ── Handlers tallas ───────────────────────────────────────────────────────
   const agregarTalla = () => {
     const valor = nuevaTalla.trim();
     if (!valor) { message.warning('Ingresa un valor de talla'); return; }
@@ -51,9 +48,8 @@ const AgregarProducto = () => {
 
   const handleTieneTallasChange = (checked) => {
     setTieneTallas(checked);
-    if (!checked) setTallas([]); // limpiar si se desactiva
+    if (!checked) setTallas([]);
   };
-  // ─────────────────────────────────────────────────────────────────────────
 
   const onFinish = async (values) => {
     if (imagenes.length === 0) { message.error('Debes agregar al menos una imagen'); return; }
@@ -64,19 +60,19 @@ const AgregarProducto = () => {
     setLoading(true);
     try {
       const producto = {
-        nombre:       values.nombre,
-        descripcion:  values.descripcion,
-        precio:       values.precio,
-        stock:        values.stock,
-        categorias:   values.categorias || [],
-        categoria:    values.categorias?.[0] || 'otros',
-        img:          imagenes[0],
-        imagenes:     imagenes,
-        activo:       true,
+        nombre:        values.nombre,
+        descripcion:   values.descripcion,
+        precio:        values.precio,
+        stock:         values.stock,
+        categorias:    values.categorias || [],
+        categoria:     values.categorias?.[0] || 'otros',
+        img:           imagenes[0],
+        imagenes:      imagenes,
+        activo:        true,
         fechaCreacion: new Date().toISOString(),
-        // ── Tallas ──
-        tieneTallas:  tieneTallas,
-        tallas:       tieneTallas ? tallas : [],
+        tieneTallas:   tieneTallas,
+        tallas:        tieneTallas ? tallas : [],
+        descuento:     values.descuento || 0,   // ← guarda el descuento
       };
 
       await addDoc(collection(db, 'productos'), producto);
@@ -100,25 +96,75 @@ const AgregarProducto = () => {
       <Form form={form} layout="vertical" onFinish={onFinish} autoComplete="off">
 
         <Form.Item name="nombre" label="Nombre del Producto"
-          rules={[{ required: true, message: 'Ingresa el nombre del producto' }, { min: 3, message: 'Mínimo 3 caracteres' }]}
+          rules={[{ required: true, message: 'Ingresa el nombre del producto' }, { min: 3 }]}
         >
           <Input placeholder="Ej: Anillo Abrazo Plateado" size="large" />
         </Form.Item>
 
         <Form.Item name="descripcion" label="Descripción"
-          rules={[{ required: true, message: 'Ingresa una descripción' }, { min: 10, message: 'Mínimo 10 caracteres' }]}
+          rules={[{ required: true, message: 'Ingresa una descripción' }, { min: 10 }]}
         >
           <TextArea placeholder="Describe el producto..." rows={4} />
         </Form.Item>
 
-        <Form.Item name="precio" label="Precio (CLP)"
-          rules={[{ required: true, message: 'Ingresa el precio' }, { type: 'number', min: 0 }]}
-        >
-          <InputNumber
-            placeholder="3990" style={{ width: '100%' }} size="large"
-            formatter={v => `$ ${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
-            parser={v => v.replace(/\$\s?|\./g, '')}
-          />
+        {/* Precio y Descuento en la misma fila */}
+        <div style={{ display: 'flex', gap: '16px' }}>
+          <Form.Item name="precio" label="Precio (CLP)" style={{ flex: 2 }}
+            rules={[{ required: true, message: 'Ingresa el precio' }, { type: 'number', min: 0 }]}
+          >
+            <InputNumber
+              placeholder="3990" style={{ width: '100%' }} size="large"
+              formatter={v => `$ ${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
+              parser={v => v.replace(/\$\s?|\./g, '')}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="descuento"
+            label="Descuento"
+            style={{ flex: 1 }}
+            extra="0 = sin descuento"
+            rules={[{ type: 'number', min: 0, max: 100, message: 'Entre 0 y 100' }]}
+          >
+            <InputNumber
+              style={{ width: '100%' }}
+              size="large"
+              min={0}
+              max={100}
+              placeholder="0"
+              prefix={<PercentageOutlined style={{ color: '#f33763' }} />}
+              formatter={v => v ? `${v}%` : ''}
+              parser={v => v.replace('%', '')}
+            />
+          </Form.Item>
+        </div>
+
+        {/* Preview en tiempo real */}
+        <Form.Item noStyle shouldUpdate={(prev, cur) => prev.precio !== cur.precio || prev.descuento !== cur.descuento}>
+          {({ getFieldValue }) => {
+            const precio = getFieldValue('precio');
+            const descuento = getFieldValue('descuento');
+            if (!precio || !descuento || descuento <= 0) return null;
+            const precioFinal = Math.round(precio * (1 - descuento / 100));
+            return (
+              <div style={{
+                background: '#fff0f4', border: '1px solid #f33763',
+                borderRadius: '8px', padding: '10px 16px',
+                marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px'
+              }}>
+                <PercentageOutlined style={{ color: '#f33763', fontSize: '16px' }} />
+                <span style={{ color: '#888', textDecoration: 'line-through', fontSize: '14px' }}>
+                  ${precio.toLocaleString('es-CL')}
+                </span>
+                <span style={{ color: '#f33763', fontWeight: 700, fontSize: '18px' }}>
+                  ${precioFinal.toLocaleString('es-CL')}
+                </span>
+                <span style={{ color: '#888', fontSize: '13px' }}>
+                  — ahorras ${(precio - precioFinal).toLocaleString('es-CL')}
+                </span>
+              </div>
+            );
+          }}
         </Form.Item>
 
         <Form.Item name="stock" label="Stock Disponible"
@@ -140,13 +186,12 @@ const AgregarProducto = () => {
           </Select>
         </Form.Item>
 
-        {/* ── SECCIÓN TALLAS ─────────────────────────────────────────────── */}
+        {/* SECCIÓN TALLAS */}
         <Form.Item label="Tallas / Medidas">
           <div style={{
             border: '1px solid #f0f0f0', borderRadius: '8px',
             padding: '16px', background: tieneTallas ? '#fff8fa' : '#fafafa'
           }}>
-            {/* Switch activar/desactivar */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: tieneTallas ? '16px' : 0 }}>
               <Switch
                 checked={tieneTallas}
@@ -158,7 +203,6 @@ const AgregarProducto = () => {
               </span>
             </div>
 
-            {/* Input para agregar tallas */}
             {tieneTallas && (
               <>
                 <Space.Compact style={{ width: '100%', marginBottom: '12px' }}>
@@ -179,19 +223,14 @@ const AgregarProducto = () => {
                   </Button>
                 </Space.Compact>
 
-                {/* Tags de tallas agregadas */}
                 {tallas.length > 0 ? (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                     {tallas.map(t => (
-                      <Tag
-                        key={t}
-                        closable
-                        onClose={() => eliminarTalla(t)}
+                      <Tag key={t} closable onClose={() => eliminarTalla(t)}
                         style={{
-                          fontSize: '14px', padding: '4px 12px',
-                          borderRadius: '6px', border: '1.5px solid #f33763',
-                          color: '#f33763', background: '#fff0f4',
-                          cursor: 'default'
+                          fontSize: '14px', padding: '4px 12px', borderRadius: '6px',
+                          border: '1.5px solid #f33763', color: '#f33763',
+                          background: '#fff0f4', cursor: 'default'
                         }}
                       >
                         {t}
@@ -207,12 +246,9 @@ const AgregarProducto = () => {
             )}
           </div>
         </Form.Item>
-        {/* ─────────────────────────────────────────────────────────────────── */}
 
         {/* Imágenes */}
-        <Form.Item label="Imágenes del Producto" required
-          extra="La primera imagen será la imagen principal."
-        >
+        <Form.Item label="Imágenes del Producto" required extra="La primera imagen será la imagen principal.">
           <Space.Compact style={{ width: '100%' }}>
             <Input
               placeholder="https://i.imgur.com/ABC123.png" size="large"

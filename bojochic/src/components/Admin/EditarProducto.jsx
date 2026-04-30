@@ -1,7 +1,7 @@
 // src/components/Admin/EditarProducto.jsx
 import { useState, useEffect } from 'react';
 import { Modal, Form, Input, InputNumber, Select, message, Space, List, Image, Button, Switch, Tag } from 'antd';
-import { PlusOutlined, DeleteOutlined, TagOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, TagOutlined, PercentageOutlined } from '@ant-design/icons';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 
@@ -12,19 +12,16 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [imagenes, setImagenes] = useState([]);
   const [nuevaImagenUrl, setNuevaImagenUrl] = useState('');
-
-  // ── Tallas ────────────────────────────────────────────────────────────────
   const [tieneTallas, setTieneTallas] = useState(false);
   const [tallas, setTallas] = useState([]);
   const [nuevaTalla, setNuevaTalla] = useState('');
-  // ─────────────────────────────────────────────────────────────────────────
+  const [ultimasUnidades, setUltimasUnidades] = useState(false);  // ← NUEVO
 
   const categorias = [
     'aros', 'collares', 'pulseras', 'panuelos',
     'anillos', 'dorados', 'plateados', 'conjuntos', 'otros', 'mama'
   ];
 
-  // Cargar datos del producto al abrir el modal
   useEffect(() => {
     if (producto) {
       const categoriasProducto = producto.categorias ||
@@ -36,7 +33,8 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
         precio:      producto.precio,
         stock:       producto.stock,
         categorias:  categoriasProducto,
-        activo:      producto.activo
+        activo:      producto.activo,
+        descuento:   producto.descuento || 0,
       });
 
       if (producto.imagenes && Array.isArray(producto.imagenes)) {
@@ -47,10 +45,10 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
         setImagenes([]);
       }
 
-      // ── Cargar tallas existentes del producto ──
       setTieneTallas(producto.tieneTallas || false);
       setTallas(Array.isArray(producto.tallas) ? producto.tallas : []);
       setNuevaTalla('');
+      setUltimasUnidades(producto.ultimasUnidades || false);  // ← NUEVO
     }
   }, [producto, form]);
 
@@ -69,7 +67,6 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
     message.info('Imagen eliminada');
   };
 
-  // ── Handlers tallas ───────────────────────────────────────────────────────
   const agregarTalla = () => {
     const valor = nuevaTalla.trim();
     if (!valor) { message.warning('Ingresa un valor de talla'); return; }
@@ -84,7 +81,6 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
     setTieneTallas(checked);
     if (!checked) setTallas([]);
   };
-  // ─────────────────────────────────────────────────────────────────────────
 
   const onFinish = async (values) => {
     if (imagenes.length === 0) { message.error('Debes tener al menos una imagen'); return; }
@@ -97,18 +93,19 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
       const productoRef = doc(db, 'productos', producto.id);
 
       await updateDoc(productoRef, {
-        nombre:      values.nombre,
-        descripcion: values.descripcion,
-        precio:      values.precio,
-        stock:       values.stock,
-        categorias:  values.categorias || [],
-        categoria:   values.categorias?.[0] || 'otros',
-        img:         imagenes[0],
-        imagenes:    imagenes,
-        activo:      values.activo,
-        // ── Tallas ──
-        tieneTallas: tieneTallas,
-        tallas:      tieneTallas ? tallas : [],
+        nombre:          values.nombre,
+        descripcion:     values.descripcion,
+        precio:          values.precio,
+        stock:           values.stock,
+        categorias:      values.categorias || [],
+        categoria:       values.categorias?.[0] || 'otros',
+        img:             imagenes[0],
+        imagenes:        imagenes,
+        activo:          values.activo,
+        tieneTallas:     tieneTallas,
+        tallas:          tieneTallas ? tallas : [],
+        descuento:       values.descuento || 0,
+        ultimasUnidades: ultimasUnidades,        // ← NUEVO
       });
 
       message.success('¡Producto actualizado exitosamente!');
@@ -153,14 +150,57 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
           <TextArea rows={4} />
         </Form.Item>
 
-        <Form.Item name="precio" label="Precio (CLP)"
-          rules={[{ required: true }, { type: 'number', min: 0 }]}
-        >
-          <InputNumber
-            style={{ width: '100%' }} size="large"
-            formatter={v => `$ ${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
-            parser={v => v.replace(/\$\s?|\./g, '')}
-          />
+        {/* Precio + Descuento */}
+        <div style={{ display: 'flex', gap: '16px' }}>
+          <Form.Item name="precio" label="Precio (CLP)" style={{ flex: 2 }}
+            rules={[{ required: true }, { type: 'number', min: 0 }]}
+          >
+            <InputNumber
+              style={{ width: '100%' }} size="large"
+              formatter={v => `$ ${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
+              parser={v => v.replace(/\$\s?|\./g, '')}
+            />
+          </Form.Item>
+
+          <Form.Item name="descuento" label="Descuento" style={{ flex: 1 }}
+            extra="0 = sin descuento"
+            rules={[{ type: 'number', min: 0, max: 100, message: 'Entre 0 y 100' }]}
+          >
+            <InputNumber
+              style={{ width: '100%' }} size="large" min={0} max={100} placeholder="0"
+              prefix={<PercentageOutlined style={{ color: '#f33763' }} />}
+              formatter={v => v ? `${v}%` : ''}
+              parser={v => v.replace('%', '')}
+            />
+          </Form.Item>
+        </div>
+
+        {/* Preview precio con descuento */}
+        <Form.Item noStyle shouldUpdate={(prev, cur) => prev.precio !== cur.precio || prev.descuento !== cur.descuento}>
+          {({ getFieldValue }) => {
+            const precio = getFieldValue('precio');
+            const descuento = getFieldValue('descuento');
+            if (!precio || !descuento || descuento <= 0) return null;
+            const precioFinal = Math.round(precio * (1 - descuento / 100));
+            return (
+              <div style={{
+                background: '#fff0f4', border: '1px solid #f33763',
+                borderRadius: '8px', padding: '10px 16px', marginBottom: '24px',
+                display: 'flex', alignItems: 'center', gap: '12px'
+              }}>
+                <PercentageOutlined style={{ color: '#f33763', fontSize: '16px' }} />
+                <span style={{ color: '#888', textDecoration: 'line-through', fontSize: '14px' }}>
+                  ${precio.toLocaleString('es-CL')}
+                </span>
+                <span style={{ color: '#f33763', fontWeight: 700, fontSize: '18px' }}>
+                  ${precioFinal.toLocaleString('es-CL')}
+                </span>
+                <span style={{ color: '#888', fontSize: '13px' }}>
+                  — ahorras ${(precio - precioFinal).toLocaleString('es-CL')}
+                </span>
+              </div>
+            );
+          }}
         </Form.Item>
 
         <Form.Item name="stock" label="Stock Disponible"
@@ -182,7 +222,35 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
           </Select>
         </Form.Item>
 
-        {/* ── SECCIÓN TALLAS ─────────────────────────────────────────────── */}
+        {/* ── ÚLTIMAS UNIDADES ─────────────────────────────────────────────── */}
+        <Form.Item label="Últimas Unidades">
+          <div style={{
+            border: `1px solid ${ultimasUnidades ? '#fa8c16' : '#f0f0f0'}`,
+            borderRadius: '8px', padding: '16px',
+            background: ultimasUnidades ? '#fff7e6' : '#fafafa',
+            transition: 'all 0.2s ease',
+            display: 'flex', alignItems: 'center', gap: '12px'
+          }}>
+            <Switch
+              checked={ultimasUnidades}
+              onChange={setUltimasUnidades}
+              style={{ background: ultimasUnidades ? '#fa8c16' : undefined }}
+            />
+            <div>
+              <span style={{ fontWeight: '500', color: ultimasUnidades ? '#fa8c16' : '#888' }}>
+                {ultimasUnidades ? '⚡ Mostrando badge "Últimas unidades"' : 'Sin badge de últimas unidades'}
+              </span>
+              {ultimasUnidades && (
+                <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#aaa' }}>
+                  Aparecerá un badge naranja en la card del producto
+                </p>
+              )}
+            </div>
+          </div>
+        </Form.Item>
+        {/* ─────────────────────────────────────────────────────────────────── */}
+
+        {/* SECCIÓN TALLAS */}
         <Form.Item label="Tallas / Medidas">
           <div style={{
             border: `1px solid ${tieneTallas ? '#f33763' : '#f0f0f0'}`,
@@ -190,7 +258,6 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
             background: tieneTallas ? '#fff8fa' : '#fafafa',
             transition: 'all 0.2s ease'
           }}>
-            {/* Switch */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: tieneTallas ? '16px' : 0 }}>
               <Switch
                 checked={tieneTallas}
@@ -202,7 +269,6 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
               </span>
             </div>
 
-            {/* Input + tags */}
             {tieneTallas && (
               <>
                 <Space.Compact style={{ width: '100%', marginBottom: '12px' }}>
@@ -214,9 +280,7 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
                     onChange={(e) => setNuevaTalla(e.target.value)}
                     onPressEnter={agregarTalla}
                   />
-                  <Button
-                    type="primary" size="large" icon={<PlusOutlined />}
-                    onClick={agregarTalla}
+                  <Button type="primary" size="large" icon={<PlusOutlined />} onClick={agregarTalla}
                     style={{ background: 'linear-gradient(45deg, #f33763, #FF6B9D)', border: 'none' }}
                   >
                     Agregar
@@ -226,15 +290,11 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
                 {tallas.length > 0 ? (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                     {tallas.map(t => (
-                      <Tag
-                        key={t}
-                        closable
-                        onClose={() => eliminarTalla(t)}
+                      <Tag key={t} closable onClose={() => eliminarTalla(t)}
                         style={{
-                          fontSize: '14px', padding: '4px 12px',
-                          borderRadius: '6px', border: '1.5px solid #f33763',
-                          color: '#f33763', background: '#fff0f4',
-                          cursor: 'default'
+                          fontSize: '14px', padding: '4px 12px', borderRadius: '6px',
+                          border: '1.5px solid #f33763', color: '#f33763',
+                          background: '#fff0f4', cursor: 'default'
                         }}
                       >
                         {t}
@@ -250,7 +310,6 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
             )}
           </div>
         </Form.Item>
-        {/* ─────────────────────────────────────────────────────────────────── */}
 
         {/* Imágenes */}
         <Form.Item label="Imágenes del Producto" required extra="La primera imagen será la imagen principal">

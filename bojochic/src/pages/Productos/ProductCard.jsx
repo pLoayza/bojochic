@@ -5,8 +5,8 @@ import { ShoppingCartOutlined, PlusOutlined, MinusOutlined, CheckOutlined } from
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../../firebase/config';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { calcularPrecio, formatearPrecio } from '../../utils/precioUtils';
 
-// ─── Helpers localStorage (guest) ────────────────────────────────────────────
 const CART_KEY = 'bojo_guest_cart';
 
 const getGuestCart = () => {
@@ -17,7 +17,6 @@ const getGuestCart = () => {
 const saveGuestCart = (items) => {
   localStorage.setItem(CART_KEY, JSON.stringify(items));
 };
-// ─────────────────────────────────────────────────────────────────────────────
 
 const ProductCard = ({ producto }) => {
   const navigate = useNavigate();
@@ -29,15 +28,10 @@ const ProductCard = ({ producto }) => {
   const popupRef = useRef(null);
   const btnRef = useRef(null);
 
-  // ── Tallas: solo si el producto tiene tieneTallas: true y array con elementos ──
   const tallas = producto.tieneTallas && Array.isArray(producto.tallas) && producto.tallas.length > 0
-    ? producto.tallas
-    : null;
+    ? producto.tallas : null;
 
-  const formatearPrecio = (precio) => {
-    if (typeof precio === 'number') return `$${precio.toLocaleString('es-CL')}`;
-    return precio;
-  };
+  const { precioFinal, precioOriginal, tieneDescuento, porcentaje } = calcularPrecio(producto);
 
   const imagenPrincipal = () => {
     if (producto.imagenes?.length > 0) return producto.imagenes[0];
@@ -49,7 +43,6 @@ const ProductCard = ({ producto }) => {
     return null;
   };
 
-  // Cerrar popup al click fuera
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -61,9 +54,7 @@ const ProductCard = ({ producto }) => {
         setSelectedSize(null);
       }
     };
-    if (showQuantityPopup) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
+    if (showQuantityPopup) document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showQuantityPopup]);
 
@@ -73,28 +64,20 @@ const ProductCard = ({ producto }) => {
     setShowQuantityPopup(prev => !prev);
   };
 
-  // ── Navegar a la página de detalle del producto ───────────────────────────
   const handleCardClick = () => {
     if (showQuantityPopup) return;
-    // Pasamos el producto en el state para evitar un fetch extra
     navigate(`/producto/${producto.id}`, { state: { producto } });
   };
 
-  // ── Confirmar agregar al carrito ─────────────────────────────────────────
   const confirmarAgregarAlCarrito = async (e) => {
     e.stopPropagation();
-
     const user = auth.currentUser;
-
-    const cartKey = tallas && selectedSize
-      ? `${producto.id}_${selectedSize}`
-      : producto.id;
+    const cartKey = tallas && selectedSize ? `${producto.id}_${selectedSize}` : producto.id;
 
     try {
       setAddingToCart(true);
 
       if (user) {
-        // ── Usuario registrado: Firestore ──
         const cartItemRef = doc(db, 'users', user.uid, 'cart', cartKey);
         const existing    = await getDoc(cartItemRef);
         const currentQty  = existing.exists() ? (existing.data().quantity || 0) : 0;
@@ -102,7 +85,7 @@ const ProductCard = ({ producto }) => {
         await setDoc(cartItemRef, {
           id:       producto.id,
           name:     producto.nombre || producto.title,
-          price:    producto.precio  || producto.price,
+          price:    precioFinal,
           image:    imagenPrincipal(),
           quantity: currentQty + cantidad,
           addedAt:  new Date().toISOString(),
@@ -111,9 +94,7 @@ const ProductCard = ({ producto }) => {
         });
 
       } else {
-        // ── Guest: localStorage ──
         const cart = getGuestCart();
-
         const existingIndex = cart.findIndex(item => {
           const iKey = item.size ? `${item.id}_${item.size}` : item.id;
           return iKey === cartKey;
@@ -126,7 +107,7 @@ const ProductCard = ({ producto }) => {
             id:       producto.id,
             cartKey,
             name:     producto.nombre || producto.title,
-            price:    producto.precio || producto.price,
+            price:    precioFinal,
             image:    imagenPrincipal(),
             quantity: cantidad,
             addedAt:  new Date().toISOString(),
@@ -195,6 +176,7 @@ const ProductCard = ({ producto }) => {
         .pc-root:hover .pc-img-primary { transform: scale(1.04); }
         .pc-root:hover .pc-img-secondary { opacity: 1; }
 
+        /* Badge izquierda: Agotado o Últimas unidades */
         .pc-badge {
           position: absolute;
           top: 10px; left: 10px;
@@ -207,6 +189,32 @@ const ProductCard = ({ producto }) => {
           border-radius: 20px;
           letter-spacing: 0.5px;
           text-transform: uppercase;
+        }
+        .pc-badge-ultimas {
+          position: absolute;
+          top: 10px; left: 10px;
+          z-index: 4;
+          background: #fa8c16;
+          color: #fff;
+          font-size: 11px;
+          font-weight: 700;
+          padding: 4px 10px;
+          border-radius: 20px;
+          letter-spacing: 0.5px;
+        }
+
+        /* Badge derecha: % descuento */
+        .pc-badge-desc {
+          position: absolute;
+          top: 10px; right: 10px;
+          z-index: 4;
+          background: #f33763;
+          color: #fff;
+          font-size: 12px;
+          font-weight: 700;
+          padding: 4px 10px;
+          border-radius: 20px;
+          letter-spacing: 0.5px;
         }
 
         .pc-info {
@@ -224,11 +232,23 @@ const ProductCard = ({ producto }) => {
           overflow: hidden;
           min-height: 40px;
         }
+
+        .pc-price-block {
+          display: flex;
+          flex-direction: column;
+          gap: 1px;
+          margin-bottom: 12px;
+        }
         .pc-price {
           font-size: 17px;
           font-weight: 700;
           color: #f33763;
-          margin-bottom: 12px;
+          margin: 0;
+        }
+        .pc-price-original {
+          font-size: 12px;
+          color: #aaa;
+          text-decoration: line-through;
         }
 
         .pc-cart-btn {
@@ -315,10 +335,7 @@ const ProductCard = ({ producto }) => {
           background: #fafafa;
           color: #555;
         }
-        .pc-size-btn:hover {
-          border-color: #f33763;
-          color: #f33763;
-        }
+        .pc-size-btn:hover { border-color: #f33763; color: #f33763; }
         .pc-size-btn.active {
           border: 2px solid #f33763;
           background: #fff0f4;
@@ -382,11 +399,19 @@ const ProductCard = ({ producto }) => {
         .pc-confirm-btn:disabled { background: #ccc; cursor: not-allowed; }
       `}</style>
 
-      {/* ← CAMBIO: onClick navega a la URL del producto */}
       <div className="pc-root" onClick={handleCardClick}>
 
         <div className="pc-img-wrapper">
-          {agotado && <span className="pc-badge">Agotado</span>}
+
+          {/* Badge izquierda: Agotado tiene prioridad, luego Últimas unidades */}
+          {agotado
+            ? <span className="pc-badge">Agotado</span>
+            : producto.ultimasUnidades && <span className="pc-badge-ultimas">⚡ Últimas unidades</span>
+          }
+
+          {/* Badge derecha: % descuento */}
+          {tieneDescuento && <span className="pc-badge-desc">-{porcentaje}%</span>}
+
           <img src={imagenPrincipal()} alt={producto.nombre || producto.title} className="pc-img pc-img-primary" />
           {segundaImagen && (
             <img src={segundaImagen} alt={`${producto.nombre || producto.title} - 2`} className="pc-img pc-img-secondary" />
@@ -395,7 +420,13 @@ const ProductCard = ({ producto }) => {
 
         <div className="pc-info">
           <p className="pc-name">{producto.nombre || producto.title}</p>
-          <div className="pc-price">{formatearPrecio(producto.precio || producto.price)}</div>
+
+          <div className="pc-price-block">
+            <div className="pc-price">{formatearPrecio(precioFinal)}</div>
+            {tieneDescuento && (
+              <div className="pc-price-original">{formatearPrecio(precioOriginal)}</div>
+            )}
+          </div>
 
           <div style={{ position: 'relative' }}>
 
@@ -452,8 +483,6 @@ const ProductCard = ({ producto }) => {
           </div>
         </div>
       </div>
-
-      {/* ProductModal eliminado — ahora el detalle vive en /producto/:id */}
     </>
   );
 };

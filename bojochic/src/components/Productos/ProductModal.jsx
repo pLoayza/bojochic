@@ -1,13 +1,12 @@
 // src/components/Productos/ProductModal.jsx
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Modal, Image, Button, Tag, Descriptions, Space, message, Carousel } from 'antd';
 import { ShoppingCartOutlined, CloseOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { auth, db } from '../../firebase/config';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
-import { useRef } from 'react';
+import { calcularPrecio, formatearPrecio } from '../../utils/precioUtils';
 
-// ─── Helpers localStorage (guest) ────────────────────────────────────────────
 const CART_KEY = 'bojo_guest_cart';
 
 const getGuestCart = () => {
@@ -18,19 +17,18 @@ const getGuestCart = () => {
 const saveGuestCart = (items) => {
   localStorage.setItem(CART_KEY, JSON.stringify(items));
 };
-// ─────────────────────────────────────────────────────────────────────────────
 
 const ProductModal = ({ visible, producto, onClose }) => {
   const navigate = useNavigate();
   const carouselRef = useRef(null);
-  const [selectedSize, setSelectedSize] = useState(null); // ← NUEVO
+  const [selectedSize, setSelectedSize] = useState(null);
 
   if (!producto) return null;
 
-  // ── Tallas: solo si el producto tiene tieneTallas: true y array con elementos ──
   const tallas = producto.tieneTallas && Array.isArray(producto.tallas) && producto.tallas.length > 0
-    ? producto.tallas
-    : null;
+    ? producto.tallas : null;
+
+  const { precioFinal, precioOriginal, tieneDescuento, porcentaje } = calcularPrecio(producto);
 
   const imagenes = producto.imagenes && Array.isArray(producto.imagenes) && producto.imagenes.length > 0
     ? producto.imagenes
@@ -40,23 +38,12 @@ const ProductModal = ({ visible, producto, onClose }) => {
     ? producto.categorias
     : (producto.categoria ? [producto.categoria] : []);
 
-  const formatearPrecio = (precio) => {
-    if (typeof precio === 'number') return `$${precio.toLocaleString('es-CL')}`;
-    return precio;
-  };
-
-  // ── Agregar al carrito (usuario registrado O guest) ──────────────────────
   const agregarAlCarrito = async () => {
     const user = auth.currentUser;
-
-    // ── Construir key único: si tiene talla, el id incluye la talla ──
-    const cartItemId = tallas && selectedSize
-      ? `${producto.id}_${selectedSize}`
-      : producto.id;
+    const cartItemId = tallas && selectedSize ? `${producto.id}_${selectedSize}` : producto.id;
 
     try {
       if (user) {
-        // ── Usuario registrado: Firestore ──
         const cartItemRef = doc(db, 'users', user.uid, 'cart', cartItemId);
         const existing = await getDoc(cartItemRef);
         const currentQty = existing.exists() ? (existing.data().quantity || 0) : 0;
@@ -64,16 +51,15 @@ const ProductModal = ({ visible, producto, onClose }) => {
         await setDoc(cartItemRef, {
           id:       producto.id,
           name:     producto.nombre || producto.title,
-          price:    producto.precio || producto.price,
+          price:    precioFinal,
           image:    imagenes[0],
           quantity: currentQty + 1,
           addedAt:  new Date().toISOString(),
-          size:     selectedSize || null, // ← CAMBIADO
+          size:     selectedSize || null,
           color:    producto.color || null,
         });
 
       } else {
-        // ── Guest: localStorage ──
         const cart = getGuestCart();
         const existingIndex = cart.findIndex(item => {
           const itemKey = item.size ? `${item.id}_${item.size}` : item.id;
@@ -86,11 +72,11 @@ const ProductModal = ({ visible, producto, onClose }) => {
           cart.push({
             id:       producto.id,
             name:     producto.nombre || producto.title,
-            price:    producto.precio || producto.price,
+            price:    precioFinal,
             image:    imagenes[0],
             quantity: 1,
             addedAt:  new Date().toISOString(),
-            size:     selectedSize || null, // ← CAMBIADO
+            size:     selectedSize || null,
             color:    producto.color || null,
           });
         }
@@ -100,7 +86,7 @@ const ProductModal = ({ visible, producto, onClose }) => {
       }
 
       message.success('¡Producto agregado al carrito!');
-      setSelectedSize(null); // reset al cerrar
+      setSelectedSize(null);
       onClose();
 
     } catch (error) {
@@ -115,7 +101,7 @@ const ProductModal = ({ visible, producto, onClose }) => {
   };
 
   const sinStock = producto.stock === 0 || producto.activo === false;
-  const addDisabled = sinStock || (tallas && !selectedSize); // ← NUEVO
+  const addDisabled = sinStock || (tallas && !selectedSize);
 
   return (
     <Modal
@@ -125,14 +111,39 @@ const ProductModal = ({ visible, producto, onClose }) => {
       width="90%"
       style={{ maxWidth: '900px', top: 20 }}
       closeIcon={<CloseOutlined style={{ fontSize: '20px', color: '#666' }} />}
-      styles={{
-        body: { padding: '20px' },
-      }}
+      styles={{ body: { padding: '20px' } }}
     >
       <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap' }}>
 
-        {/* Columna de imágenes con Carousel */}
+        {/* Columna de imágenes */}
         <div style={{ flex: '1 1 300px', minWidth: '250px', position: 'relative' }}>
+
+          {/* Badge izquierda: Últimas unidades */}
+          {!sinStock && producto.ultimasUnidades && (
+            <div style={{
+              position: 'absolute', top: '12px', left: '12px',
+              zIndex: 20,
+              background: '#fa8c16', color: '#fff',
+              fontSize: '13px', fontWeight: 700,
+              padding: '4px 12px', borderRadius: '20px',
+            }}>
+              ⚡ Últimas unidades
+            </div>
+          )}
+
+          {/* Badge derecha: % descuento */}
+          {tieneDescuento && (
+            <div style={{
+              position: 'absolute', top: '12px', right: '12px',
+              zIndex: 20,
+              background: '#f33763', color: '#fff',
+              fontSize: '13px', fontWeight: 700,
+              padding: '4px 12px', borderRadius: '20px',
+            }}>
+              -{porcentaje}% OFF
+            </div>
+          )}
+
           {imagenes.length > 1 ? (
             <div style={{ position: 'relative' }}>
               <Carousel
@@ -159,7 +170,7 @@ const ProductModal = ({ visible, producto, onClose }) => {
                 style={{
                   position: 'absolute', left: '10px', top: '50%',
                   transform: 'translateY(-50%)', zIndex: 10,
-                  background: 'rgba(255, 255, 255, 0.9)', border: 'none',
+                  background: 'rgba(255,255,255,0.9)', border: 'none',
                   borderRadius: '50%', width: '40px', height: '40px',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
@@ -171,7 +182,7 @@ const ProductModal = ({ visible, producto, onClose }) => {
                 style={{
                   position: 'absolute', right: '10px', top: '50%',
                   transform: 'translateY(-50%)', zIndex: 10,
-                  background: 'rgba(255, 255, 255, 0.9)', border: 'none',
+                  background: 'rgba(255,255,255,0.9)', border: 'none',
                   borderRadius: '50%', width: '40px', height: '40px',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
@@ -180,7 +191,7 @@ const ProductModal = ({ visible, producto, onClose }) => {
 
               <div style={{
                 position: 'absolute', bottom: '15px', right: '15px',
-                background: 'rgba(0, 0, 0, 0.6)', color: 'white',
+                background: 'rgba(0,0,0,0.6)', color: 'white',
                 padding: '5px 12px', borderRadius: '20px',
                 fontSize: '12px', fontWeight: '500', zIndex: 10,
               }}>
@@ -199,17 +210,37 @@ const ProductModal = ({ visible, producto, onClose }) => {
 
         {/* Columna de información */}
         <div style={{ flex: '1 1 350px', minWidth: '250px' }}>
-          <h2 style={{ margin: '0 0 10px 0', fontSize: 'clamp(22px, 5vw, 28px)', fontWeight: '700', color: '#333' }}>
+          <h2 style={{ margin: '0 0 10px 0', fontSize: 'clamp(22px,5vw,28px)', fontWeight: '700', color: '#333' }}>
             {producto.nombre || producto.title}
           </h2>
 
-          <div style={{ fontSize: 'clamp(26px, 6vw, 32px)', fontWeight: 'bold', color: '#f33763', marginBottom: '20px' }}>
-            {formatearPrecio(producto.precio || producto.price)}
+          {/* Bloque de precio */}
+          <div style={{ marginBottom: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 'clamp(26px,6vw,32px)', fontWeight: 'bold', color: '#f33763' }}>
+                {formatearPrecio(precioFinal)}
+              </span>
+              {tieneDescuento && (
+                <span style={{ fontSize: '20px', color: '#bbb', textDecoration: 'line-through' }}>
+                  {formatearPrecio(precioOriginal)}
+                </span>
+              )}
+            </div>
+            {tieneDescuento && (
+              <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#888' }}>
+                Ahorras {formatearPrecio(precioOriginal - precioFinal)}
+              </p>
+            )}
           </div>
 
+          {/* Tags de estado */}
           <Space style={{ marginBottom: '25px', flexWrap: 'wrap' }}>
             {producto.activo !== false && (
               <Tag color="green" style={{ fontSize: '13px', padding: '4px 10px' }}>Disponible</Tag>
+            )}
+            {/* Tag Últimas unidades en la columna de info también */}
+            {!sinStock && producto.ultimasUnidades && (
+              <Tag color="orange" style={{ fontSize: '13px', padding: '4px 10px' }}>⚡ Últimas unidades</Tag>
             )}
             {producto.stock > 0 ? (
               <Tag color="blue" style={{ fontSize: '13px', padding: '4px 10px' }}>{producto.stock} en stock</Tag>
@@ -230,7 +261,6 @@ const ProductModal = ({ visible, producto, onClose }) => {
             </div>
           )}
 
-          {/* ── Selector de talla interactivo (reemplaza el campo estático) ── */}
           {tallas ? (
             <div style={{ marginBottom: '25px' }}>
               <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>Talla:</h4>
@@ -262,7 +292,6 @@ const ProductModal = ({ visible, producto, onClose }) => {
               )}
             </div>
           ) : (
-            /* Tabla de detalles estáticos solo si no hay tallas dinámicas */
             (producto.material || producto.talla || producto.color || producto.peso) && (
               <Descriptions column={1} bordered size="small" style={{ marginBottom: '25px' }}>
                 {producto.material && (
@@ -299,21 +328,14 @@ const ProductModal = ({ visible, producto, onClose }) => {
 
           <Space direction="vertical" style={{ width: '100%' }} size="middle">
             <Button
-              type="primary"
-              size="large"
-              block
+              type="primary" size="large" block
               icon={<ShoppingCartOutlined />}
               onClick={agregarAlCarrito}
-              disabled={addDisabled} // ← CAMBIADO
+              disabled={addDisabled}
               style={{
-                background: addDisabled
-                  ? '#d9d9d9'
-                  : 'linear-gradient(45deg, #f33763, #FF6B9D)',
-                border: 'none',
-                borderRadius: '8px',
-                fontWeight: '600',
-                height: '50px',
-                fontSize: '16px',
+                background: addDisabled ? '#d9d9d9' : 'linear-gradient(45deg, #f33763, #FF6B9D)',
+                border: 'none', borderRadius: '8px',
+                fontWeight: '600', height: '50px', fontSize: '16px',
               }}
             >
               {sinStock
@@ -324,9 +346,7 @@ const ProductModal = ({ visible, producto, onClose }) => {
             </Button>
 
             <Button
-              size="large"
-              block
-              onClick={handleClose}
+              size="large" block onClick={handleClose}
               style={{ borderRadius: '8px', fontWeight: '600', height: '45px', borderColor: '#f33763', color: '#f33763' }}
             >
               Seguir comprando

@@ -1,6 +1,6 @@
 // src/components/Banner/Banner.jsx
 import { Dropdown } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { SearchOutlined, UserOutlined, LogoutOutlined, ShoppingOutlined, MenuOutlined, CloseOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -10,15 +10,23 @@ import { useResponsive } from '../../hooks/useResponsive';
 import banner1 from '../../assets/Categorias/bojo1.png';
 import banner2 from '../../assets/Categorias/bojo2.png';
 import banner3 from '../../assets/Categorias/bojo3.png';
+import banner4 from '../../assets/Categorias/bojo4.png';
+import banner5 from '../../assets/Categorias/bojo5.png';
 import bojoLogo from '../../assets/Categorias/logo-bojo.png';
 
-const banners = [banner1, banner2, banner3];
+const banners = [banner1, banner3, banner5, banner4];
 
 const C = {
   bg:    '#f7d5d7',
   hot:   '#f33763',
   white: '#ffffff',
 };
+
+const RUTAS_CON_PRODUCTOS = [
+  '/aros', '/collares', '/pulseras', '/panuelos',
+  '/anillos', '/conjuntos', '/otros', '/mama',
+  '/novedades', '/promociones',
+];
 
 const globalStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&display=swap');
@@ -149,12 +157,29 @@ const globalStyles = `
 
 const Banner = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { currentUser, logout } = useAuth();
   const [searchModalVisible, setSearchModalVisible] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [catalogoOpen, setCatalogoOpen] = useState(false);
   const { isMobile } = useResponsive();
+
+  // ── Scroll suave a la sección de productos ────────────────────────────────
+  const scrollToProductos = () => {
+    setTimeout(() => {
+      const el = document.getElementById('productos-section');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  };
+
+  // Se dispara cuando la ruta cambia (links de Novedades, Promociones, etc.)
+  useEffect(() => {
+    if (RUTAS_CON_PRODUCTOS.includes(location.pathname)) {
+      scrollToProductos();
+    }
+  }, [location.pathname]);
+  // ─────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -200,10 +225,14 @@ const Banner = () => {
     { key: 'mama',      label: 'Mamá' },
   ];
 
+  // ── Al clickear en catálogo: navega Y hace scroll (cubre caso misma ruta) ──
   const catalogoMenuItems = catalogoItems.map((item) => ({
     key: item.key,
     label: item.label,
-    onClick: () => navigate(`/${item.key}`),
+    onClick: () => {
+      goTo(`/${item.key}`);
+      scrollToProductos();
+    },
   }));
 
   const iconStyle = {
@@ -295,7 +324,7 @@ const Banner = () => {
           />
         ) : (
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <a className="bojo-nav-link" onClick={() => navigate('/home')}>Inicio</a>
+            <a className="bojo-nav-link" onClick={() => goTo('/home')}>Inicio</a>
             <span className="bojo-nav-sep">|</span>
             <Dropdown menu={{ items: catalogoMenuItems }} placement="bottom" trigger={['hover']}>
               <a className="bojo-nav-link">
@@ -303,9 +332,9 @@ const Banner = () => {
               </a>
             </Dropdown>
             <span className="bojo-nav-sep">|</span>
-            <a className="bojo-nav-link" onClick={() => navigate('/novedades')}>Novedades</a>  {/* ← */}
+            <a className="bojo-nav-link" onClick={() => { goTo('/novedades'); scrollToProductos(); }}>Novedades</a>
             <span className="bojo-nav-sep">|</span>
-            <a className="bojo-nav-link" onClick={() => navigate('/promociones')}>Promociones</a>  {/* ← */}
+            <a className="bojo-nav-link" onClick={() => { goTo('/promociones'); scrollToProductos(); }}>Promociones</a>
           </div>
         )}
 
@@ -349,13 +378,17 @@ const Banner = () => {
               <span style={{ fontSize: '10px' }}>{catalogoOpen ? '▲' : '▾'}</span>
             </div>
             {catalogoOpen && catalogoItems.map((item) => (
-              <div key={item.key} className="bojo-mobile-sublink" onClick={() => goTo(`/${item.key}`)}>
+              <div
+                key={item.key}
+                className="bojo-mobile-sublink"
+                onClick={() => { goTo(`/${item.key}`); scrollToProductos(); }}
+              >
                 {item.label}
               </div>
             ))}
 
-            <div className="bojo-mobile-link" onClick={() => goTo('/novedades')}>Novedades</div>   {/* ← */}
-            <div className="bojo-mobile-link" onClick={() => goTo('/promociones')}>Promociones</div> {/* ← */}
+            <div className="bojo-mobile-link" onClick={() => { goTo('/novedades'); scrollToProductos(); }}>Novedades</div>
+            <div className="bojo-mobile-link" onClick={() => { goTo('/promociones'); scrollToProductos(); }}>Promociones</div>
 
             <div style={{ marginTop: 'auto', padding: '20px' }}>
               {currentUser ? (
@@ -412,7 +445,7 @@ const Banner = () => {
             alt={`Banner ${i + 1}`}
             className="bojo-carousel-slide"
             style={{ opacity: i === currentSlide ? 1 : 0 }}
-            onClick={() => navigate('/mama')}
+            onClick={() => goTo('/mama')}
           />
         ))}
 
