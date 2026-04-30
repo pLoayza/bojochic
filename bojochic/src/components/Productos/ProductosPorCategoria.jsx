@@ -46,7 +46,7 @@ const ProductosPorCategoria = ({ categoria, productos, categoriaNombre }) => {
   };
 
   return (
-    <div style={{ minHeight: '70vh', backgroundColor: '#f8f9fa' }}>
+    <div id="productos-section" style={{ minHeight: '70vh', backgroundColor: '#f8f9fa' }}>
       {/* Breadcrumb */}
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px 20px 0' }}>
         <Breadcrumb
