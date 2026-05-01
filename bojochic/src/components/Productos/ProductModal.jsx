@@ -18,6 +18,37 @@ const saveGuestCart = (items) => {
   localStorage.setItem(CART_KEY, JSON.stringify(items));
 };
 
+// ─── Helper Klaviyo ───────────────────────────────────────────────────────────
+const trackAddedToCart = (producto, precioFinal, categorias, imagenes, selectedSize, cartItems) => {
+  if (!window.klaviyo) return;
+
+  window.klaviyo.track("Added to Cart", {
+    "$value": cartItems.reduce((total, i) => total + i.price * i.quantity, 0),
+    "AddedItemProductName": producto.nombre || producto.title,
+    "AddedItemProductID": producto.id,
+    "AddedItemSKU": producto.sku || producto.id,
+    "AddedItemPrice": precioFinal,
+    "AddedItemQuantity": 1,
+    "AddedItemCategories": categorias,
+    "AddedItemImageURL": imagenes[0],
+    "AddedItemURL": `https://bojo.cl/producto/${producto.slug || producto.id}`,
+    "AddedItemSize": selectedSize || null,
+    "ItemNames": cartItems.map(i => i.name),
+    "CheckoutURL": "https://bojo.cl/checkout",
+    "Items": cartItems.map(i => ({
+      "ProductID": i.id,
+      "ProductName": i.name,
+      "SKU": i.sku || i.id,
+      "Quantity": i.quantity,
+      "ItemPrice": i.price,
+      "RowTotal": i.price * i.quantity,
+      "ImageURL": i.image,
+      "ProductCategories": i.categories || [],
+    }))
+  });
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
 const ProductModal = ({ visible, producto, onClose }) => {
   const navigate = useNavigate();
   const carouselRef = useRef(null);
@@ -59,6 +90,18 @@ const ProductModal = ({ visible, producto, onClose }) => {
           color:    producto.color || null,
         });
 
+        // Para usuarios logueados no tenemos el carrito completo acá,
+        // así que armamos el carrito con al menos el item actual
+        const cartParaKlaviyo = [{
+          id:         producto.id,
+          name:       producto.nombre || producto.title,
+          price:      precioFinal,
+          image:      imagenes[0],
+          quantity:   currentQty + 1,
+          categories: categorias,
+        }];
+        trackAddedToCart(producto, precioFinal, categorias, imagenes, selectedSize, cartParaKlaviyo);
+
       } else {
         const cart = getGuestCart();
         const existingIndex = cart.findIndex(item => {
@@ -83,6 +126,10 @@ const ProductModal = ({ visible, producto, onClose }) => {
 
         saveGuestCart(cart);
         window.dispatchEvent(new CustomEvent('guestCartUpdated'));
+
+        // Para guest usamos el carrito ya actualizado del localStorage
+        const cartActualizado = cart.map(i => ({ ...i, categories: i.categories || [] }));
+        trackAddedToCart(producto, precioFinal, categorias, imagenes, selectedSize, cartActualizado);
       }
 
       message.success('¡Producto agregado al carrito!');
@@ -118,7 +165,6 @@ const ProductModal = ({ visible, producto, onClose }) => {
         {/* Columna de imágenes */}
         <div style={{ flex: '1 1 300px', minWidth: '250px', position: 'relative' }}>
 
-          {/* Badge izquierda: Últimas unidades */}
           {!sinStock && producto.ultimasUnidades && (
             <div style={{
               position: 'absolute', top: '12px', left: '12px',
@@ -131,7 +177,6 @@ const ProductModal = ({ visible, producto, onClose }) => {
             </div>
           )}
 
-          {/* Badge derecha: % descuento */}
           {tieneDescuento && (
             <div style={{
               position: 'absolute', top: '12px', right: '12px',
@@ -214,7 +259,6 @@ const ProductModal = ({ visible, producto, onClose }) => {
             {producto.nombre || producto.title}
           </h2>
 
-          {/* Bloque de precio */}
           <div style={{ marginBottom: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
               <span style={{ fontSize: 'clamp(26px,6vw,32px)', fontWeight: 'bold', color: '#f33763' }}>
@@ -233,12 +277,10 @@ const ProductModal = ({ visible, producto, onClose }) => {
             )}
           </div>
 
-          {/* Tags de estado */}
           <Space style={{ marginBottom: '25px', flexWrap: 'wrap' }}>
             {producto.activo !== false && (
               <Tag color="green" style={{ fontSize: '13px', padding: '4px 10px' }}>Disponible</Tag>
             )}
-            {/* Tag Últimas unidades en la columna de info también */}
             {!sinStock && producto.ultimasUnidades && (
               <Tag color="orange" style={{ fontSize: '13px', padding: '4px 10px' }}>⚡ Últimas unidades</Tag>
             )}
