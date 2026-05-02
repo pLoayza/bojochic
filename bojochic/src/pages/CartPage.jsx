@@ -22,7 +22,6 @@ function CartPage() {
       return;
     }
 
-    // Listener en tiempo real del carrito
     const cartRef = collection(db, 'users', user.uid, 'cart');
     const unsubscribe = onSnapshot(cartRef, (snapshot) => {
       const items = snapshot.docs.map(doc => ({
@@ -68,9 +67,8 @@ function CartPage() {
     }, 0);
   };
 
-  // ⬅️ FUNCIÓN ACTUALIZADA
   const handleCheckout = () => {
-    navigate('/checkout'); // Navega al checkout
+    navigate('/checkout');
   };
 
   if (loading) {
@@ -172,28 +170,16 @@ function CartPage() {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                     <Text>Envío:</Text>
-                    <Text>
-                      {calculateTotal() >= 29990 ? (
-                        <Text type="success">¡GRATIS!</Text>
-                      ) : (
-                        `$${(3000).toLocaleString('es-CL')}`
-                      )}
-                    </Text>
+                    <Text type="secondary">Se calcula al ingresar tu región</Text>
                   </div>
                   <Divider />
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Title level={4} style={{ margin: 0 }}>Total:</Title>
+                    <Title level={4} style={{ margin: 0 }}>Subtotal:</Title>
                     <Title level={3} style={{ margin: 0, color: '#1890ff' }}>
-                      ${(calculateTotal() + (calculateTotal() >= 29990 ? 0 : 3000)).toLocaleString('es-CL')}
+                      ${calculateTotal().toLocaleString('es-CL')}
                     </Title>
                   </div>
                 </div>
-
-                {calculateTotal() < 29990 && (
-                  <Text type="secondary" style={{ fontSize: '12px' }}>
-                    Te faltan ${(29990 - calculateTotal()).toLocaleString('es-CL')} para envío gratis
-                  </Text>
-                )}
 
                 <Button 
                   type="primary" 
