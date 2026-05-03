@@ -8,13 +8,12 @@ import ShoppingCart from '../Carrito/shoppingcart';
 import SearchModal from '../search/SearchModal';
 import { useResponsive } from '../../hooks/useResponsive';
 import banner1 from '../../assets/Categorias/bojo1.png';
-import banner2 from '../../assets/Categorias/bojo2.png';
-import banner3 from '../../assets/Categorias/bojo3.png';
+import banner6 from '../../assets/Categorias/bojo6.png';
 import banner4 from '../../assets/Categorias/bojo4.png';
 import banner5 from '../../assets/Categorias/bojo5.png';
 import bojoLogo from '../../assets/Categorias/logo-bojo.png';
 
-const banners = [banner1, banner3, banner5, banner4];
+const banners = [banner1, banner6, banner5, banner4];
 
 const C = {
   bg:    '#f7d5d7',
@@ -71,12 +70,10 @@ const globalStyles = `
   }
 
   .bojo-carousel-slide {
-    position: absolute;
-    inset: 0;
     width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center 55%;
+    height: auto;
+    object-fit: contain;
+    display: block;
     transition: opacity 0.9s ease-in-out;
     cursor: pointer;
   }
@@ -165,7 +162,6 @@ const Banner = () => {
   const [catalogoOpen, setCatalogoOpen] = useState(false);
   const { isMobile } = useResponsive();
 
-  // ── Scroll suave a la sección de productos ────────────────────────────────
   const scrollToProductos = () => {
     setTimeout(() => {
       const el = document.getElementById('productos-section');
@@ -173,13 +169,11 @@ const Banner = () => {
     }, 100);
   };
 
-  // Se dispara cuando la ruta cambia (links de Novedades, Promociones, etc.)
   useEffect(() => {
     if (RUTAS_CON_PRODUCTOS.includes(location.pathname)) {
       scrollToProductos();
     }
   }, [location.pathname]);
-  // ─────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -225,7 +219,6 @@ const Banner = () => {
     { key: 'mama',      label: 'Mamá' },
   ];
 
-  // ── Al clickear en catálogo: navega Y hace scroll (cubre caso misma ruta) ──
   const catalogoMenuItems = catalogoItems.map((item) => ({
     key: item.key,
     label: item.label,
@@ -266,9 +259,9 @@ const Banner = () => {
       >
         <div className="bojo-ticker-inner">
           {[
-            '✦ Envío gratis por compras sobre $29.990 *',
+            '✦ Envío a todo Chile',
             '✦ Pago seguro con Webpay Plus',
-            '✦ Envío gratis por compras sobre $29.990 *',
+            '✦ Envío a todo Chile',
             '✦ Envío express RM',
           ].map((msg, i) => (
             <span key={i} style={{ margin: '0 240px' }}>{msg}</span>
@@ -292,7 +285,6 @@ const Banner = () => {
           height: isMobile ? '56px' : '58px',
         }}
       >
-        {/* Izquierda */}
         {isMobile ? (
           <MenuOutlined
             style={{ fontSize: '20px', color: C.hot, cursor: 'pointer' }}
@@ -307,7 +299,6 @@ const Banner = () => {
           />
         )}
 
-        {/* Centro */}
         {isMobile ? (
           <img
             src={bojoLogo}
@@ -338,7 +329,6 @@ const Banner = () => {
           </div>
         )}
 
-        {/* Derecha: iconos */}
         <div style={{ display: 'flex', gap: isMobile ? '12px' : '18px', alignItems: 'center' }}>
           <SearchOutlined style={iconStyle} onClick={() => setSearchModalVisible(true)} {...hoverScale} />
           {currentUser ? (
@@ -433,7 +423,6 @@ const Banner = () => {
         style={{
           position: 'relative',
           width: '100%',
-          height: isMobile ? '56vw' : '92vh',
           overflow: 'hidden',
           background: C.bg,
         }}
@@ -444,7 +433,12 @@ const Banner = () => {
             src={src}
             alt={`Banner ${i + 1}`}
             className="bojo-carousel-slide"
-            style={{ opacity: i === currentSlide ? 1 : 0 }}
+            style={{
+              opacity: i === currentSlide ? 1 : 0,
+              position: i === currentSlide ? 'relative' : 'absolute',
+              top: 0,
+              left: 0,
+            }}
             onClick={() => goTo('/mama')}
           />
         ))}

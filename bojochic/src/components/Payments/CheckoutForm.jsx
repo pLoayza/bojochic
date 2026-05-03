@@ -37,40 +37,26 @@ export const COSTO_ENVIO = {
   'Tarapacá':           6990,
   'Antofagasta':        6990,
   'Atacama':            5990,
-  'Coquimbo':           5990,
-  'Valparaíso':         4990,
-  'Metropolitana':      3990,
-  'O\'Higgins':         4990,
-  'Maule':              5990,
-  'Ñuble':              5990,
-  'Biobío':             5990,
-  'La Araucanía':       5990,
+  'Coquimbo':           0,
+  'Valparaíso':         0,
+  'Metropolitana':      0,
+  "O'Higgins":          0,
+  'Maule':              0,
+  'Ñuble':              0,
+  'Biobío':             0,
+  'La Araucanía':       0,
   'Los Ríos':           6990,
   'Los Lagos':          6990,
   'Aysén':              9990,
   'Magallanes':         9990,
 };
 
-const REGIONES_SIN_ENVIO_GRATIS = [
-  'Arica y Parinacota',
-  'Tarapacá',
-  'Aysén',
-  'Magallanes'
-];
+const DESCUENTO_ENVIO = 4000;
 
-export const getCostoEnvio = (region, total = 0) => {
-  const costo = COSTO_ENVIO[region] ?? 3990;
-
-  if (total >= 30000) {
-    if (REGIONES_SIN_ENVIO_GRATIS.includes(region)) {
-      return Math.max(0, costo - 3990); // descuento parcial de $3.990
-    }
-    return 0; // envío gratis
-  }
-
-  return costo;
+export const getCostoEnvio = (region) => {
+  const costo = COSTO_ENVIO[region] ?? 6990;
+  return Math.max(0, costo - DESCUENTO_ENVIO);
 };
-/* export const getCostoEnvio = (region) => 0; FOR TESTING*/
 
 const CheckoutForm = ({
   userData,
@@ -95,11 +81,11 @@ const CheckoutForm = ({
     if (userData) {
       const region = userData.region || 'Metropolitana';
       form.setFieldsValue({
-        nombre:    userData.nombre   || '',
-        email:     userData.email    || '',
-        telefono:  userData.telefono || '',
+        nombre:    userData.nombre    || '',
+        email:     userData.email     || '',
+        telefono:  userData.telefono  || '',
         direccion: userData.direccion || '',
-        comuna:    userData.comuna   || '',
+        comuna:    userData.comuna    || '',
         region:    region
       });
       setRegionSeleccionada(region);
@@ -309,7 +295,6 @@ const CheckoutForm = ({
           />
         </Form.Item>
 
-        {/* CÓDIGO DE DESCUENTO */}
         <Form.Item label="Código de descuento">
           {codigoAplicado ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

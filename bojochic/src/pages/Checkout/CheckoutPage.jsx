@@ -11,14 +11,11 @@ const CODIGOS_DESCUENTO = {
   'BOJO10':     { tipo: 'porcentaje', valor: 10 },
   'AMIGASBOJO': { tipo: 'porcentaje', valor: 20 },
   'ANJUBOJO':   { tipo: 'porcentaje', valor: 20 },
-  'Bojofer':   { tipo: 'porcentaje', valor: 10 },
-  'Bojonaomi':   { tipo: 'porcentaje', valor: 10 },
-  'Bojobianca':   { tipo: 'porcentaje', valor: 10 }
-
-
+  'Bojofer':    { tipo: 'porcentaje', valor: 10 },
+  'Bojonaomi':  { tipo: 'porcentaje', valor: 10 },
+  'Bojobianca': { tipo: 'porcentaje', valor: 10 }
 };
 
-// ─── Helpers para carrito guest (localStorage) ───────────────────────────────
 const CART_KEY = 'bojo_guest_cart';
 
 const getGuestCart = () => {
@@ -32,7 +29,6 @@ const getGuestCart = () => {
 const clearGuestCart = () => {
   localStorage.removeItem(CART_KEY);
 };
-// ─────────────────────────────────────────────────────────────────────────────
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -40,7 +36,7 @@ const CheckoutPage = () => {
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
   const [isGuest, setIsGuest] = useState(false);
-  const [shipping, setShipping] = useState(getCostoEnvio('Metropolitana', 0));
+  const [shipping, setShipping] = useState(getCostoEnvio('Metropolitana'));
   const [regionGuardada, setRegionGuardada] = useState('Metropolitana');
   const [descuento, setDescuento] = useState(0);
   const [codigoAplicado, setCodigoAplicado] = useState(null);
@@ -49,7 +45,6 @@ const CheckoutPage = () => {
   useEffect(() => {
     const user = auth.currentUser;
 
-    // ── USUARIO REGISTRADO ──────────────────────────────────────────────────
     if (user) {
       setIsGuest(false);
 
@@ -70,7 +65,6 @@ const CheckoutPage = () => {
 
       loadUserData();
 
-      // Carrito desde Firestore
       const cartRef = collection(db, 'users', user.uid, 'cart');
       const unsubscribe = onSnapshot(cartRef, (snapshot) => {
         const items = snapshot.docs.map(doc => ({
@@ -89,7 +83,6 @@ const CheckoutPage = () => {
 
       return () => unsubscribe();
 
-    // ── GUEST ───────────────────────────────────────────────────────────────
     } else {
       setIsGuest(true);
       setUserData(null);
@@ -107,15 +100,12 @@ const CheckoutPage = () => {
     }
   }, [navigate]);
 
-  // Recalcula envío cuando cambian los items o la región
   useEffect(() => {
     if (regionGuardada && cartItems.length > 0) {
-      const sub = cartItems.reduce((t, i) => t + (i.price * i.quantity), 0);
-      setShipping(getCostoEnvio(regionGuardada, sub)); // 👈 ahora usa getCostoEnvio directo
+      setShipping(getCostoEnvio(regionGuardada));
     }
   }, [cartItems, regionGuardada]);
 
-  // Recalcula descuento si cambia el subtotal
   useEffect(() => {
     if (codigoAplicado) {
       const promo = CODIGOS_DESCUENTO[codigoAplicado];
@@ -128,7 +118,7 @@ const CheckoutPage = () => {
 
   const handleRegionChange = (region) => {
     setRegionGuardada(region);
-    setShipping(getCostoEnvio(region, subtotal)); // 👈 ahora usa getCostoEnvio directo
+    setShipping(getCostoEnvio(region));
   };
 
   const aplicarCodigo = async (codigo) => {

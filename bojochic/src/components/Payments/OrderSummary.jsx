@@ -53,7 +53,7 @@ const OrderSummary = ({ cartItems, subtotal, shipping, total, descuento, codigoA
           <Text>Subtotal:</Text>
           <Text strong>${subtotal.toLocaleString('es-CL')}</Text>
         </div>
-        {/* 👇 Línea de descuento — solo aparece si hay código aplicado */}
+
         {descuento > 0 && codigoAplicado && (
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <Text>Descuento <Text code style={{ fontSize: 12 }}>{codigoAplicado}</Text>:</Text>
@@ -70,12 +70,17 @@ const OrderSummary = ({ cartItems, subtotal, shipping, total, descuento, codigoA
           </Text>
         </div>
 
-      
-
-        {subtotal < 29990 && subtotal > 0 && (
+        {shipping === 0 ? (
           <Alert
-            message={`Te faltan $${(29990 - subtotal).toLocaleString('es-CL')} para envío gratis.`}
-            type="warning"
+            message="🎉 ¡Tienes envío gratis!"
+            type="success"
+            showIcon
+            style={{ fontSize: '12px' }}
+          />
+        ) : (
+          <Alert
+            message="🚚 ¡Tienes $4.000 de descuento en el envío!"
+            type="info"
             showIcon
             style={{ fontSize: '12px' }}
           />
