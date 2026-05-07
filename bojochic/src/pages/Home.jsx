@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Banner from '../components/Banner/Banner';
 import Categories from '../components/Categorias/Categorias';
 import Destacado from '../components/Destacado/Destacado';
-import Resenas from '../components/Resenas/Resenas'; // ← importas el componente
+import Resenas from '../components/resenas/resenas'; // ← importas el componente
 
 const Home = () => {
   const navigate = useNavigate();
