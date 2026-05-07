@@ -4,20 +4,17 @@ import { useNavigate } from 'react-router-dom';
 import Banner from '../components/Banner/Banner';
 import Categories from '../components/Categorias/Categorias';
 import Destacado from '../components/Destacado/Destacado';
+import Resenas from '../components/resenas/resenas'; // ← importas el componente
 
 const Home = () => {
   const navigate = useNavigate();
 
   return (
     <div>
-      {/* Banner principal */}
       <Banner />
-      
-      {/* Categorías */}
       <Categories />
-      
-      {/* Productos destacados */}
       <Destacado />
+      <Resenas /> {/* ← lo agregas al final */}
     </div>
   );
 };
