@@ -7,13 +7,15 @@ import { useAuth } from '../../contexts/AuthContext';
 import ShoppingCart from '../Carrito/shoppingcart';
 import SearchModal from '../search/SearchModal';
 import { useResponsive } from '../../hooks/useResponsive';
-import banner1 from '../../assets/Categorias/bojo1.png';
+/* import banner1 from '../../assets/Categorias/bojo1.png'; */
 import banner6 from '../../assets/Categorias/bojo6.png';
 import banner4 from '../../assets/Categorias/bojo4.png';
 import banner5 from '../../assets/Categorias/bojo5.png';
 import bojoLogo from '../../assets/Categorias/logo-bojo.png';
+import banner8 from '../../assets/Categorias/bojo8.png';
+import banner9 from '../../assets/Categorias/bojo9.png';
 
-const banners = [banner1, banner6, banner5, banner4];
+const banners = [banner6, banner5, banner4, banner8, banner9];
 
 const C = {
   bg:    '#f7d5d7',
