@@ -13,7 +13,9 @@ const CODIGOS_DESCUENTO = {
   'ANJUBOJO':   { tipo: 'porcentaje', valor: 20 },
   'Bojofer':    { tipo: 'porcentaje', valor: 10 },
   'Bojonaomi':  { tipo: 'porcentaje', valor: 10 },
-  'Bojobianca': { tipo: 'porcentaje', valor: 10 }
+  'Bojobianca': { tipo: 'porcentaje', valor: 10 },
+  'BOJO15JO': { tipo: 'porcentaje', valor: 15 },
+
 };
 
 const CART_KEY = 'bojo_guest_cart';
