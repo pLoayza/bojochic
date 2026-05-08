@@ -20,6 +20,7 @@ const WebpayReturn = () => {
   useEffect(() => {
     const confirmPayment = async () => {
       if (hasConfirmed.current) return;
+      hasConfirmed.current = true;
 
       const token = searchParams.get('token_ws');
 
@@ -29,26 +30,27 @@ const WebpayReturn = () => {
         return;
       }
 
-      hasConfirmed.current = true;
-
       try {
-        const user = auth.currentUser;
-        if (!user) {
-          setError('Usuario no autenticado');
-          setLoading(false);
-          return;
+        // Esperar a que Firebase Auth rehidrate (puede tardar hasta 2-3s)
+        const user = await new Promise((resolve) => {
+          const unsubscribe = auth.onAuthStateChanged((u) => {
+            unsubscribe();
+            resolve(u); // null si es guest, user si está logueado
+          });
+        });
+
+        const headers = { 'Content-Type': 'application/json' };
+
+        // Solo agregar token si hay usuario logueado
+        if (user) {
+          const userToken = await user.getIdToken();
+          headers['Authorization'] = `Bearer ${userToken}`;
         }
 
-        const userToken = await user.getIdToken();
-
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/webpay/confirm`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${userToken}`
-          },
-          body: JSON.stringify({ token })
-        });
+        const response = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/webpay/confirm`,
+          { method: 'POST', headers, body: JSON.stringify({ token }) }
+        );
 
         const data = await response.json();
 
@@ -59,7 +61,6 @@ const WebpayReturn = () => {
             throw new Error(data.error || 'Error al confirmar pago');
           }
         } else {
-          // ✅ El backend ya actualizó Firestore, solo seteamos el estado local
           setPaymentData(data);
         }
       } catch (err) {
@@ -97,7 +98,7 @@ const WebpayReturn = () => {
             <Button 
               type="primary" key="retry"
               onClick={() => navigate('/checkout')}
-              style={{ background: ' #f33763', borderColor: ' #f33763' }}
+              style={{ background: '#f33763', borderColor: '#f33763' }}
             >
               Intentar nuevamente
             </Button>,
@@ -134,7 +135,7 @@ const WebpayReturn = () => {
             </Descriptions.Item>
             {paymentData.amount && (
               <Descriptions.Item label="Monto Pagado">
-                <strong style={{ color: ' #f33763', fontSize: '18px' }}>
+                <strong style={{ color: '#f33763', fontSize: '18px' }}>
                   ${paymentData.amount?.toLocaleString('es-CL')}
                 </strong>
               </Descriptions.Item>
@@ -167,7 +168,7 @@ const WebpayReturn = () => {
           type="primary" size="large"
           icon={<HomeOutlined />}
           onClick={() => navigate('/')}
-          style={{ background: ' #f33763', borderColor: ' #f33763', minWidth: '160px' }}
+          style={{ background: '#f33763', borderColor: '#f33763', minWidth: '160px' }}
         >
           Volver al Inicio
         </Button>
