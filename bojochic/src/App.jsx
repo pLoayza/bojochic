@@ -87,7 +87,7 @@ function App() {
               {/* Colecciones */}
               <Route path="plateados" element={<ProductosPage />} />
               <Route path="dorados"   element={<ProductosPage />} />
-              <Route path="mama" element={<ProductosPage />} />
+              <Route path="Invierno" element={<ProductosPage />} />
               <Route path="novedades"   element={<ProductosPage />} />
               <Route path="promociones" element={<ProductosPage />} />
             </Route>

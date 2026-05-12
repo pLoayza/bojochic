@@ -19,7 +19,7 @@ const EditarProducto = ({ visible, producto, onClose, onSuccess }) => {
 
   const categorias = [
     'aros', 'collares', 'pulseras', 'panuelos',
-    'anillos', 'dorados', 'plateados', 'conjuntos', 'otros', 'mama'
+    'anillos', 'dorados', 'plateados', 'conjuntos', 'otros', 'Invierno'
   ];
 
   useEffect(() => {

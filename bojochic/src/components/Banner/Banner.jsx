@@ -14,8 +14,9 @@ import banner5 from '../../assets/Categorias/bojo5.png';
 import bojoLogo from '../../assets/Categorias/logo-bojo.png';
 import banner8 from '../../assets/Categorias/bojo8.png';
 import banner9 from '../../assets/Categorias/bojo9.png';
+import banner10 from '../../assets/Categorias/bojo10.png';
 
-const banners = [banner6, banner5, banner4, banner8, banner9];
+const banners = [banner4, banner5, banner9, banner10];
 
 const C = {
   bg:    '#f7d5d7',
@@ -25,7 +26,7 @@ const C = {
 
 const RUTAS_CON_PRODUCTOS = [
   '/aros', '/collares', '/pulseras', '/panuelos',
-  '/anillos', '/conjuntos', '/otros', '/mama',
+  '/anillos', '/conjuntos', '/otros', '/Invierno',
   '/novedades', '/promociones',
 ];
 
@@ -218,7 +219,7 @@ const Banner = () => {
     { key: 'anillos',   label: 'Anillos' },
     { key: 'conjuntos', label: 'Conjuntos' },
     { key: 'otros',     label: 'Otros' },
-    { key: 'mama',      label: 'Mamá' },
+    { key: 'Invierno',      label: 'Invierno' },
   ];
 
   const catalogoMenuItems = catalogoItems.map((item) => ({
@@ -441,7 +442,7 @@ const Banner = () => {
               top: 0,
               left: 0,
             }}
-            onClick={() => goTo('/mama')}
+            onClick={() => goTo('/Invierno')}
           />
         ))}
 

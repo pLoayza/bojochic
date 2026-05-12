@@ -16,7 +16,7 @@ const categoryNames = {
   otros:       'Otros',
   plateados:   'Plateados',
   dorados:     'Dorados',
-  mama:        'Mamá',
+  Invierno:        'Invierno',
   novedades:   'Novedades',
   promociones: 'Promociones',
 };

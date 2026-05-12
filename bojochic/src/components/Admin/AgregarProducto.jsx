@@ -19,7 +19,7 @@ const AgregarProducto = () => {
 
   const categorias = [
     'aros', 'collares', 'pulseras', 'panuelos',
-    'anillos', 'dorados', 'plateados', 'conjuntos', 'otros', 'mama', 'novedades', 'promociones',
+    'anillos', 'dorados', 'plateados', 'conjuntos', 'otros', 'Invierno', 'novedades', 'promociones',
   ];
 
   const agregarImagen = () => {
