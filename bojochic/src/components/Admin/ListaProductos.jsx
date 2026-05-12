@@ -32,7 +32,7 @@ const ListaProductos = () => {
     { value: 'plateados',   label: 'Plateados' },
     { value: 'conjuntos',   label: 'Conjuntos' },
     { value: 'otros',       label: 'Otros' },
-    { value: 'mama',        label: 'Mamá' },
+    { value: 'Invierno',        label: 'Invierno' },
     { value: 'novedades',   label: 'Novedades' },
     { value: 'promociones', label: 'Promociones' },
   ];
