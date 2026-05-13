@@ -16,7 +16,12 @@ import banner8 from '../../assets/Categorias/bojo8.png';
 import banner9 from '../../assets/Categorias/bojo9.png';
 import banner10 from '../../assets/Categorias/bojo10.png';
 
-const banners = [banner4, banner5, banner9, banner10];
+const banners = [
+  { src: banner4,  path: '/Invierno' },
+  { src: banner5,  path: '/promociones' },
+  { src: banner9,  path: '/Invierno' },
+  { src: banner10, path: '/Invierno' },
+];
 
 const C = {
   bg:    '#f7d5d7',
@@ -219,7 +224,7 @@ const Banner = () => {
     { key: 'anillos',   label: 'Anillos' },
     { key: 'conjuntos', label: 'Conjuntos' },
     { key: 'otros',     label: 'Otros' },
-    { key: 'Invierno',      label: 'Invierno' },
+    { key: 'Invierno',  label: 'Invierno' },
   ];
 
   const catalogoMenuItems = catalogoItems.map((item) => ({
@@ -430,10 +435,10 @@ const Banner = () => {
           background: C.bg,
         }}
       >
-        {banners.map((src, i) => (
+        {banners.map((banner, i) => (
           <img
             key={i}
-            src={src}
+            src={banner.src}
             alt={`Banner ${i + 1}`}
             className="bojo-carousel-slide"
             style={{
@@ -441,8 +446,9 @@ const Banner = () => {
               position: i === currentSlide ? 'relative' : 'absolute',
               top: 0,
               left: 0,
+              pointerEvents: i === currentSlide ? 'auto' : 'none',
             }}
-            onClick={() => goTo('/Invierno')}
+            onClick={() => { goTo(banner.path); scrollToProductos(); }}
           />
         ))}
 
