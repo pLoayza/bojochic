@@ -14,8 +14,7 @@ const CODIGOS_DESCUENTO = {
   'Bojofer':    { tipo: 'porcentaje', valor: 10 },
   'Bojonaomi':  { tipo: 'porcentaje', valor: 10 },
   'Bojobianca': { tipo: 'porcentaje', valor: 10 },
-  'BOJO15JO': { tipo: 'porcentaje', valor: 15 },
-
+  'BOJO15JO':   { tipo: 'porcentaje', valor: 15 },
 };
 
 const CART_KEY = 'bojo_guest_cart';
@@ -38,7 +37,7 @@ const CheckoutPage = () => {
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
   const [isGuest, setIsGuest] = useState(false);
-  const [shipping, setShipping] = useState(getCostoEnvio('Metropolitana'));
+  const [shipping, setShipping] = useState(getCostoEnvio('Metropolitana', 0));
   const [regionGuardada, setRegionGuardada] = useState('Metropolitana');
   const [descuento, setDescuento] = useState(0);
   const [codigoAplicado, setCodigoAplicado] = useState(null);
@@ -102,11 +101,13 @@ const CheckoutPage = () => {
     }
   }, [navigate]);
 
+  const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+
   useEffect(() => {
     if (regionGuardada && cartItems.length > 0) {
-      setShipping(getCostoEnvio(regionGuardada));
+      setShipping(getCostoEnvio(regionGuardada, subtotal));
     }
-  }, [cartItems, regionGuardada]);
+  }, [cartItems, regionGuardada, subtotal]);
 
   useEffect(() => {
     if (codigoAplicado) {
@@ -120,7 +121,7 @@ const CheckoutPage = () => {
 
   const handleRegionChange = (region) => {
     setRegionGuardada(region);
-    setShipping(getCostoEnvio(region));
+    setShipping(getCostoEnvio(region, subtotal));
   };
 
   const aplicarCodigo = async (codigo) => {
@@ -186,7 +187,6 @@ const CheckoutPage = () => {
     marcarCodigoUsado();
   };
 
-  const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
   const total = subtotal + shipping - descuento;
 
   if (loading) {

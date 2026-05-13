@@ -37,25 +37,35 @@ export const COSTO_ENVIO = {
   'Tarapacá':           6990,
   'Antofagasta':        6990,
   'Atacama':            5990,
-  'Coquimbo':           0,
-  'Valparaíso':         0,
-  'Metropolitana':      0,
-  "O'Higgins":          0,
-  'Maule':              0,
-  'Ñuble':              0,
-  'Biobío':             0,
-  'La Araucanía':       0,
+  'Coquimbo':           5990,
+  'Valparaíso':         4990,
+  'Metropolitana':      3990,
+  "O'Higgins":          4990,
+  'Maule':              5990,
+  'Ñuble':              5990,
+  'Biobío':             5990,
+  'La Araucanía':       5990,
   'Los Ríos':           6990,
   'Los Lagos':          6990,
   'Aysén':              9990,
   'Magallanes':         9990,
 };
 
-const DESCUENTO_ENVIO = 4000;
+const REGIONES_ENVIO_GRATIS = [
+  'Coquimbo', 'Valparaíso', 'Metropolitana', "O'Higgins",
+  'Maule', 'Ñuble', 'Biobío', 'La Araucanía'
+];
 
-export const getCostoEnvio = (region) => {
-  const costo = COSTO_ENVIO[region] ?? 6990;
-  return Math.max(0, costo - DESCUENTO_ENVIO);
+const DESCUENTO_ENVIO = 4000;
+const MINIMO_ENVIO_GRATIS = 19990;
+
+export const getCostoEnvio = (region, total = 0) => {
+  const costo = COSTO_ENVIO[region] ?? 5990;
+  if (total >= MINIMO_ENVIO_GRATIS) {
+    if (REGIONES_ENVIO_GRATIS.includes(region)) return 0;
+    return Math.max(0, costo - DESCUENTO_ENVIO);
+  }
+  return costo;
 };
 
 const CheckoutForm = ({
