@@ -15,6 +15,7 @@ const CODIGOS_DESCUENTO = {
   'Bojonaomi':  { tipo: 'porcentaje', valor: 10 },
   'Bojobianca': { tipo: 'porcentaje', valor: 10 },
   'BOJO15JO':   { tipo: 'porcentaje', valor: 15 },
+  'BOJOTEEXTRAÑA':   { tipo: 'porcentaje', valor: 10 },
 };
 
 const CART_KEY = 'bojo_guest_cart';
