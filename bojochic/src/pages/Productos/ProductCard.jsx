@@ -71,6 +71,15 @@ const ProductCard = ({ producto }) => {
 
   const confirmarAgregarAlCarrito = async (e) => {
     e.stopPropagation();
+
+    // ✅ Validar stock antes de agregar
+    const stockDisponible = producto.stock ?? 0;
+    if (cantidad > stockDisponible) {
+      message.warning(`Solo hay ${stockDisponible} unidad${stockDisponible !== 1 ? 'es' : ''} disponibles`);
+      setCantidad(stockDisponible > 0 ? stockDisponible : 1);
+      return;
+    }
+
     const user = auth.currentUser;
     const cartKey = tallas && selectedSize ? `${producto.id}_${selectedSize}` : producto.id;
 
@@ -135,6 +144,7 @@ const ProductCard = ({ producto }) => {
   };
 
   const agotado = producto.stock === 0 || producto.activo === false;
+  const stockMaximo = producto.stock ?? 1;
   const segundaImagen = imagenSecundaria();
   const confirmDisabled = addingToCart || (tallas && !selectedSize);
 
@@ -453,11 +463,20 @@ const ProductCard = ({ producto }) => {
 
                 <p className="pc-popup-label">¿Cuántas unidades?</p>
                 <div className="pc-qty-row">
-                  <button className="pc-qty-btn" onClick={(e) => { e.stopPropagation(); setCantidad(c => Math.max(1, c - 1)); }} disabled={cantidad <= 1}>
+                  <button
+                    className="pc-qty-btn"
+                    onClick={(e) => { e.stopPropagation(); setCantidad(c => Math.max(1, c - 1)); }}
+                    disabled={cantidad <= 1}
+                  >
                     <MinusOutlined />
                   </button>
                   <span className="pc-qty-value">{cantidad}</span>
-                  <button className="pc-qty-btn" onClick={(e) => { e.stopPropagation(); setCantidad(c => Math.min(producto.stock || 99, c + 1)); }} disabled={cantidad >= (producto.stock || 99)}>
+                  {/* ✅ Fix: usa stockMaximo en vez de || 99 */}
+                  <button
+                    className="pc-qty-btn"
+                    onClick={(e) => { e.stopPropagation(); setCantidad(c => Math.min(stockMaximo, c + 1)); }}
+                    disabled={cantidad >= stockMaximo}
+                  >
                     <PlusOutlined />
                   </button>
                 </div>
