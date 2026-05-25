@@ -15,12 +15,15 @@ import bojoLogo from '../../assets/Categorias/logo-bojo.png';
 import banner8 from '../../assets/Categorias/bojo8.png';
 import banner9 from '../../assets/Categorias/bojo9.png';
 import banner10 from '../../assets/Categorias/bojo10.png';
+import banner11 from '../../assets/Categorias/bojo11.png';
 
+// ✅ CAMBIO 1: path de banner11 apunta a WhatsApp
 const banners = [
   { src: banner4,  path: '/Invierno' },
   { src: banner5,  path: '/promociones' },
   { src: banner9,  path: '/Invierno' },
   { src: banner10, path: '/Invierno' },
+  { src: banner11, path: 'https://wa.me/56989058379?text=¡Hola!%20Me%20gustaría%20obtener%20más%20información.' },
 ];
 
 const C = {
@@ -448,7 +451,15 @@ const Banner = () => {
               left: 0,
               pointerEvents: i === currentSlide ? 'auto' : 'none',
             }}
-            onClick={() => { goTo(banner.path); scrollToProductos(); }}
+            // ✅ CAMBIO 2: si el path es externo, abre en nueva pestaña
+            onClick={() => {
+              if (banner.path.startsWith('https://')) {
+                window.open(banner.path, '_blank', 'noopener,noreferrer');
+              } else {
+                goTo(banner.path);
+                scrollToProductos();
+              }
+            }}
           />
         ))}
 

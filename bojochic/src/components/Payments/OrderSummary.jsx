@@ -70,21 +70,7 @@ const OrderSummary = ({ cartItems, subtotal, shipping, total, descuento, codigoA
           </Text>
         </div>
 
-        {shipping === 0 ? (
-          <Alert
-            message="🎉 ¡Tienes envío gratis!"
-            type="success"
-            showIcon
-            style={{ fontSize: '12px' }}
-          />
-        ) : (
-          <Alert
-            message="🚚 ¡Tienes $4.000 de descuento en el envío!"
-            type="info"
-            showIcon
-            style={{ fontSize: '12px' }}
-          />
-        )}
+       
 
         <Divider style={{ margin: '10px 0' }} />
 
