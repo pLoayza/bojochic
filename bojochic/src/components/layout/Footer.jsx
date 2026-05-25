@@ -203,59 +203,7 @@ const Footer = () => {
               </div>
             </Col>
 
-            {/* Suscripción */}
-            <Col xs={24} sm={24} md={12}>
-              <h3 style={{ 
-                color: '#333', 
-                fontSize: '16px', 
-                fontWeight: '600',
-                marginBottom: '20px'
-              }}>
-                Suscríbete a nuestras promociones
-              </h3>
-              <div style={{ display: 'flex', gap: '0', maxWidth: '600px' }}>
-                <Input 
-                  type="email"
-                  placeholder="Dirección de correo electrónico"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  disabled={loading}
-                  style={{
-                    borderRadius: '0',
-                    border: '1px solid #d9d9d9',
-                    padding: '10px 15px',
-                    fontSize: '14px',
-                    flex: 1
-                  }}
-                />
-                <Button 
-                  onClick={handleSubscribe}
-                  loading={loading}
-                  disabled={loading}
-                  style={{
-                    background: loading ? '#ccc' : ' #f33763',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '0',
-                    padding: '10px 30px',
-                    height: 'auto',
-                    fontWeight: '600',
-                    fontSize: '14px',
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                    whiteSpace: 'nowrap'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!loading) e.currentTarget.style.background = '#c00686';
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!loading) e.currentTarget.style.background = ' #f33763';
-                  }}
-                >
-                  SUSCRIBIRSE
-                </Button>
-              </div>
-            </Col>
+            
           </Row>
         </div>
 
