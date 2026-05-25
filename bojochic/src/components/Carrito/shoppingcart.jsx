@@ -32,18 +32,16 @@ function ShoppingCart({ iconColor = ' #ffffff', iconSize = '22px', showInNavbar 
     const user = auth.currentUser;
 
     if (user) {
-      // ── Usuario registrado: escuchar Firestore en tiempo real ──
       const cartRef = collection(db, 'users', user.uid, 'cart');
       const unsubscribe = onSnapshot(cartRef, (snapshot) => {
         const items = snapshot.docs.map(docSnap => ({
-          cartKey: docSnap.id,   // ← key real del documento (puede ser "abc123_7")
-          ...docSnap.data(),     // ← incluye id: "abc123" (id del producto)
+          cartKey: docSnap.id,
+          ...docSnap.data(),
         }));
         setCartItems(items);
       });
       return () => unsubscribe();
     } else {
-      // ── Guest: cargar desde localStorage ──
       setCartItems(getGuestCart());
 
       const handleStorage   = (e) => { if (e.key === CART_KEY) setCartItems(getGuestCart()); };
@@ -61,15 +59,11 @@ function ShoppingCart({ iconColor = ' #ffffff', iconSize = '22px', showInNavbar 
   const showModal = () => setOpen(true);
   const onClose  = () => setOpen(false);
 
-  // ── Actualizar cantidad ──────────────────────────────────────────────────
   const updateQuantity = async (item, newQuantity) => {
     if (newQuantity < 1) return;
-
     const user = auth.currentUser;
-
     if (user) {
       try {
-        // Usar cartKey (key real del doc) en vez de item.id
         const docKey  = item.cartKey || item.id;
         const itemRef = doc(db, 'users', user.uid, 'cart', docKey);
         await updateDoc(itemRef, { quantity: newQuantity });
@@ -79,7 +73,6 @@ function ShoppingCart({ iconColor = ' #ffffff', iconSize = '22px', showInNavbar 
         message.error('Error al actualizar');
       }
     } else {
-      // Guest: buscar por cartKey (que incluye la talla si aplica)
       const cartKey = item.cartKey || (item.size ? `${item.id}_${item.size}` : item.id);
       const updated = getGuestCart().map(i => {
         const iKey = i.size ? `${i.id}_${i.size}` : i.id;
@@ -91,13 +84,10 @@ function ShoppingCart({ iconColor = ' #ffffff', iconSize = '22px', showInNavbar 
     }
   };
 
-  // ── Eliminar ítem ────────────────────────────────────────────────────────
   const removeItem = async (item) => {
     const user = auth.currentUser;
-
     if (user) {
       try {
-        // Usar cartKey (key real del doc) en vez de item.id
         const docKey  = item.cartKey || item.id;
         const itemRef = doc(db, 'users', user.uid, 'cart', docKey);
         await deleteDoc(itemRef);
@@ -107,7 +97,6 @@ function ShoppingCart({ iconColor = ' #ffffff', iconSize = '22px', showInNavbar 
         message.error('Error al eliminar');
       }
     } else {
-      // Guest: filtrar por cartKey
       const cartKey = item.cartKey || (item.size ? `${item.id}_${item.size}` : item.id);
       const updated = getGuestCart().filter(i => {
         const iKey = i.size ? `${i.id}_${i.size}` : i.id;
@@ -162,20 +151,21 @@ function ShoppingCart({ iconColor = ' #ffffff', iconSize = '22px', showInNavbar 
         centered={!isMobile}
         style={isMobile ? {
           top: 0, left: 0, right: 0, bottom: 0,
-          padding: 0, maxWidth: '100vw', margin: 0, height: '100vh',
+          padding: 0, maxWidth: '100vw', margin: 0,
+          height: '100dvh', // ✅ CAMBIO
         } : { top: 20 }}
         styles={{
           body: {
             padding: 0,
-            height: isMobile ? '100vh' : 'auto',
-            maxHeight: isMobile ? '100vh' : '80vh',
+            height: isMobile ? '100dvh' : 'auto',       // ✅ CAMBIO
+            maxHeight: isMobile ? '100dvh' : '80vh',    // ✅ CAMBIO
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
           },
           content: isMobile ? {
             padding: 0, borderRadius: 0,
-            height: '100vh', width: '100vw', maxWidth: '100vw',
+            height: '100dvh', width: '100vw', maxWidth: '100vw', // ✅ CAMBIO
           } : {},
           mask: {
             backgroundColor: isMobile ? 'transparent' : 'rgba(0, 0, 0, 0.45)',
@@ -186,7 +176,7 @@ function ShoppingCart({ iconColor = ' #ffffff', iconSize = '22px', showInNavbar 
         modalRender={(modal) => isMobile ? (
           <div style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            width: '100vw', height: '100vh', zIndex: 1000,
+            width: '100vw', height: '100dvh', zIndex: 1000, // ✅ CAMBIO
           }}>
             {modal}
           </div>
