@@ -5,14 +5,15 @@ import {
   DollarOutlined,
   SendOutlined,
   CheckCircleOutlined,
-  InfoCircleOutlined
+  InfoCircleOutlined,
+  StopOutlined,
+  ClockCircleOutlined
 } from '@ant-design/icons';
 
 const { Content } = Layout;
 const { Title, Paragraph, Text } = Typography;
 
 const Reembolso = () => {
-  // Forzar scroll al inicio cuando se carga la página
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -52,10 +53,121 @@ const Reembolso = () => {
           A continuación, te explicamos cómo funciona 👇
         </Paragraph>
 
+        {/* ─────────────────────────────────────────────
+            NUEVA SECCIÓN: Reembolso por Retracto
+        ───────────────────────────────────────────── */}
+        <div style={{ 
+          background: '#FFF5FC', 
+          border: '1px solid #FFD6F0',
+          borderRadius: '8px',
+          padding: '30px',
+          marginBottom: '50px'
+        }}>
+          <Title level={2} style={{ 
+            color: '#f33763', 
+            fontSize: '24px',
+            marginBottom: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}>
+            <StopOutlined /> Reembolso por Retracto (Previo al Envío)
+          </Title>
+          <Paragraph style={{ fontSize: '15px', color: '#555', marginBottom: '25px', lineHeight: '1.8' }}>
+            En Bojo entendemos que puedes cambiar de opinión. Si realizaste una compra pero deseas desistir antes de que el producto sea despachado, puedes solicitar la cancelación y el reembolso bajo las siguientes condiciones.
+          </Paragraph>
+
+          {/* Plazo máximo */}
+          <div style={{ marginBottom: '25px' }}>
+            <Title level={3} style={{ 
+              color: '#333', 
+              fontSize: '17px',
+              marginBottom: '10px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <ClockCircleOutlined style={{ color: '#f33763' }} /> Plazo máximo para el retracto
+            </Title>
+            <ul style={{ fontSize: '15px', lineHeight: '1.8', color: '#555', paddingLeft: '20px', marginBottom: '0' }}>
+              <li>Solo es válido si la solicitud se recibe <strong>antes de que el pedido figure como "Enviado"</strong> o haya sido entregado a la empresa de transporte.</li>
+              <li>Una vez que recibas el correo con el <strong>número de seguimiento (tracking)</strong> o la notificación de "Pedido Enviado", ya no es posible cancelar de esta forma.</li>
+              <li>En ese caso, deberás esperar a recibir el producto y aplicar a la Política de Devoluciones Estándar.</li>
+            </ul>
+          </div>
+
+          {/* Cómo solicitar */}
+          <div style={{ marginBottom: '25px' }}>
+            <Title level={3} style={{ 
+              color: '#333', 
+              fontSize: '17px',
+              marginBottom: '10px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <SendOutlined style={{ color: '#f33763' }} /> ¿Cómo solicitar la cancelación?
+            </Title>
+            <Paragraph style={{ fontSize: '15px', color: '#555', marginBottom: '8px', lineHeight: '1.8' }}>
+              Contáctanos de forma <strong>inmediata</strong> por WhatsApp al{' '}
+              <a 
+                href="https://wa.me/56989058379" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{ color: '#f33763', fontWeight: '600' }}
+              >
+                +56 9 8905 8379
+              </a>{' '}
+              indicando tu <strong>nombre</strong> y <strong>número de pedido</strong>.
+            </Paragraph>
+          </div>
+
+          {/* Condiciones del reembolso */}
+          <div style={{ marginBottom: '25px' }}>
+            <Title level={3} style={{ 
+              color: '#333', 
+              fontSize: '17px',
+              marginBottom: '10px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <DollarOutlined style={{ color: '#f33763' }} /> Condiciones del reembolso
+            </Title>
+            <ul style={{ fontSize: '15px', lineHeight: '1.8', color: '#555', paddingLeft: '20px', marginBottom: '0' }}>
+              <li>Se reembolsa el <strong>100% del valor del producto</strong> y el <strong>100% del costo de envío</strong>, ya que el despacho no llegó a realizarse.</li>
+            </ul>
+          </div>
+
+          {/* Plazos y métodos */}
+          <div>
+            <Title level={3} style={{ 
+              color: '#333', 
+              fontSize: '17px',
+              marginBottom: '10px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <CheckCircleOutlined style={{ color: '#f33763' }} /> Plazos y métodos de devolución
+            </Title>
+            <Paragraph style={{ fontSize: '15px', color: '#555', marginBottom: '8px', lineHeight: '1.8' }}>
+              El dinero se devuelve <strong>exclusivamente por el mismo medio de pago utilizado</strong>:
+            </Paragraph>
+            <ul style={{ fontSize: '15px', lineHeight: '1.8', color: '#555', paddingLeft: '20px', marginBottom: '0' }}>
+              <li><strong>Tarjeta de crédito / débito:</strong> La orden de reembolso se emite de inmediato, pero puede tardar entre <strong>5 y 15 días hábiles</strong> en reflejarse en tu estado de cuenta según las políticas de tu banco.</li>
+              <li><strong>Transferencia bancaria:</strong> Te solicitaremos tus datos de cuenta y realizaremos la transferencia en un plazo máximo de <strong>48 a 72 horas hábiles</strong>.</li>
+            </ul>
+          </div>
+        </div>
+        {/* ─────────────────────────────────────────────
+            FIN NUEVA SECCIÓN
+        ───────────────────────────────────────────── */}
+
         {/* Cambios */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: ' #f33763', 
+            color: '#f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -81,7 +193,7 @@ const Reembolso = () => {
         {/* Devoluciones y Reembolsos */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: ' #f33763', 
+            color: '#f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -108,7 +220,7 @@ const Reembolso = () => {
         {/* Cómo solicitar */}
         <div style={{ marginBottom: '40px' }}>
           <Title level={2} style={{ 
-            color: ' #f33763', 
+            color: '#f33763', 
             fontSize: '24px',
             marginBottom: '20px',
             display: 'flex',
@@ -128,7 +240,7 @@ const Reembolso = () => {
               href="https://wa.me/56989058379" 
               target="_blank" 
               rel="noopener noreferrer"
-              style={{ color: ' #f33763', fontWeight: '600' }}
+              style={{ color: '#f33763', fontWeight: '600' }}
             >
               +56 9 8905 8379
             </a>
@@ -162,7 +274,7 @@ const Reembolso = () => {
           marginBottom: '40px'
         }}>
           <Title level={3} style={{ 
-            color: ' #f33763', 
+            color: '#f33763', 
             fontSize: '18px',
             marginBottom: '15px',
             display: 'flex',
@@ -193,7 +305,7 @@ const Reembolso = () => {
           textAlign: 'center'
         }}>
           <Text style={{ color: '#999', fontSize: '14px' }}>
-            Última actualización: Febrero 2026
+            Última actualización: Mayo 2026
           </Text>
         </div>
       </Content>
