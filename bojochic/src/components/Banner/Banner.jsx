@@ -16,11 +16,12 @@ import banner8 from '../../assets/Categorias/bojo8.png';
 import banner9 from '../../assets/Categorias/bojo9.png';
 import banner10 from '../../assets/Categorias/bojo10.png';
 import banner11 from '../../assets/Categorias/bojo11.png';
+import banner15 from '../../assets/Categorias/bojo15.png';
 
 // ✅ CAMBIO 1: path de banner11 apunta a WhatsApp
 const banners = [
   { src: banner4,  path: '/Invierno' },
-  { src: banner5,  path: '/promociones' },
+  { src: banner15,  path: '/promociones' },
   { src: banner9,  path: '/Invierno' },
   { src: banner10, path: '/Invierno' },
   { src: banner11, path: 'https://wa.me/56989058379?text=¡Hola!%20Me%20gustaría%20obtener%20más%20información.' },

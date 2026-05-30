@@ -8,6 +8,7 @@ import OrderSummary from '../../components/Payments/OrderSummary';
 import Banner from '../../components/Banner/Banner';
 
 const CODIGOS_DESCUENTO = {
+  /* DESACTIVADOS MIENTRAS 20% TOTAL ACTIVO
   'BOJO10':     { tipo: 'porcentaje', valor: 10 },
   'AMIGASBOJO': { tipo: 'porcentaje', valor: 20 },
   'ANJUBOJO':   { tipo: 'porcentaje', valor: 20 },
@@ -15,7 +16,7 @@ const CODIGOS_DESCUENTO = {
   'Bojonaomi':  { tipo: 'porcentaje', valor: 10 },
   'Bojobianca': { tipo: 'porcentaje', valor: 10 },
   'BOJO15JO':   { tipo: 'porcentaje', valor: 15 },
-  'BOJOTEEXTRAÑA':   { tipo: 'porcentaje', valor: 10 },
+  'BOJOTEEXTRAÑA':   { tipo: 'porcentaje', valor: 10 }, */
 };
 
 const CART_KEY = 'bojo_guest_cart';

@@ -1,8 +1,8 @@
 // src/components/Admin/ListaProductos.jsx
 import { useState, useEffect } from 'react';
-import { Table, Button, Space, message, Popconfirm, Tag, Image, Select, Tabs } from 'antd';
-import { DeleteOutlined, EditOutlined, FilterOutlined, GiftOutlined } from '@ant-design/icons';
-import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { Table, Button, Space, message, Popconfirm, Tag, Image, Select, Tabs, Modal, InputNumber } from 'antd';
+import { DeleteOutlined, EditOutlined, FilterOutlined, GiftOutlined, PercentageOutlined } from '@ant-design/icons';
+import { collection, getDocs, deleteDoc, doc, writeBatch } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import EditarProducto from './EditarProducto';
 import CrearBundleModal from './CrearBundleModal';
@@ -21,6 +21,11 @@ const ListaProductos = () => {
   const [seleccionados, setSeleccionados] = useState([]);
   const [bundleModalVisible, setBundleModalVisible] = useState(false);
 
+  // ── Descuento General ──
+  const [descuentoModalVisible, setDescuentoModalVisible] = useState(false);
+  const [descuentoGlobal, setDescuentoGlobal] = useState(20);
+  const [loadingDescuento, setLoadingDescuento] = useState(false);
+
   const categorias = [
     { value: 'todas',       label: 'Todas las Categorías' },
     { value: 'aros',        label: 'Aros' },
@@ -32,7 +37,7 @@ const ListaProductos = () => {
     { value: 'plateados',   label: 'Plateados' },
     { value: 'conjuntos',   label: 'Conjuntos' },
     { value: 'otros',       label: 'Otros' },
-    { value: 'Invierno',        label: 'Invierno' },
+    { value: 'Invierno',    label: 'Invierno' },
     { value: 'novedades',   label: 'Novedades' },
     { value: 'promociones', label: 'Promociones' },
   ];
@@ -96,6 +101,45 @@ const ListaProductos = () => {
       cargarBundles();
     } catch {
       message.error('Error al eliminar bundle');
+    }
+  };
+
+  // ── Aplicar descuento a todos los productos ──
+  const aplicarDescuentoGeneral = async () => {
+    setLoadingDescuento(true);
+    try {
+      const snap = await getDocs(collection(db, 'productos'));
+
+      // Firestore permite máx 500 ops por batch; usamos chunks de 400 por seguridad
+      const docs = snap.docs;
+      const chunks = [];
+      for (let i = 0; i < docs.length; i += 400) {
+        chunks.push(docs.slice(i, i + 400));
+      }
+
+      for (const chunk of chunks) {
+        const batch = writeBatch(db);
+        chunk.forEach(d => {
+          batch.update(doc(db, 'productos', d.id), {
+            descuento: descuentoGlobal,
+            oferta: descuentoGlobal > 0,
+          });
+        });
+        await batch.commit();
+      }
+
+      const accion = descuentoGlobal > 0
+        ? `✅ ${snap.size} productos actualizados con ${descuentoGlobal}% de descuento`
+        : `✅ Descuento eliminado de ${snap.size} productos`;
+
+      message.success(accion);
+      setDescuentoModalVisible(false);
+      cargarProductos();
+    } catch (err) {
+      console.error(err);
+      message.error('Error al aplicar descuento');
+    } finally {
+      setLoadingDescuento(false);
     }
   };
 
@@ -258,6 +302,13 @@ const ListaProductos = () => {
                   Crear Bundle ({seleccionados.length} productos)
                 </Button>
               )}
+              <Button
+                icon={<PercentageOutlined />}
+                onClick={() => setDescuentoModalVisible(true)}
+                style={{ background: 'linear-gradient(45deg, #fa8c16, #ffa940)', border: 'none', color: '#fff' }}
+              >
+                Descuento General
+              </Button>
             </Space>
 
             <Space align="center">
@@ -323,6 +374,66 @@ const ListaProductos = () => {
         onClose={() => { setBundleModalVisible(false); setSeleccionados([]); }}
         onSuccess={() => { setSeleccionados([]); cargarProductos(); cargarBundles(); }}
       />
+
+      {/* ── Modal Descuento General ── */}
+      <Modal
+        title={
+          <Space>
+            <PercentageOutlined style={{ color: '#fa8c16' }} />
+            <span>Aplicar Descuento General</span>
+          </Space>
+        }
+        open={descuentoModalVisible}
+        onCancel={() => !loadingDescuento && setDescuentoModalVisible(false)}
+        onOk={aplicarDescuentoGeneral}
+        confirmLoading={loadingDescuento}
+        okText={descuentoGlobal > 0 ? `Aplicar ${descuentoGlobal}% a todos` : 'Quitar descuento a todos'}
+        cancelText="Cancelar"
+        okButtonProps={{
+          style: { background: 'linear-gradient(45deg, #fa8c16, #ffa940)', border: 'none' },
+          disabled: loadingDescuento,
+        }}
+      >
+        <div style={{ padding: '16px 0' }}>
+          <p style={{ marginBottom: '20px', color: '#555' }}>
+            Esto actualizará el campo <strong>descuento</strong> en{' '}
+            <strong>todos los productos</strong> de la tienda. Los que ya tenían
+            un descuento diferente serán reemplazados.
+          </p>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+            <span style={{ fontWeight: 500 }}>Porcentaje de descuento:</span>
+            <InputNumber
+              min={0}
+              max={100}
+              value={descuentoGlobal}
+              onChange={v => setDescuentoGlobal(v ?? 0)}
+              formatter={v => `${v}%`}
+              parser={v => v.replace('%', '')}
+              size="large"
+              style={{ width: 110 }}
+            />
+          </div>
+
+          {descuentoGlobal > 0 ? (
+            <div style={{
+              background: '#fff7e6', border: '1px solid #ffa940',
+              borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: '#ad6800',
+            }}>
+              ✅ Se aplicará <strong>{descuentoGlobal}%</strong> de descuento a todos los productos
+              y se activará el campo <strong>oferta: true</strong>.
+            </div>
+          ) : (
+            <div style={{
+              background: '#fff1f0', border: '1px solid #ffa39e',
+              borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: '#cf1322',
+            }}>
+              ⚠️ Con 0% se <strong>eliminará el descuento</strong> de todos los productos
+              y se desactivará el campo <strong>oferta: false</strong>.
+            </div>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 };
