@@ -17,7 +17,7 @@ const CODIGOS_DESCUENTO = {
   'Bojobianca': { tipo: 'porcentaje', valor: 10 },
   'BOJO15JO':   { tipo: 'porcentaje', valor: 15 },
   'BOJOTEEXTRAÑA':   { tipo: 'porcentaje', valor: 10 }, */
-  'TESTINGQQQQZCXSD':     { tipo: 'porcentaje', valor: 99 },
+  /* 'TESTINGQQQQZCXSD':     { tipo: 'porcentaje', valor: 99 }, */
 };
 
 const CART_KEY = 'bojo_guest_cart';
