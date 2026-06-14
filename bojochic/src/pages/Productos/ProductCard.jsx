@@ -2,10 +2,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { message } from 'antd';
 import { ShoppingCartOutlined, PlusOutlined, MinusOutlined, CheckOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+
 import { auth, db } from '../../firebase/config';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { calcularPrecio, formatearPrecio } from '../../utils/precioUtils';
+import ProductModal from '../../components/Productos/ProductModal';
 
 const CART_KEY = 'bojo_guest_cart';
 
@@ -19,14 +20,16 @@ const saveGuestCart = (items) => {
 };
 
 const ProductCard = ({ producto }) => {
-  const navigate = useNavigate();
   const [showQuantityPopup, setShowQuantityPopup] = useState(false);
   const [cantidad, setCantidad] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
   const [added, setAdded] = useState(false);
   const [selectedSize, setSelectedSize] = useState(null);
+  const [showModal, setShowModal] = useState(false);
   const popupRef = useRef(null);
   const btnRef = useRef(null);
+  const cardRef = useRef(null);
+  const savedScrollY = useRef(0);
 
   const tallas = producto.tieneTallas && Array.isArray(producto.tallas) && producto.tallas.length > 0
     ? producto.tallas : null;
@@ -66,7 +69,8 @@ const ProductCard = ({ producto }) => {
 
   const handleCardClick = () => {
     if (showQuantityPopup) return;
-    navigate(`/producto/${producto.id}`, { state: { producto } });
+    savedScrollY.current = window.scrollY;
+    setShowModal(true);
   };
 
   const confirmarAgregarAlCarrito = async (e) => {
@@ -191,7 +195,7 @@ const ProductCard = ({ producto }) => {
           position: absolute;
           top: 10px; left: 10px;
           z-index: 4;
-          background: #f33763;
+          background: #e53935;
           color: #fff;
           font-size: 11px;
           font-weight: 700;
@@ -218,7 +222,7 @@ const ProductCard = ({ producto }) => {
           position: absolute;
           top: 10px; right: 10px;
           z-index: 4;
-          background: #f33763;
+          background: #e53935;
           color: #fff;
           font-size: 12px;
           font-weight: 700;
@@ -252,7 +256,7 @@ const ProductCard = ({ producto }) => {
         .pc-price {
           font-size: 17px;
           font-weight: 700;
-          color: #f33763;
+          color: #e53935;
           margin: 0;
         }
         .pc-price-original {
@@ -264,7 +268,7 @@ const ProductCard = ({ producto }) => {
         .pc-cart-btn {
           width: 100%;
           padding: 11px 0;
-          background: linear-gradient(45deg, #f33763, #FF6B9D);
+          background: linear-gradient(45deg, #e53935, #ef5350);
           color: #fff;
           border: none;
           border-radius: 8px;
@@ -345,15 +349,15 @@ const ProductCard = ({ producto }) => {
           background: #fafafa;
           color: #555;
         }
-        .pc-size-btn:hover { border-color: #f33763; color: #f33763; }
+        .pc-size-btn:hover { border-color: #e53935; color: #e53935; }
         .pc-size-btn.active {
-          border: 2px solid #f33763;
+          border: 2px solid #e53935;
           background: #fff0f4;
-          color: #f33763;
+          color: #e53935;
         }
         .pc-size-hint {
           font-size: 11px;
-          color: #f33763;
+          color: #e53935;
           text-align: center;
           margin: 4px 0 8px 0;
         }
@@ -378,7 +382,7 @@ const ProductCard = ({ producto }) => {
           transition: background 0.15s, color 0.15s;
           flex-shrink: 0;
         }
-        .pc-qty-btn:hover:not(:disabled) { background: #f33763; color: #fff; }
+        .pc-qty-btn:hover:not(:disabled) { background: #e53935; color: #fff; }
         .pc-qty-btn:disabled { color: #ccc; cursor: not-allowed; }
         .pc-qty-value {
           flex: 1;
@@ -395,7 +399,7 @@ const ProductCard = ({ producto }) => {
         .pc-confirm-btn {
           width: 100%;
           padding: 9px 0;
-          background: linear-gradient(45deg, #f33763, #FF6B9D);
+          background: linear-gradient(45deg, #e53935, #ef5350);
           color: #fff;
           border: none;
           border-radius: 7px;
@@ -407,9 +411,27 @@ const ProductCard = ({ producto }) => {
         }
         .pc-confirm-btn:hover:not(:disabled) { opacity: 0.88; }
         .pc-confirm-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        .pc-detail-btn {
+          width: 100%;
+          padding: 8px 0;
+          background: #fff;
+          color: #f33763;
+          border: 1.5px solid #f33763;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-top: 8px;
+          transition: background 0.2s ease;
+        }
+        .pc-detail-btn:hover { background: #fff0f4; }
       `}</style>
 
-      <div className="pc-root" onClick={handleCardClick}>
+      <div ref={cardRef} className="pc-root" onClick={handleCardClick}>
 
         <div className="pc-img-wrapper">
 
@@ -499,9 +521,23 @@ const ProductCard = ({ producto }) => {
               }
             </button>
 
+            <button
+              className="pc-detail-btn"
+              onClick={(e) => { e.stopPropagation(); savedScrollY.current = window.scrollY; setShowModal(true); }}
+            >
+              Ver detalle
+            </button>
+
           </div>
         </div>
       </div>
+
+      <ProductModal
+        visible={showModal}
+        producto={producto}
+        onClose={() => setShowModal(false)}
+        afterClose={() => window.scrollTo({ top: savedScrollY.current, behavior: 'instant' })}
+      />
     </>
   );
 };

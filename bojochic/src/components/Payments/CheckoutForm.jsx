@@ -57,7 +57,7 @@ const REGIONES_ENVIO_GRATIS = [
 ];
 
 const DESCUENTO_ENVIO = 4000;
-const MINIMO_ENVIO_GRATIS = 19990;
+export const MINIMO_ENVIO_GRATIS = 19990;
 
 export const getCostoEnvio = (region, total = 0) => {
   const costo = COSTO_ENVIO[region] ?? 5990;
@@ -160,6 +160,12 @@ const CheckoutForm = ({
         throw new Error(data.error || 'Error al crear transacción');
       }
 
+      // ─── FIX: marcar que hay un pago en curso ANTES de redirigir ──
+      // Esto evita que el onSnapshot del carrito vacío en CheckoutPage
+      // redirija al inicio mientras el usuario está en Webpay.
+      sessionStorage.setItem('bojo_payment_in_progress', 'true');
+      // ──────────────────────────────────────────────────────────────
+
       const formElement = document.createElement('form');
       formElement.method = 'POST';
       formElement.action = data.url;
@@ -175,6 +181,9 @@ const CheckoutForm = ({
 
     } catch (error) {
       console.error('❌ ERROR:', error);
+      // ─── Si hay error antes de redirigir, limpiar el flag ─────────
+      sessionStorage.removeItem('bojo_payment_in_progress');
+      // ──────────────────────────────────────────────────────────────
       message.error(error.message || 'Error al procesar el pago');
       setSubmitting(false);
     }

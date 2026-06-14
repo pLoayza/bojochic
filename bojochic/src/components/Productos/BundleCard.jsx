@@ -63,7 +63,7 @@ const BundleCard = ({ bundle }) => {
           position: absolute;
           top: 10px; right: 10px;
           z-index: 4;
-          background: #f33763;
+          background: #e53935;
           color: #fff;
           font-size: 12px;
           font-weight: 700;
@@ -74,7 +74,7 @@ const BundleCard = ({ bundle }) => {
           position: absolute;
           top: 10px; left: 10px;
           z-index: 4;
-          background: #f33763;
+          background: #e53935;
           color: #fff;
           font-size: 11px;
           font-weight: 700;
@@ -111,7 +111,7 @@ const BundleCard = ({ bundle }) => {
           min-height: 40px;
         }
         .bc-price-block { display: flex; flex-direction: column; gap: 1px; margin-bottom: 6px; }
-        .bc-price { font-size: 17px; font-weight: 700; color: #f33763; }
+        .bc-price { font-size: 17px; font-weight: 700; color: #e53935; }
         .bc-price-original { font-size: 12px; color: #aaa; text-decoration: line-through; }
         .bc-ahorro { font-size: 11px; color: #888; margin-bottom: 10px; }
         .bc-ver-btn {
