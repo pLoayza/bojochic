@@ -17,6 +17,7 @@ const CODIGOS_DESCUENTO = {
   'Bojobianca': { tipo: 'porcentaje', valor: 10 },
   'BOJO15JO':   { tipo: 'porcentaje', valor: 15 },
   'BOJOTEEXTRAÑA':   { tipo: 'porcentaje', valor: 10 }, */
+  'TESTINGQQQQZCXSD':     { tipo: 'porcentaje', valor: 99 },
 };
 
 const CART_KEY = 'bojo_guest_cart';
@@ -27,10 +28,6 @@ const getGuestCart = () => {
   } catch {
     return [];
   }
-};
-
-const clearGuestCart = () => {
-  localStorage.removeItem(CART_KEY);
 };
 
 const CheckoutPage = () => {
@@ -75,10 +72,17 @@ const CheckoutPage = () => {
           ...doc.data()
         }));
 
-        if (items.length === 0) {
+        // ─── FIX: no redirigir si hay un pago en curso ───────────────
+        // Cuando el backend aprueba el pago y limpia el carrito,
+        // onSnapshot detecta 0 items y redirigía al inicio antes de que
+        // el usuario viera la pantalla de éxito en /webpay/return.
+        const paymentInProgress = sessionStorage.getItem('bojo_payment_in_progress');
+
+        if (items.length === 0 && !paymentInProgress) {
           message.info('Tu carrito está vacío');
           navigate('/');
         }
+        // ─────────────────────────────────────────────────────────────
 
         setCartItems(items);
         setLoading(false);
@@ -183,9 +187,6 @@ const CheckoutPage = () => {
   };
 
   const onPagoConfirmado = () => {
-    if (isGuest) {
-      clearGuestCart();
-    }
     marcarCodigoUsado();
   };
 

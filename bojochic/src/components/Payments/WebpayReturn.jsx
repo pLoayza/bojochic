@@ -18,11 +18,31 @@ const WebpayReturn = () => {
   const hasConfirmed = useRef(false);
 
   useEffect(() => {
+    // ─── FIX: limpiar el flag de pago en curso al llegar aquí ────────
+    // Esto asegura que si el usuario vuelve al checkout después,
+    // el onSnapshot funcione normalmente y pueda redirigir al inicio
+    // si el carrito está vacío.
+    sessionStorage.removeItem('bojo_payment_in_progress');
+    // ─────────────────────────────────────────────────────────────────
+
     const confirmPayment = async () => {
       if (hasConfirmed.current) return;
       hasConfirmed.current = true;
 
       const token = searchParams.get('token_ws');
+
+      // ─── Caso: usuario canceló en Webpay ─────────────────────────
+      // Transbank manda TBK_TOKEN (no token_ws) cuando el usuario cancela
+      // o cuando la sesión expira. En ese caso mostramos error claro.
+      const tbkToken = searchParams.get('TBK_TOKEN');
+      const tbkOrdenCompra = searchParams.get('TBK_ORDEN_COMPRA');
+
+      if (!token && tbkToken) {
+        setError(`Pago cancelado${tbkOrdenCompra ? ` — Orden ${tbkOrdenCompra}` : ''}`);
+        setLoading(false);
+        return;
+      }
+      // ─────────────────────────────────────────────────────────────
 
       if (!token) {
         setError('Token inválido');
@@ -57,10 +77,12 @@ const WebpayReturn = () => {
         if (!response.ok) {
           if (data.error?.includes('already locked')) {
             setPaymentData({ success: true, message: 'Pago ya procesado exitosamente' });
+            if (!user) localStorage.removeItem('bojo_guest_cart');
           } else {
             throw new Error(data.error || 'Error al confirmar pago');
           }
         } else {
+          if (data.success && !user) localStorage.removeItem('bojo_guest_cart');
           setPaymentData(data);
         }
       } catch (err) {

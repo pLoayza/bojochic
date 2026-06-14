@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Modal, Button, Badge, List, InputNumber, Typography, Space, Empty, message } from 'antd';
-import { ShoppingCartOutlined, DeleteOutlined, ShoppingOutlined, CloseOutlined } from '@ant-design/icons';
+import { Modal, Button, Badge, List, InputNumber, Typography, Space, Empty, message, Progress } from 'antd';
+import { ShoppingCartOutlined, DeleteOutlined, ShoppingOutlined, CloseOutlined, CheckCircleFilled } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../../firebase/config';
 import { collection, doc, onSnapshot, updateDoc, deleteDoc } from 'firebase/firestore';
@@ -310,6 +310,43 @@ function ShoppingCart({ iconColor = ' #ffffff', iconSize = '22px', showInNavbar 
             width: '100%', boxSizing: 'border-box',
           }}>
             <Space direction="vertical" style={{ width: '100%' }} size="middle">
+              {/* Barra envío gratis */}
+              {(() => {
+                const MINIMO = 19990;
+                const total = calculateTotal();
+                const falta = Math.max(0, MINIMO - total);
+                const pct = Math.min(100, Math.round((total / MINIMO) * 100));
+                return falta > 0 ? (
+                  <div style={{ background: '#fff8f9', border: '1px solid #ffd6e0', borderRadius: '10px', padding: '10px 14px' }}>
+                    <Text style={{ fontSize: '13px', color: '#555' }}>
+                      Agrega{' '}
+                      <Text strong style={{ color: '#f33763' }}>
+                        ${falta.toLocaleString('es-CL')}
+                      </Text>
+                      {' '}más para conseguir <Text strong>envío gratis</Text>
+                    </Text>
+                    <Progress
+                      percent={pct}
+                      showInfo={false}
+                      strokeColor="#f33763"
+                      trailColor="#f0d0d8"
+                      size="small"
+                      style={{ marginTop: '6px', marginBottom: 0 }}
+                    />
+                  </div>
+                ) : (
+                  <div style={{
+                    background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: '10px',
+                    padding: '10px 14px', display: 'flex', alignItems: 'center', gap: '8px',
+                  }}>
+                    <CheckCircleFilled style={{ color: '#52c41a', fontSize: '16px' }} />
+                    <Text strong style={{ color: '#389e0d', fontSize: '13px' }}>
+                      ¡Tienes envío gratis en regiones seleccionadas!
+                    </Text>
+                  </div>
+                );
+              })()}
+
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0' }}>
                 <Text strong style={{ fontSize: '20px', color: '#333' }}>Total:</Text>
                 <Text strong style={{ fontSize: '28px', color: ' #f33763', fontWeight: 'bold' }}>

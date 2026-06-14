@@ -46,6 +46,78 @@ const WEBPAY = {
 };
 
 // ─────────────────────────────────────────
+// Helper: llamadas a Transbank con logging
+// Reemplaza todos los axios.post/put directos a Webpay.
+// Guarda cada request/response en Firestore (colección tbk_logs)
+// para poder auditar errores por buyOrder.
+// ─────────────────────────────────────────
+const tbkRequest = async (method, path, data, context = {}) => {
+  const url = `${WEBPAY.host}${path}`;
+  const headers = {
+    'Tbk-Api-Key-Id': WEBPAY.commerceCode,
+    'Tbk-Api-Key-Secret': WEBPAY.apiKey,
+    'Content-Type': 'application/json'
+  };
+
+  const startTime = Date.now();
+  const logEntry = {
+    timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    method: method.toUpperCase(),
+    url,
+    environment: process.env.WEBPAY_ENV || 'integration',
+    requestBody: data || null,
+    ...context
+  };
+
+  try {
+    const response = await axios({ method, url, data, headers });
+    const latency = Date.now() - startTime;
+
+    logEntry.status = 'success';
+    logEntry.httpStatus = response.status;
+    logEntry.latencyMs = latency;
+    logEntry.responseBody = response.data;
+    logEntry.tbkHeaders = {
+      traceId:   response.headers['x-tbk-trace-id'] || null,
+      requestId: response.headers['x-request-id']   || null,
+    };
+
+    console.log(`✅ TBK ${method.toUpperCase()} ${path} → ${response.status} (${latency}ms)`);
+    return response;
+
+  } catch (error) {
+    const latency = Date.now() - startTime;
+    const axiosError = error.response;
+
+    logEntry.status = 'error';
+    logEntry.latencyMs = latency;
+    logEntry.httpStatus = axiosError?.status || null;
+    logEntry.errorMessage = error.message;
+    logEntry.responseBody = axiosError?.data || null;
+    logEntry.tbkErrorCode = axiosError?.data?.error_message || null;
+    logEntry.tbkDetail    = axiosError?.data?.detail        || null;
+    logEntry.tbkHeaders = {
+      traceId:   axiosError?.headers?.['x-tbk-trace-id'] || null,
+      requestId: axiosError?.headers?.['x-request-id']   || null,
+    };
+
+    console.error(`❌ TBK ${method.toUpperCase()} ${path} → ${axiosError?.status || 'SIN_RESPUESTA'} (${latency}ms)`);
+    console.error('   Body TBK:', JSON.stringify(axiosError?.data, null, 2));
+    console.error('   Trace-ID:', logEntry.tbkHeaders.traceId);
+
+    throw error;
+
+  } finally {
+    // Guardar log en Firestore sin bloquear la respuesta
+    const logId = context.buyOrder || `tbk-${Date.now()}`;
+    db.collection('tbk_logs')
+      .doc(logId)
+      .set(logEntry, { merge: true })
+      .catch(e => console.error('⚠️ Error guardando log TBK:', e.message));
+  }
+};
+
+// ─────────────────────────────────────────
 // Middleware Auth — obligatorio
 // ─────────────────────────────────────────
 const verifyAuth = async (req, res, next) => {
@@ -68,13 +140,12 @@ const verifyAuthOptional = async (req, res, next) => {
     const token = req.headers.authorization?.split('Bearer ')[1];
     if (token) {
       const decodedToken = await admin.auth().verifyIdToken(token);
-      req.user = decodedToken; // usuario registrado
+      req.user = decodedToken;
     } else {
-      req.user = null; // guest
+      req.user = null;
     }
     next();
   } catch (error) {
-    // Token inválido → tratarlo como guest en vez de rechazar
     req.user = null;
     next();
   }
@@ -333,7 +404,6 @@ const buildWelcomeEmail = () => {
 
 // ─────────────────────────────────────────
 // CREAR TRANSACCIÓN
-// Usa verifyAuthOptional → acepta usuarios registrados Y guests
 // ─────────────────────────────────────────
 app.post('/api/webpay/create', verifyAuthOptional, async (req, res) => {
   try {
@@ -342,29 +412,29 @@ app.post('/api/webpay/create', verifyAuthOptional, async (req, res) => {
     if (!amount || amount <= 0) return res.status(400).json({ error: 'Monto inválido' });
 
     const buyOrder  = `ORD-${Date.now()}`;
-    // sessionId: uid si es usuario registrado, email del guest si no
     const sessionId = req.user ? req.user.uid : (guestEmail || `guest-${Date.now()}`);
     const returnUrl = `${process.env.FRONTEND_URL}/webpay/return`;
 
-    const response = await axios.post(
-      `${WEBPAY.host}/rswebpaytransaction/api/webpay/v1.2/transactions`,
+    // ← Usa tbkRequest en vez de axios.post directo
+    const response = await tbkRequest(
+      'post',
+      '/rswebpaytransaction/api/webpay/v1.2/transactions',
       { buy_order: buyOrder, session_id: sessionId, amount, return_url: returnUrl },
-      { headers: { 'Tbk-Api-Key-Id': WEBPAY.commerceCode, 'Tbk-Api-Key-Secret': WEBPAY.apiKey, 'Content-Type': 'application/json' } }
+      { buyOrder, sessionId, action: 'create' }
     );
 
-    // Guardar orden — userId es null para guests
     await db.collection('orders').doc(buyOrder).set({
-      userId:      req.user ? req.user.uid : null,
-      isGuest:     isGuest || false,
+      userId:        req.user ? req.user.uid : null,
+      isGuest:       isGuest || false,
       buyOrder,
       sessionId,
       amount,
       items,
       shippingData,
-      token:       response.data.token,
-      status:      'pending',
+      token:         response.data.token,
+      status:        'pending',
       paymentStatus: 'pending',
-      createdAt:   admin.firestore.FieldValue.serverTimestamp()
+      createdAt:     admin.firestore.FieldValue.serverTimestamp()
     });
 
     res.json({ success: true, token: response.data.token, url: response.data.url, buyOrder });
@@ -377,7 +447,6 @@ app.post('/api/webpay/create', verifyAuthOptional, async (req, res) => {
 
 // ─────────────────────────────────────────
 // CONFIRMAR TRANSACCIÓN
-// Usa verifyAuthOptional → funciona para usuarios Y guests
 // ─────────────────────────────────────────
 app.post('/api/webpay/confirm', verifyAuthOptional, async (req, res) => {
   try {
@@ -397,42 +466,44 @@ app.post('/api/webpay/confirm', verifyAuthOptional, async (req, res) => {
     if (orderData.status === 'approved' || orderData.status === 'rejected') {
       console.log('⚠️ Orden ya procesada, ignorando:', orderData.buyOrder);
       return res.json({
-        success: orderData.status === 'approved',
-        buyOrder: orderData.buyOrder,
-        amount: orderData.amount,
+        success:           orderData.status === 'approved',
+        buyOrder:          orderData.buyOrder,
+        amount:            orderData.amount,
         authorizationCode: orderData.authorizationCode,
-        responseCode: orderData.responseCode,
-        cardNumber: orderData.cardNumber,
-        alreadyProcessed: true
+        responseCode:      orderData.responseCode,
+        cardNumber:        orderData.cardNumber,
+        alreadyProcessed:  true
       });
     }
 
     await orderDoc.ref.update({ status: 'processing' });
 
-    const response = await axios.put(
-      `${WEBPAY.host}/rswebpaytransaction/api/webpay/v1.2/transactions/${token}`,
+    // ← Usa tbkRequest en vez de axios.put directo
+    const response = await tbkRequest(
+      'put',
+      `/rswebpaytransaction/api/webpay/v1.2/transactions/${token}`,
       {},
-      { headers: { 'Tbk-Api-Key-Id': WEBPAY.commerceCode, 'Tbk-Api-Key-Secret': WEBPAY.apiKey, 'Content-Type': 'application/json' } }
+      { buyOrder: orderData.buyOrder, action: 'confirm' }
     );
 
     const paymentData = response.data;
     const isApproved  = paymentData.response_code === 0;
 
     await orderDoc.ref.update({
-      status:          isApproved ? 'approved' : 'rejected',
-      paymentStatus:   isApproved ? 'paid' : 'failed',
-      vci:             paymentData.vci,
-      cardNumber:      paymentData.card_detail?.card_number,
+      status:            isApproved ? 'approved' : 'rejected',
+      paymentStatus:     isApproved ? 'paid' : 'failed',
+      vci:               paymentData.vci,
+      cardNumber:        paymentData.card_detail?.card_number,
       authorizationCode: paymentData.authorization_code,
-      transactionDate: paymentData.transaction_date,
-      paymentTypeCode: paymentData.payment_type_code,
-      responseCode:    paymentData.response_code,
-      installments:    paymentData.installments_number || 0,
-      confirmedAt:     admin.firestore.FieldValue.serverTimestamp()
+      transactionDate:   paymentData.transaction_date,
+      paymentTypeCode:   paymentData.payment_type_code,
+      responseCode:      paymentData.response_code,
+      installments:      paymentData.installments_number || 0,
+      confirmedAt:       admin.firestore.FieldValue.serverTimestamp()
     });
 
     if (isApproved) {
-      // Limpiar carrito — solo si era usuario registrado (guests no tienen carrito en Firestore)
+      // Limpiar carrito
       if (!orderData.isGuest && orderData.userId) {
         try {
           const cartSnapshot = await db.collection('users').doc(orderData.userId).collection('cart').get();
@@ -445,14 +516,11 @@ app.post('/api/webpay/confirm', verifyAuthOptional, async (req, res) => {
         }
       }
 
-      // 📦 Bajar stock
+      // Bajar stock
       try {
         const stockBatch = db.batch();
         for (const item of orderData.items) {
-          if (!item.id) {
-            console.warn('⚠️ Item sin id, saltando:', item.name);
-            continue;
-          }
+          if (!item.id) { console.warn('⚠️ Item sin id, saltando:', item.name); continue; }
           const productoRef  = db.collection('productos').doc(item.id);
           const productoSnap = await productoRef.get();
           if (productoSnap.exists) {
@@ -470,33 +538,26 @@ app.post('/api/webpay/confirm', verifyAuthOptional, async (req, res) => {
         console.error('⚠️ Error actualizando stock:', stockError.message);
       }
 
-      // 📧 Correo de confirmación al cliente
+      // Correo cliente
       try {
         await resend.emails.send({
           from:    'Bojo <Pedidos@bojo.cl>',
           to:      orderData.shippingData.email,
           subject: `✨ ¡Pedido confirmado! Orden ${orderData.buyOrder}`,
-          html:    buildOrderEmail(
-            orderData.shippingData, orderData.items, orderData.amount,
-            orderData.buyOrder, paymentData.authorization_code
-          )
+          html:    buildOrderEmail(orderData.shippingData, orderData.items, orderData.amount, orderData.buyOrder, paymentData.authorization_code)
         });
         console.log('✅ Correo enviado a:', orderData.shippingData.email);
       } catch (emailError) {
         console.error('⚠️ Error enviando correo al cliente:', emailError.message);
       }
 
-      // 📧 Notificación al admin (incluye badge "Invitado" si aplica)
+      // Correo admin
       try {
         await resend.emails.send({
           from:    'Bojo <Pedidos@bojo.cl>',
           to:      process.env.ADMIN_EMAIL,
           subject: `🛍️ Nueva venta — ${orderData.buyOrder} — $${orderData.amount.toLocaleString('es-CL')}${orderData.isGuest ? ' [Invitado]' : ''}`,
-          html:    buildAdminEmail(
-            orderData.shippingData, orderData.items, orderData.amount,
-            orderData.buyOrder, paymentData.authorization_code,
-            orderData.isGuest
-          )
+          html:    buildAdminEmail(orderData.shippingData, orderData.items, orderData.amount, orderData.buyOrder, paymentData.authorization_code, orderData.isGuest)
         });
         console.log('✅ Notificación enviada al admin');
       } catch (emailError) {
@@ -517,6 +578,55 @@ app.post('/api/webpay/confirm', verifyAuthOptional, async (req, res) => {
   } catch (error) {
     console.error('❌ Error confirm:', error.response?.data || error.message);
     res.status(500).json({ error: error.response?.data?.error_message || error.message });
+  }
+});
+
+// ─────────────────────────────────────────
+// DEBUG: consultar log de una orden
+// Uso: GET /api/debug/order/ORD-1234567890
+// Requiere token de admin (verifyAuth)
+// ─────────────────────────────────────────
+app.get('/api/debug/order/:buyOrder', verifyAuth, async (req, res) => {
+  const { buyOrder } = req.params;
+
+  try {
+    const [orderSnap, logSnap] = await Promise.all([
+      db.collection('orders').doc(buyOrder).get(),
+      db.collection('tbk_logs').doc(buyOrder).get()
+    ]);
+
+    if (!orderSnap.exists) return res.status(404).json({ error: 'Orden no encontrada' });
+
+    const order = orderSnap.data();
+    const log   = logSnap.exists ? logSnap.data() : null;
+
+    res.json({
+      order: {
+        buyOrder:          order.buyOrder,
+        status:            order.status,
+        paymentStatus:     order.paymentStatus,
+        amount:            order.amount,
+        isGuest:           order.isGuest,
+        responseCode:      order.responseCode,
+        authorizationCode: order.authorizationCode,
+        createdAt:         order.createdAt,
+        confirmedAt:       order.confirmedAt,
+      },
+      tbkLog: log ? {
+        action:       log.action,
+        status:       log.status,
+        httpStatus:   log.httpStatus,
+        latencyMs:    log.latencyMs,
+        errorMessage: log.errorMessage,
+        tbkErrorCode: log.tbkErrorCode,
+        tbkDetail:    log.tbkDetail,
+        tbkHeaders:   log.tbkHeaders,
+        responseBody: log.responseBody,
+      } : { message: 'Sin log TBK — la orden fue creada antes de activar el logging' }
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
