@@ -5,6 +5,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import plateadosImg from '../../assets/Categorias/plateados.jpeg';
 import doradosImg from '../../assets/Categorias/Dorados.jpeg';
+import ProductModal from '../Productos/ProductModal';
 
 const { Title } = Typography;
 
@@ -12,6 +13,7 @@ const Destacado = () => {
   const navigate = useNavigate();
   const [hoveredCard, setHoveredCard] = useState(null);
   const [productosMap, setProductosMap] = useState({ plateados: [], dorados: [] });
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
     const cargarProductos = async () => {
@@ -197,7 +199,7 @@ const Destacado = () => {
                             }}
                             onClick={(e) => {
                               e.stopPropagation();
-                              navigate(coleccion.path);
+                              setSelectedProduct(producto);
                             }}
                             onMouseEnter={(e) => {
                               e.currentTarget.style.transform = 'translateY(-5px) scale(1.02)';
@@ -224,7 +226,7 @@ const Destacado = () => {
                               <div style={{ fontSize: '14px', fontWeight: '600', color: '#333', marginBottom: '5px' }}>
                                 {producto.nombre || producto.title}
                               </div>
-                              <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#f33763' }}>
+                              <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#000' }}>
                                 {formatearPrecio(producto.precio || producto.price)}
                               </div>
                             </div>
@@ -268,6 +270,12 @@ const Destacado = () => {
           );
         })}
       </Row>
+
+      <ProductModal
+        visible={!!selectedProduct}
+        producto={selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+      />
     </div>
   );
 };

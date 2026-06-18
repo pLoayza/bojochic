@@ -96,7 +96,7 @@ const BundleModal = ({ visible, bundle, onClose }) => {
             padding: '4px 12px', borderRadius: '20px',
             display: 'flex', alignItems: 'center', gap: '6px',
           }}>
-            <GiftOutlined /> Bundle
+            <GiftOutlined /> Pack
           </div>
 
           {/* Badge descuento */}
@@ -184,7 +184,7 @@ const BundleModal = ({ visible, bundle, onClose }) => {
           {/* Precio */}
           <div style={{ marginBottom: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 'clamp(26px,6vw,32px)', fontWeight: 'bold', color: '#f33763' }}>
+              <span style={{ fontSize: 'clamp(26px,6vw,32px)', fontWeight: 'bold', color: '#000' }}>
                 ${(bundle.precioBundle || 0).toLocaleString('es-CL')}
               </span>
               {bundle.precioNormal > 0 && (
@@ -203,7 +203,7 @@ const BundleModal = ({ visible, bundle, onClose }) => {
           {/* Tags */}
           <Space style={{ marginBottom: '25px', flexWrap: 'wrap' }}>
             <Tag color="purple" style={{ fontSize: '13px', padding: '4px 10px' }}>
-              <GiftOutlined /> Bundle
+              <GiftOutlined /> Pack
             </Tag>
             {agotado
               ? <Tag color="red"    style={{ fontSize: '13px', padding: '4px 10px' }}>Agotado</Tag>
@@ -233,7 +233,7 @@ const BundleModal = ({ visible, bundle, onClose }) => {
           {bundle.productosSnap?.length > 0 && (
             <div style={{ marginBottom: '25px' }}>
               <h4 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>
-                🎁 Este bundle incluye:
+                🎁 Este pack incluye:
               </h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {bundle.productosSnap.map((p) => (
@@ -257,7 +257,7 @@ const BundleModal = ({ visible, bundle, onClose }) => {
                       }}>
                         {p.nombre}
                       </div>
-                      <div style={{ fontSize: '13px', color: '#f33763', fontWeight: 500 }}>
+                      <div style={{ fontSize: '13px', color: '#000', fontWeight: 500 }}>
                         ${(p.precio || 0).toLocaleString('es-CL')}
                       </div>
                     </div>
@@ -291,7 +291,7 @@ const BundleModal = ({ visible, bundle, onClose }) => {
                 fontWeight: 600, height: '50px', fontSize: '16px',
               }}
             >
-              {agotado ? 'Bundle no disponible' : 'Agregar bundle al carrito'}
+              {agotado ? 'Pack no disponible' : 'Agregar pack al carrito'}
             </Button>
 
             <Button

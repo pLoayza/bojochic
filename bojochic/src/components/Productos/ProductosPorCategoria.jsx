@@ -115,7 +115,7 @@ const ProductosPorCategoria = ({ categoria, productos, bundles = [], categoriaNo
             Mostrando {totalItems} {totalItems === 1 ? 'producto' : 'productos'}
             {bundles.length > 0 && (
               <span style={{ marginLeft: '8px', color: '#722ed1', fontWeight: 600 }}>
-                · {bundles.length} {bundles.length === 1 ? 'bundle' : 'bundles'} incluidos
+                · {bundles.length} {bundles.length === 1 ? 'pack' : 'packs'} incluidos
               </span>
             )}
           </div>
@@ -135,7 +135,7 @@ const ProductosPorCategoria = ({ categoria, productos, bundles = [], categoriaNo
               alignItems: 'center',
               gap: '8px',
             }}>
-              🎁 Bundles especiales
+              🎁 Packs especiales
             </div>
             <Row gutter={[24, 24]} style={{ marginBottom: '40px' }}>
               {bundles.map((bundle) => (

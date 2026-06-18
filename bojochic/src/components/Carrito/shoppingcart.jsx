@@ -365,7 +365,7 @@ function ShoppingCart({ iconColor = ' #ffffff', iconSize = '22px', showInNavbar 
                 onMouseEnter={(e) => { e.currentTarget.style.background = '#c00686'; e.currentTarget.style.borderColor = '#c00686'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = ' #f33763'; e.currentTarget.style.borderColor = ' #f33763'; }}
               >
-                Proceder al Pago
+                Continuar compra
               </Button>
             </Space>
           </div>

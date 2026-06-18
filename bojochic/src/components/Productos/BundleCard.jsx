@@ -111,7 +111,7 @@ const BundleCard = ({ bundle }) => {
           min-height: 40px;
         }
         .bc-price-block { display: flex; flex-direction: column; gap: 1px; margin-bottom: 6px; }
-        .bc-price { font-size: 17px; font-weight: 700; color: #e53935; }
+        .bc-price { font-size: 17px; font-weight: 700; color: #000; }
         .bc-price-original { font-size: 12px; color: #aaa; text-decoration: line-through; }
         .bc-ahorro { font-size: 11px; color: #888; margin-bottom: 10px; }
         .bc-ver-btn {
@@ -139,7 +139,7 @@ const BundleCard = ({ bundle }) => {
 
           {agotado
             ? <span className="bc-badge-agotado">Agotado</span>
-            : <span className="bc-badge-bundle"><GiftOutlined /> Bundle</span>
+            : <span className="bc-badge-bundle"><GiftOutlined /> Pack</span>
           }
 
           {porcentaje > 0 && !agotado && (
@@ -173,7 +173,7 @@ const BundleCard = ({ bundle }) => {
 
           <button className="bc-ver-btn" disabled={agotado}>
             <GiftOutlined />
-            {agotado ? 'Sin stock' : 'Ver bundle'}
+            {agotado ? 'Sin stock' : 'Ver pack'}
           </button>
         </div>
       </div>

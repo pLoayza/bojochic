@@ -1,10 +1,10 @@
-import { Card, List, Typography, Space, Divider, Alert, Progress } from 'antd';
-import { CheckCircleFilled } from '@ant-design/icons';
+import { Card, List, Typography, Space, Divider, Alert, Progress, Button } from 'antd';
+import { CheckCircleFilled, DeleteOutlined } from '@ant-design/icons';
 import { MINIMO_ENVIO_GRATIS } from './CheckoutForm';
 
 const { Title, Text } = Typography;
 
-const OrderSummary = ({ cartItems, subtotal, shipping, total, descuento, codigoAplicado }) => {
+const OrderSummary = ({ cartItems, subtotal, shipping, total, descuento, codigoAplicado, onRemoveItem }) => {
   return (
     <Card 
       title="Resumen del Pedido" 
@@ -39,10 +39,21 @@ const OrderSummary = ({ cartItems, subtotal, shipping, total, descuento, codigoA
                 </Space>
               }
             />
-            <div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
               <Text strong style={{ color: '#f33763' }}>
                 ${(item.price * item.quantity).toLocaleString('es-CL')}
               </Text>
+              {onRemoveItem && (
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<DeleteOutlined />}
+                  onClick={() => onRemoveItem(item)}
+                  style={{ color: '#bbb', padding: '0 4px' }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#f33763'}
+                  onMouseLeave={e => e.currentTarget.style.color = '#bbb'}
+                />
+              )}
             </div>
           </List.Item>
         )}
