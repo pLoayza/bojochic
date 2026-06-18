@@ -1,5 +1,6 @@
 // src/pages/Productos/ProductCard.jsx
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { message } from 'antd';
 import { ShoppingCartOutlined, PlusOutlined, MinusOutlined, CheckOutlined } from '@ant-design/icons';
 
@@ -20,6 +21,7 @@ const saveGuestCart = (items) => {
 };
 
 const ProductCard = ({ producto }) => {
+  const navigate = useNavigate();
   const [showQuantityPopup, setShowQuantityPopup] = useState(false);
   const [cantidad, setCantidad] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
@@ -69,8 +71,7 @@ const ProductCard = ({ producto }) => {
 
   const handleCardClick = () => {
     if (showQuantityPopup) return;
-    savedScrollY.current = window.scrollY;
-    setShowModal(true);
+    navigate(`/producto/${producto.id}`);
   };
 
   const confirmarAgregarAlCarrito = async (e) => {
@@ -256,7 +257,7 @@ const ProductCard = ({ producto }) => {
         .pc-price {
           font-size: 17px;
           font-weight: 700;
-          color: #e53935;
+          color: #000;
           margin: 0;
         }
         .pc-price-original {

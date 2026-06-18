@@ -190,7 +190,7 @@ const Banner = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % banners.length);
-    }, 4000);
+    }, 6000);
     return () => clearInterval(timer);
   }, []);
 
@@ -306,7 +306,7 @@ const Banner = () => {
           <img
             src={bojoLogo}
             alt="Bojo"
-            style={{ height: '36px', cursor: 'pointer', objectFit: 'contain' }}
+            style={{ height: '36px', cursor: 'pointer', objectFit: 'contain', visibility: 'hidden' }}
             onClick={() => navigate('/home')}
           />
         )}
@@ -322,6 +322,7 @@ const Banner = () => {
               position: 'absolute',
               left: '50%',
               transform: 'translateX(-50%)',
+              visibility: 'hidden',
             }}
             onClick={() => navigate('/home')}
           />

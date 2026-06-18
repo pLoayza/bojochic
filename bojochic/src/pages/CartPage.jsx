@@ -188,7 +188,7 @@ function CartPage() {
                   icon={<ShoppingOutlined />}
                   onClick={handleCheckout}
                 >
-                  Proceder al Pago
+                  Continuar compra
                 </Button>
 
                 <Button 

@@ -283,7 +283,7 @@ const ProductModal = ({ visible, producto, onClose, afterClose }) => {
               </div>
             )}
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 'clamp(22px,4vw,30px)', fontWeight: '800', color: '#f33763', lineHeight: 1 }}>
+              <span style={{ fontSize: 'clamp(22px,4vw,30px)', fontWeight: '800', color: '#000', lineHeight: 1 }}>
                 {formatearPrecio(precioFinal)}
               </span>
               {tieneDescuento && (

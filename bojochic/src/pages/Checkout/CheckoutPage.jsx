@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Row, Col, Spin, message } from 'antd';
 import { auth, db } from '../../firebase/config';
-import { collection, onSnapshot, doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { collection, onSnapshot, doc, getDoc, updateDoc, arrayUnion, deleteDoc } from 'firebase/firestore';
 import CheckoutForm, { getCostoEnvio } from '../../components/Payments/CheckoutForm';
 import OrderSummary from '../../components/Payments/OrderSummary';
+import RecomendacionesEnvioGratis from '../../components/Payments/RecomendacionesEnvioGratis';
 import Banner from '../../components/Banner/Banner';
 
 const CODIGOS_DESCUENTO = {
@@ -173,6 +174,29 @@ const CheckoutPage = () => {
     setCodigoAplicado(null);
   };
 
+  const removeItem = async (item) => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        const itemRef = doc(db, 'users', user.uid, 'cart', item.id);
+        await deleteDoc(itemRef);
+        message.success('Producto eliminado del carrito');
+      } else {
+        const cartKey = item.size ? `${item.id}_${item.size}` : item.id;
+        const updated = cartItems.filter(i => {
+          const k = i.size ? `${i.id}_${i.size}` : i.id;
+          return k !== cartKey;
+        });
+        localStorage.setItem(CART_KEY, JSON.stringify(updated));
+        setCartItems(updated);
+        message.success('Producto eliminado del carrito');
+      }
+    } catch (error) {
+      console.error('Error eliminando producto:', error);
+      message.error('Error al eliminar el producto');
+    }
+  };
+
   const marcarCodigoUsado = async () => {
     if (isGuest || !codigoAplicado) return;
 
@@ -231,6 +255,11 @@ const CheckoutPage = () => {
               descuento={descuento}
               codigoAplicado={codigoAplicado}
               total={total}
+              onRemoveItem={removeItem}
+            />
+            <RecomendacionesEnvioGratis
+              subtotal={subtotal}
+              cartItems={cartItems}
             />
           </Col>
         </Row>
