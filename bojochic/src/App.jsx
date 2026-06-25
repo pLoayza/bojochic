@@ -19,10 +19,13 @@ import EstadisticasPage from './pages/Estadisticas/EstadisticasPage';
 import LoginPage from './pages/LoginPage';
 import Profile from './pages/profile';
 import CheckoutPage from './pages/Checkout/CheckoutPage';
+import PaymentMethodPage from './pages/Checkout/PaymentMethodPage';
 import OrderConfirmationPage from './pages/Checkout/OrderConfirmationPage';
 import AdminPage from './pages/Admin/AdminPage';
 import GestionUsuariosPage from './pages/Admin/GestionUsuariosPage';
 import WebpayReturn from './components/Payments/WebpayReturn';
+import MercadoPagoReturn from './components/Payments/MercadoPagoReturn';
+import MercadoPagoPage from './pages/Checkout/MercadoPagoPage';
 import CartPage from './pages/CartPage';
 import MyOrders from './components/Payments/MyOrders';
 // POLÍTICAS
@@ -54,8 +57,11 @@ function App() {
               <Route path="nosotros"    element={<Nosotros />} />
               <Route path="catalogo"    element={<Catalogo />} />
               <Route path="ofertas"     element={<Catalogo />} />
-              <Route path="/checkout"   element={<CheckoutPage />} />
-              <Route path="/webpay/return" element={<WebpayReturn />} />
+              <Route path="/checkout"        element={<CheckoutPage />} />
+              <Route path="/checkout/pago"        element={<PaymentMethodPage />} />
+              <Route path="/checkout/mercadopago" element={<MercadoPagoPage />} />
+              <Route path="/webpay/return"        element={<WebpayReturn />} />
+              <Route path="/mercadopago/return"   element={<MercadoPagoReturn />} />
               <Route path="Estadisticas" element={<EstadisticasPage />} />
               <Route path="/perfil"     element={<Profile />} />
               <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
@@ -84,6 +90,8 @@ function App() {
               <Route path="panuelos"  element={<ProductosPage />} />
               <Route path="otros"     element={<ProductosPage />} />
               <Route path="conjuntos" element={<ProductosPage />} />
+              <Route path="gorros"    element={<ProductosPage />} />
+              <Route path="bufandas"  element={<ProductosPage />} />
               {/* Colecciones */}
               <Route path="plateados" element={<ProductosPage />} />
               <Route path="dorados"   element={<ProductosPage />} />

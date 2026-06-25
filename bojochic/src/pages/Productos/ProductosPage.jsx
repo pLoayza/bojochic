@@ -16,9 +16,11 @@ const categoryNames = {
   otros:       'Otros',
   plateados:   'Plateados',
   dorados:     'Dorados',
-  Invierno:        'Invierno',
+  Invierno:    'Invierno',
   novedades:   'Novedades',
   promociones: 'Promociones',
+  gorros:      'Gorros',
+  bufandas:    'Bufandas',
 };
 
 const ProductosPage = () => {

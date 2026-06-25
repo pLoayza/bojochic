@@ -2,11 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Row, Col, Spin, message } from 'antd';
 import { auth, db } from '../../firebase/config';
-import { collection, onSnapshot, doc, getDoc, updateDoc, arrayUnion, deleteDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, getDoc, deleteDoc } from 'firebase/firestore';
 import CheckoutForm, { getCostoEnvio } from '../../components/Payments/CheckoutForm';
 import OrderSummary from '../../components/Payments/OrderSummary';
 import RecomendacionesEnvioGratis from '../../components/Payments/RecomendacionesEnvioGratis';
 import Banner from '../../components/Banner/Banner';
+import CheckoutSteps from '../../components/Payments/CheckoutSteps';
+
+const CHECKOUT_DATA_KEY = 'bojo_checkout_data';
 
 const CODIGOS_DESCUENTO = {
   /* DESACTIVADOS MIENTRAS 20% TOTAL ACTIVO
@@ -197,24 +200,20 @@ const CheckoutPage = () => {
     }
   };
 
-  const marcarCodigoUsado = async () => {
-    if (isGuest || !codigoAplicado) return;
-
-    try {
-      const user = auth.currentUser;
-      await updateDoc(doc(db, 'users', user.uid), {
-        codigosUsados: arrayUnion(codigoAplicado)
-      });
-    } catch (error) {
-      console.error('Error marcando código como usado:', error);
-    }
-  };
-
-  const onPagoConfirmado = () => {
-    marcarCodigoUsado();
-  };
-
   const total = subtotal + shipping - descuento;
+
+  const onPagoConfirmado = (formValues) => {
+    sessionStorage.setItem(CHECKOUT_DATA_KEY, JSON.stringify({
+      formValues,
+      totalAmount: total,
+      shipping,
+      cartItems,
+      isGuest,
+      codigoAplicado,
+      descuento,
+    }));
+    navigate('/checkout/pago');
+  };
 
   if (loading) {
     return (
@@ -231,6 +230,7 @@ const CheckoutPage = () => {
     <>
       <Banner />
       <div style={{ maxWidth: '1200px', margin: '50px auto', padding: '0 20px', minHeight: '70vh' }}>
+        <CheckoutSteps current={0} />
         <Row gutter={[32, 32]}>
           <Col xs={24} lg={14}>
             <CheckoutForm
