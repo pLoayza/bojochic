@@ -653,6 +653,275 @@ app.post('/api/subscribers/welcome', async (req, res) => {
 });
 
 // ─────────────────────────────────────────
+// MERCADOPAGO — Config
+// Credenciales: https://www.mercadopago.cl/developers/panel/app
+// ─────────────────────────────────────────
+const { MercadoPagoConfig, Preference, Payment } = require('mercadopago');
+
+const mpClient = new MercadoPagoConfig({
+  accessToken: process.env.MP_ACCESS_TOKEN,
+  options: { timeout: 5000 },
+});
+
+// Helper: acciones post-pago aprobado (limpiar carrito, stock, emails)
+const handleMPPostPayment = async (orderData, paymentId) => {
+  // Limpiar carrito del usuario registrado
+  if (!orderData.isGuest && orderData.userId) {
+    try {
+      const cartSnapshot = await db.collection('users').doc(orderData.userId).collection('cart').get();
+      const batch = db.batch();
+      cartSnapshot.docs.forEach(d => batch.delete(d.ref));
+      await batch.commit();
+      console.log('✅ MP: Carrito limpiado');
+    } catch (err) {
+      console.error('⚠️ MP: Error limpiando carrito:', err.message);
+    }
+  }
+
+  // Bajar stock
+  try {
+    const stockBatch = db.batch();
+    for (const item of orderData.items) {
+      if (!item.id) continue;
+      const productoRef = db.collection('productos').doc(item.id);
+      const productoSnap = await productoRef.get();
+      if (productoSnap.exists) {
+        const nuevoStock = Math.max(0, (productoSnap.data().stock || 0) - item.quantity);
+        stockBatch.update(productoRef, { stock: nuevoStock });
+      }
+    }
+    await stockBatch.commit();
+    console.log('✅ MP: Stock actualizado');
+  } catch (err) {
+    console.error('⚠️ MP: Error actualizando stock:', err.message);
+  }
+
+  // Correo al cliente
+  try {
+    await resend.emails.send({
+      from: 'Bojo <Pedidos@bojo.cl>',
+      to: orderData.shippingData.email,
+      subject: `✨ ¡Pedido confirmado! Orden ${orderData.buyOrder}`,
+      html: buildOrderEmail(orderData.shippingData, orderData.items, orderData.amount, orderData.buyOrder, paymentId),
+    });
+    console.log('✅ MP: Correo enviado al cliente');
+  } catch (err) {
+    console.error('⚠️ MP: Error enviando correo al cliente:', err.message);
+  }
+
+  // Correo al admin
+  try {
+    await resend.emails.send({
+      from: 'Bojo <Pedidos@bojo.cl>',
+      to: process.env.ADMIN_EMAIL,
+      subject: `🛍️ Nueva venta MP — ${orderData.buyOrder} — $${orderData.amount.toLocaleString('es-CL')}${orderData.isGuest ? ' [Invitado]' : ''}`,
+      html: buildAdminEmail(orderData.shippingData, orderData.items, orderData.amount, orderData.buyOrder, paymentId, orderData.isGuest),
+    });
+    console.log('✅ MP: Notificación enviada al admin');
+  } catch (err) {
+    console.error('⚠️ MP: Error enviando correo al admin:', err.message);
+  }
+};
+
+// ─────────────────────────────────────────
+// MP: CREAR PREFERENCIA
+// ─────────────────────────────────────────
+app.post('/api/mercadopago/create-preference', verifyAuthOptional, async (req, res) => {
+  try {
+    const { amount, items, shipping = 0, descuento = 0, shippingData, isGuest, guestEmail } = req.body;
+
+    if (!amount || amount <= 0) return res.status(400).json({ error: 'Monto inválido' });
+
+    const buyOrder = `MP-${Date.now()}`;
+    const frontendUrl = process.env.FRONTEND_URL;
+
+    // Armar items para la preferencia (CLP = sin decimales, sin precios negativos)
+    const mpItems = items.map(item => ({
+      id: String(item.id),
+      title: String(item.name).substring(0, 256),
+      quantity: Number(item.quantity),
+      unit_price: Math.round(item.price),
+      currency_id: 'CLP',
+    }));
+
+    // Envío como item separado en lugar de campo shipments
+    if (shipping > 0) {
+      mpItems.push({
+        id: 'envio',
+        title: 'Costo de envío',
+        quantity: 1,
+        unit_price: Math.round(shipping),
+        currency_id: 'CLP',
+      });
+    }
+
+    // Descuento: restar del primer item para evitar precios negativos
+    // (MP bloquea unit_price negativo en algunas cuentas)
+    if (descuento > 0 && mpItems.length > 0) {
+      const totalItems = mpItems.reduce((s, i) => s + i.unit_price * i.quantity, 0);
+      const factor = (totalItems - descuento) / totalItems;
+      mpItems.forEach(i => { i.unit_price = Math.round(i.unit_price * factor); });
+    }
+
+    const preference = {
+      items: mpItems,
+      payer: {
+        email: shippingData.email || guestEmail || '',
+      },
+      back_urls: {
+        success: `${frontendUrl}/mercadopago/return`,
+        failure: `${frontendUrl}/mercadopago/return`,
+        pending: `${frontendUrl}/mercadopago/return`,
+      },
+      auto_return: 'approved',
+      external_reference: buyOrder,
+      // Solo incluir webhook en producción — MP rechaza URLs de localhost
+      ...(process.env.BACKEND_URL && !process.env.BACKEND_URL.includes('localhost')
+        ? { notification_url: `${process.env.BACKEND_URL}/api/mercadopago/webhook` }
+        : {}),
+    };
+
+    const prefClient = new Preference(mpClient);
+    const mpRes = await prefClient.create({ body: preference });
+
+    const { id: preferenceId, init_point, sandbox_init_point } = mpRes;
+
+    await db.collection('orders').doc(buyOrder).set({
+      userId: req.user ? req.user.uid : null,
+      isGuest: isGuest || false,
+      buyOrder,
+      amount,
+      items,
+      shippingData,
+      preferenceId,
+      paymentMethod: 'mercadopago',
+      status: 'pending',
+      paymentStatus: 'pending',
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    console.log(`✅ MP preferencia creada: ${buyOrder} → ${preferenceId}`);
+    res.json({ success: true, preferenceId, init_point, sandbox_init_point, buyOrder });
+
+  } catch (error) {
+    console.error('❌ MP create-preference:', error?.cause || error.message);
+    res.status(500).json({ error: error?.cause?.message || error.message });
+  }
+});
+
+// ─────────────────────────────────────────
+// MP: PROCESAR PAGO (tarjeta directo via Brick)
+// Solo se llama para pagos con tarjeta; wallet redirige solo vía back_urls
+// ─────────────────────────────────────────
+app.post('/api/mercadopago/process-payment', verifyAuthOptional, async (req, res) => {
+  try {
+    const { token, issuer_id, payment_method_id, transaction_amount, installments, payer, buyOrder } = req.body;
+
+    if (!token) return res.status(400).json({ error: 'Token de pago requerido' });
+
+    const paymentPayload = {
+      token,
+      issuer_id,
+      payment_method_id,
+      transaction_amount: Math.round(Number(transaction_amount)),
+      installments: Number(installments) || 1,
+      description: 'Compra en Bojo',
+      payer: { email: payer.email, identification: payer.identification || {} },
+    };
+
+    const payClient = new Payment(mpClient);
+    const payment = await payClient.create({
+      body: paymentPayload,
+      requestOptions: { idempotencyKey: buyOrder || `pay-${Date.now()}` },
+    });
+    const isApproved = payment.status === 'approved';
+
+    if (buyOrder) {
+      const orderRef = db.collection('orders').doc(buyOrder);
+      const orderSnap = await orderRef.get();
+      if (orderSnap.exists) {
+        await orderRef.update({
+          status: isApproved ? 'approved' : payment.status,
+          paymentStatus: isApproved ? 'paid' : payment.status,
+          mpPaymentId: String(payment.id),
+          mpStatus: payment.status,
+          mpStatusDetail: payment.status_detail,
+          paymentMethodId: payment.payment_method_id,
+          confirmedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        if (isApproved) await handleMPPostPayment(orderSnap.data(), String(payment.id));
+      }
+    }
+
+    console.log(`✅ MP pago procesado: ${buyOrder} → ${payment.status}`);
+    res.json({ success: isApproved, paymentId: payment.id, status: payment.status, statusDetail: payment.status_detail });
+
+  } catch (error) {
+    console.error('❌ MP process-payment:', error?.cause || error.message);
+    res.status(500).json({ error: error?.cause?.message || error.message });
+  }
+});
+
+// ─────────────────────────────────────────
+// MP: WEBHOOK / IPN
+// MP llama a esta URL para notificar cambios de estado
+// ─────────────────────────────────────────
+app.post('/api/mercadopago/webhook', async (req, res) => {
+  // Responder 200 siempre primero para que MP no reintente
+  res.status(200).json({ ok: true });
+
+  try {
+    const { type, data } = req.body;
+    if (!type || !data?.id) return;
+
+    if (type === 'payment') {
+      const payClient = new Payment(mpClient);
+      const payment = await payClient.get({ id: data.id });
+      const buyOrder = payment.external_reference;
+      if (!buyOrder) return;
+
+      const orderRef = db.collection('orders').doc(buyOrder);
+      const orderSnap = await orderRef.get();
+      if (!orderSnap.exists) return;
+
+      const order = orderSnap.data();
+      if (order.status === 'approved') return; // Idempotencia: ya procesada
+
+      const isApproved = payment.status === 'approved';
+      await orderRef.update({
+        status: isApproved ? 'approved' : payment.status,
+        paymentStatus: isApproved ? 'paid' : payment.status,
+        mpPaymentId: String(payment.id),
+        mpStatus: payment.status,
+        mpStatusDetail: payment.status_detail,
+        confirmedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      if (isApproved) await handleMPPostPayment(order, String(payment.id));
+      console.log(`✅ MP webhook procesado: ${buyOrder} → ${payment.status}`);
+    }
+  } catch (err) {
+    console.error('❌ MP webhook:', err.message);
+  }
+});
+
+// ─────────────────────────────────────────
+// MP: CONSULTAR ESTADO DE PAGO
+// Usado por MercadoPagoReturn para mostrar detalles
+// ─────────────────────────────────────────
+app.get('/api/mercadopago/payment/:paymentId', async (req, res) => {
+  try {
+    const payClient = new Payment(mpClient);
+    const payment = await payClient.get({ id: req.params.paymentId });
+    const { status, status_detail, payment_method_id, transaction_amount, external_reference } = payment;
+    res.json({ status, status_detail, payment_method_id, transaction_amount, external_reference });
+  } catch (error) {
+    console.error('❌ MP get payment:', error?.cause || error.message);
+    res.status(500).json({ error: 'No se pudo obtener el estado del pago' });
+  }
+});
+
+// ─────────────────────────────────────────
 // Health check
 // ─────────────────────────────────────────
 app.get('/health', (req, res) => {
