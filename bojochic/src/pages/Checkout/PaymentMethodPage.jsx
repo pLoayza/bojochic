@@ -333,7 +333,7 @@ const PaymentMethodPage = () => {
           {mpError && (
             <Alert
               type="error"
-              message={mpError}
+              message="Hubo un error al cargar el formulario de pago."
               showIcon
               style={{ marginBottom: 12 }}
               action={
@@ -369,6 +369,7 @@ const PaymentMethodPage = () => {
       label: 'Transferencia Directa',
       badge: 'Próximamente',
       subtitle: 'Depósito o transferencia bancaria',
+      disabled: true,
       color: '#389e0d',
       content: (
         <Space direction="vertical" style={{ width: '100%' }} size="middle">
@@ -450,6 +451,7 @@ const PaymentMethodPage = () => {
         <Space direction="vertical" style={{ width: '100%' }} size="middle">
           {methods.map((method) => {
             const isSelected = selected === method.key;
+            const isDisabled = method.disabled;
             return (
               <Card
                 key={method.key}
@@ -457,11 +459,12 @@ const PaymentMethodPage = () => {
                   borderColor: isSelected ? method.color : '#d9d9d9',
                   borderWidth: isSelected ? 2 : 1,
                   borderRadius: '10px',
-                  cursor: 'pointer',
+                  cursor: isDisabled ? 'not-allowed' : 'pointer',
+                  opacity: isDisabled ? 0.5 : 1,
                   transition: 'border-color 0.2s, box-shadow 0.2s',
                   boxShadow: isSelected ? `0 0 0 2px ${method.color}22` : 'none',
                 }}
-                onClick={() => setSelected(isSelected ? null : method.key)}
+                onClick={() => !isDisabled && setSelected(isSelected ? null : method.key)}
               >
                 <Row align="middle" justify="space-between" wrap={false}>
                   <Col flex="auto">
