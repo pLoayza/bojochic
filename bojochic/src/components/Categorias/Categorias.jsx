@@ -7,6 +7,9 @@ import panuelosImg from '../../assets/Categorias/otros.png';
 import pulserasImg from '../../assets/Categorias/Pulseras.jpeg';
 import collaresImg from '../../assets/Categorias/collares.jpeg';
 import conjuntosImg from '../../assets/Categorias/conjuntos.jpeg';
+// TODO: reemplazar con imágenes reales de gorros y bufandas
+import gorrosImg from '../../assets/Categorias/conjuntos.jpeg';
+import bufandasImg from '../../assets/Categorias/collares.jpeg';
 
 const { Title } = Typography;
 
@@ -41,10 +44,20 @@ const Categorias = () => {
       image: anillosImg,
     },
     {
-  title: 'Otros',
-  path: '/otros',
-  image: panuelosImg,
-},
+      title: 'Otros',
+      path: '/otros',
+      image: panuelosImg,
+    },
+    {
+      title: 'Gorros',
+      path: '/gorros',
+      image: gorrosImg,
+    },
+    {
+      title: 'Bufandas',
+      path: '/bufandas',
+      image: bufandasImg,
+    },
   ];
 
   return (
@@ -63,7 +76,7 @@ const Categorias = () => {
       </Title>
       <Row gutter={[24, 24]}>
         {categories.map((cat, index) => (
-          <Col xs={24} sm={12} md={8} key={cat.title}>
+          <Col xs={12} sm={12} md={6} key={cat.title}>
             <Card
               onClick={() => navigate(cat.path)}
               onMouseEnter={() => setHoveredCard(index)}

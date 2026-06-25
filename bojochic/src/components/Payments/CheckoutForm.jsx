@@ -5,10 +5,9 @@ import {
   PhoneOutlined,
   HomeOutlined,
   EnvironmentOutlined,
-  CreditCardOutlined,
+  ArrowRightOutlined,
   TagOutlined
 } from '@ant-design/icons';
-import { auth } from '../../firebase/config';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -113,78 +112,14 @@ const CheckoutForm = ({
   };
 
   const handleSubmit = async (values) => {
+    if (!cartItems || cartItems.length === 0) {
+      message.error('Tu carrito está vacío');
+      return;
+    }
     setSubmitting(true);
-
     try {
-      if (!cartItems || cartItems.length === 0) {
-        message.error('Tu carrito está vacío');
-        setSubmitting(false);
-        return;
-      }
-
-      const user = auth.currentUser;
-      const headers = { 'Content-Type': 'application/json' };
-
-      if (user) {
-        const token = await user.getIdToken();
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      await onConfirmarPago?.();
-
-      const requestBody = {
-        amount: totalAmount,
-        isGuest: isGuest,
-        guestEmail: isGuest ? values.email : null,
-        items: cartItems.map(item => ({
-          id:       item.id,
-          name:     item.name,
-          price:    item.price,
-          quantity: item.quantity,
-          image:    item.image,
-          size:     item.size  || null,
-          color:    item.color || null
-        })),
-        shippingData: values
-      };
-
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/webpay/create`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(requestBody)
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al crear transacción');
-      }
-
-      // ─── FIX: marcar que hay un pago en curso ANTES de redirigir ──
-      // Esto evita que el onSnapshot del carrito vacío en CheckoutPage
-      // redirija al inicio mientras el usuario está en Webpay.
-      sessionStorage.setItem('bojo_payment_in_progress', 'true');
-      // ──────────────────────────────────────────────────────────────
-
-      const formElement = document.createElement('form');
-      formElement.method = 'POST';
-      formElement.action = data.url;
-
-      const input = document.createElement('input');
-      input.type  = 'hidden';
-      input.name  = 'token_ws';
-      input.value = data.token;
-
-      formElement.appendChild(input);
-      document.body.appendChild(formElement);
-      formElement.submit();
-
-    } catch (error) {
-      console.error('❌ ERROR:', error);
-      // ─── Si hay error antes de redirigir, limpiar el flag ─────────
-      sessionStorage.removeItem('bojo_payment_in_progress');
-      // ──────────────────────────────────────────────────────────────
-      message.error(error.message || 'Error al procesar el pago');
+      await onConfirmarPago?.(values);
+    } finally {
       setSubmitting(false);
     }
   };
@@ -367,15 +302,6 @@ const CheckoutForm = ({
           />
         )}
 
-        <Alert
-          message="Pago Seguro con Webpay"
-          description="Serás redirigido a la plataforma segura de Transbank para completar tu pago."
-          type="info"
-          showIcon
-          icon={<CreditCardOutlined />}
-          style={{ marginBottom: '20px' }}
-        />
-
         <Form.Item>
           <Button
             type="primary"
@@ -383,7 +309,7 @@ const CheckoutForm = ({
             size="large"
             block
             loading={submitting}
-            icon={<CreditCardOutlined />}
+            icon={<ArrowRightOutlined />}
             style={{
               background: 'linear-gradient(45deg, #f33763, #FF6B9D)',
               border: 'none',
@@ -392,7 +318,7 @@ const CheckoutForm = ({
               fontWeight: '600'
             }}
           >
-            {submitting ? 'Redirigiendo a Webpay...' : 'Pagar con Webpay'}
+            {submitting ? 'Cargando...' : 'Continuar al Pago →'}
           </Button>
         </Form.Item>
       </Form>
