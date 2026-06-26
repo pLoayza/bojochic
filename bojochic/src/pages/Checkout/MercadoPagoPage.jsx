@@ -20,6 +20,22 @@ const MP_PUBLIC_KEY = import.meta.env.VITE_MP_PUBLIC_KEY;
 const CHECKOUT_DATA_KEY = 'bojo_checkout_data';
 const SDK_URL = 'https://sdk.mercadopago.com/js/v2';
 
+// Nivel de módulo: persiste entre remontajes del componente.
+// Permite cancelar una operación async anterior si el usuario
+// sale y vuelve rápido antes de que el brick termine de crear.
+let _mpSeq = 0;
+let _mpCtrl = null;
+
+const cancelPreviousBrick = () => {
+  _mpSeq++;
+  if (_mpCtrl) {
+    try { _mpCtrl.unmount(); } catch { /* ignorar */ }
+    _mpCtrl = null;
+  }
+  const el = document.getElementById('mp-brick-container');
+  if (el) el.innerHTML = '';
+};
+
 const loadMPSdk = () => {
   if (window.MercadoPago) return Promise.resolve();
   return new Promise((resolve, reject) => {
@@ -46,7 +62,10 @@ const MercadoPagoPage = () => {
   const brickControllerRef = useRef(null);
   const isMountedRef = useRef(true);
 
-  useEffect(() => () => { isMountedRef.current = false; }, []);
+  useEffect(() => () => {
+    isMountedRef.current = false;
+    cancelPreviousBrick();
+  }, []);
 
   useEffect(() => {
     const raw = sessionStorage.getItem(CHECKOUT_DATA_KEY);
@@ -64,7 +83,6 @@ const MercadoPagoPage = () => {
   useEffect(() => {
     if (!checkoutData) return;
     mountBrick();
-    return () => { brickControllerRef.current?.unmount(); };
   }, [checkoutData]);
 
   const marcarCodigoUsado = async (codigoAplicado, isGuest) => {
@@ -86,10 +104,16 @@ const MercadoPagoPage = () => {
       return;
     }
 
+    // Cancela cualquier operación anterior y limpia el contenedor
+    cancelPreviousBrick();
+    const mySeq = _mpSeq;
+
+    setBrickReady(false);
+    setInitError(null);
+
     const { formValues, totalAmount, cartItems, shipping, descuento, isGuest, codigoAplicado } = checkoutData;
 
     try {
-      // 1. Obtener token de auth
       const user = auth.currentUser;
       const headers = { 'Content-Type': 'application/json' };
       if (user) {
@@ -97,10 +121,8 @@ const MercadoPagoPage = () => {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      // 2. Marcar código de descuento como usado (optimista, igual que Webpay)
       await marcarCodigoUsado(codigoAplicado, isGuest);
 
-      // 3. Crear preferencia en el backend
       const prefRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/mercadopago/create-preference`, {
         method: 'POST',
         headers,
@@ -118,21 +140,24 @@ const MercadoPagoPage = () => {
       const prefData = await prefRes.json();
       if (!prefRes.ok) throw new Error(prefData.error || 'Error al crear preferencia de pago');
 
-      if (!isMountedRef.current) return;
+      // Si el usuario salió mientras esperábamos, abortamos
+      if (!isMountedRef.current || _mpSeq !== mySeq) return;
 
       setBuyOrder(prefData.buyOrder);
       sessionStorage.setItem('bojo_mp_order', prefData.buyOrder);
       sessionStorage.setItem('bojo_payment_in_progress', 'true');
 
-      // 4. Cargar SDK
       await loadMPSdk();
-      if (!isMountedRef.current) return;
+      if (!isMountedRef.current || _mpSeq !== mySeq) return;
 
-      // 5. Montar Payment Brick
+      // Limpiamos el contenedor justo antes de montar por si algo escribió en él
+      const container = document.getElementById('mp-brick-container');
+      if (container) container.innerHTML = '';
+
       const mp = new window.MercadoPago(MP_PUBLIC_KEY, { locale: 'es-CL' });
       const builder = mp.bricks();
 
-      brickControllerRef.current = await builder.create('payment', 'mp-brick-container', {
+      const controller = await builder.create('payment', 'mp-brick-container', {
         initialization: {
           amount: totalAmount,
           preferenceId: prefData.preferenceId,
@@ -155,9 +180,8 @@ const MercadoPagoPage = () => {
         },
         callbacks: {
           onReady: () => {
-            if (isMountedRef.current) setBrickReady(true);
+            if (isMountedRef.current && _mpSeq === mySeq) setBrickReady(true);
           },
-          // Llamado solo para pagos con tarjeta (wallet redirige automáticamente)
           onSubmit: ({ formData }) =>
             new Promise(async (resolve, reject) => {
               try {
@@ -183,21 +207,27 @@ const MercadoPagoPage = () => {
             }),
           onError: (error) => {
             console.error('MP Brick error:', error);
-            if (isMountedRef.current)
+            if (isMountedRef.current && _mpSeq === mySeq)
               setInitError('Error en el formulario de pago. Por favor recarga la página.');
           },
         },
       });
+
+      // Si una nueva operación empezó mientras esperábamos builder.create(), desmontar y salir
+      if (!isMountedRef.current || _mpSeq !== mySeq) {
+        try { controller.unmount(); } catch { /* ignorar */ }
+        return;
+      }
+
+      _mpCtrl = controller;
+      brickControllerRef.current = controller;
     } catch (err) {
       console.error('Error inicializando MercadoPago:', err);
-      if (isMountedRef.current) setInitError(err.message);
+      if (isMountedRef.current && _mpSeq === mySeq) setInitError(err.message);
     }
   };
 
   const handleRetry = () => {
-    setInitError(null);
-    setBrickReady(false);
-    brickControllerRef.current?.unmount();
     mountBrick();
   };
 
