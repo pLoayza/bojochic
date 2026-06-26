@@ -768,12 +768,15 @@ app.post('/api/mercadopago/create-preference', verifyAuthOptional, async (req, r
       payer: {
         email: shippingData.email || guestEmail || '',
       },
-      back_urls: {
-        success: `${frontendUrl}/mercadopago/return`,
-        failure: `${frontendUrl}/mercadopago/return`,
-        pending: `${frontendUrl}/mercadopago/return`,
-      },
-      auto_return: 'approved',
+      // back_urls y auto_return solo cuando la URL es pública (MP rechaza localhost)
+      ...(frontendUrl && !frontendUrl.includes('localhost') ? {
+        back_urls: {
+          success: `${frontendUrl}/mercadopago/return`,
+          failure: `${frontendUrl}/mercadopago/return`,
+          pending: `${frontendUrl}/mercadopago/return`,
+        },
+        auto_return: 'approved',
+      } : {}),
       external_reference: buyOrder,
       // Solo incluir webhook en producción — MP rechaza URLs de localhost
       ...(process.env.BACKEND_URL && !process.env.BACKEND_URL.includes('localhost')
