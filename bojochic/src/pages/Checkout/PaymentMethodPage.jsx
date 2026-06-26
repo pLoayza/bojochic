@@ -48,7 +48,10 @@ const PaymentMethodPage = () => {
   const mpControllerRef = useRef(null);
   const isMountedRef = useRef(true);
 
-  useEffect(() => () => { isMountedRef.current = false; }, []);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false; };
+  }, []);
 
   useEffect(() => {
     const raw = sessionStorage.getItem(CHECKOUT_DATA_KEY);
