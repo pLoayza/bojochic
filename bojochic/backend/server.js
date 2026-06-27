@@ -874,35 +874,42 @@ app.post('/api/mercadopago/webhook', async (req, res) => {
   res.status(200).json({ ok: true });
 
   try {
-    const { type, data } = req.body;
-    if (!type || !data?.id) return;
-
-    if (type === 'payment') {
-      const payClient = new Payment(mpClient);
-      const payment = await payClient.get({ id: data.id });
-      const buyOrder = payment.external_reference;
-      if (!buyOrder) return;
-
-      const orderRef = db.collection('orders').doc(buyOrder);
-      const orderSnap = await orderRef.get();
-      if (!orderSnap.exists) return;
-
-      const order = orderSnap.data();
-      if (order.status === 'approved') return; // Idempotencia: ya procesada
-
-      const isApproved = payment.status === 'approved';
-      await orderRef.update({
-        status: isApproved ? 'approved' : payment.status,
-        paymentStatus: isApproved ? 'paid' : payment.status,
-        mpPaymentId: String(payment.id),
-        mpStatus: payment.status,
-        mpStatusDetail: payment.status_detail,
-        confirmedAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-
-      if (isApproved) await handleMPPostPayment(order, String(payment.id));
-      console.log(`✅ MP webhook procesado: ${buyOrder} → ${payment.status}`);
+    // IPN (notification_url en preferencia): datos en query params
+    // Webhook (panel de developer): datos en body JSON
+    let paymentId;
+    if (req.query.topic === 'payment' && req.query.id) {
+      paymentId = req.query.id;
+    } else if (req.body.type === 'payment' && req.body.data?.id) {
+      paymentId = req.body.data.id;
+    } else {
+      console.log('MP webhook: notificación ignorada', { query: req.query, body: req.body });
+      return;
     }
+
+    const payClient = new Payment(mpClient);
+    const payment = await payClient.get({ id: paymentId });
+    const buyOrder = payment.external_reference;
+    if (!buyOrder) return;
+
+    const orderRef = db.collection('orders').doc(buyOrder);
+    const orderSnap = await orderRef.get();
+    if (!orderSnap.exists) return;
+
+    const order = orderSnap.data();
+    if (order.status === 'approved') return; // Idempotencia: ya procesada
+
+    const isApproved = payment.status === 'approved';
+    await orderRef.update({
+      status: isApproved ? 'approved' : payment.status,
+      paymentStatus: isApproved ? 'paid' : payment.status,
+      mpPaymentId: String(payment.id),
+      mpStatus: payment.status,
+      mpStatusDetail: payment.status_detail,
+      confirmedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    if (isApproved) await handleMPPostPayment(order, String(payment.id));
+    console.log(`✅ MP webhook procesado: ${buyOrder} → ${payment.status}`);
   } catch (err) {
     console.error('❌ MP webhook:', err.message);
   }
