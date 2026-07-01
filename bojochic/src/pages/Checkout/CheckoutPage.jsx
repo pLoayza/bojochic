@@ -23,6 +23,7 @@ const CODIGOS_DESCUENTO = {
   'BOJOTEEXTRAÑA':   { tipo: 'porcentaje', valor: 10 }, */
   /* 'TESTINGQQQQZCXSD':     { tipo: 'porcentaje', valor: 99 }, */
   /* 'SANDRA': { tipo: 'porcentaje', valor: 99 }, */
+  'REGALO10':   { tipo: 'porcentaje', valor: 10 },
 };
 
 const CART_KEY = 'bojo_guest_cart';

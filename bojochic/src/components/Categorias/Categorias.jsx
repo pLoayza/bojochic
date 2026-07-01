@@ -7,9 +7,8 @@ import panuelosImg from '../../assets/Categorias/otros.png';
 import pulserasImg from '../../assets/Categorias/Pulseras.jpeg';
 import collaresImg from '../../assets/Categorias/collares.jpeg';
 import conjuntosImg from '../../assets/Categorias/conjuntos.jpeg';
-// TODO: reemplazar con imágenes reales de gorros y bufandas
-import gorrosImg from '../../assets/Categorias/conjuntos.jpeg';
-import bufandasImg from '../../assets/Categorias/collares.jpeg';
+import gorrosImg from '../../assets/Categorias/gorros.jpeg';
+import bufandasImg from '../../assets/Categorias/bufandas.jpeg';
 
 const { Title } = Typography;
 
