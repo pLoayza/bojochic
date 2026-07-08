@@ -6,10 +6,7 @@ const { Title, Text } = Typography;
 
 const OrderSummary = ({ cartItems, subtotal, shipping, total, descuento, codigoAplicado, onRemoveItem }) => {
   return (
-    <Card 
-      title="Resumen del Pedido" 
-      style={{ position: 'sticky', top: '20px' }}
-    >
+    <Card title="Resumen del Pedido">
       <List
         itemLayout="horizontal"
         dataSource={cartItems}

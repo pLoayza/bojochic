@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Typography, Spin, Card } from 'antd';
+import { Typography, Spin, Card, Grid } from 'antd';
 import { GiftOutlined } from '@ant-design/icons';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase/config';
@@ -8,11 +8,14 @@ import { MINIMO_ENVIO_GRATIS } from './CheckoutForm';
 import ProductModal from '../Productos/ProductModal';
 
 const { Text } = Typography;
+const { useBreakpoint } = Grid;
 
 const RecomendacionesEnvioGratis = ({ subtotal, cartItems }) => {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const screens = useBreakpoint();
+  const isDesktop = !!screens.lg;
 
   const falta = Math.max(0, MINIMO_ENVIO_GRATIS - subtotal);
 
@@ -81,9 +84,9 @@ const RecomendacionesEnvioGratis = ({ subtotal, cartItems }) => {
               onClick={() => setSelectedProduct(producto)}
               bodyStyle={{ padding: '10px' }}
               style={{
-                flex: '1 1 calc(33% - 10px)',
-                minWidth: '100px',
-                maxWidth: '160px',
+                flex: isDesktop ? '1 1 calc(33% - 7px)' : '0 0 calc(50% - 5px)',
+                minWidth: '0',
+                maxWidth: isDesktop ? '160px' : 'calc(50% - 5px)',
                 borderRadius: '10px',
                 border: '1px solid #f0d0d8',
                 cursor: 'pointer',
