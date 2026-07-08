@@ -53,6 +53,10 @@ const CheckoutPage = () => {
   const [loadingCodigo, setLoadingCodigo] = useState(false);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
+
+  useEffect(() => {
     const user = auth.currentUser;
 
     if (user) {
