@@ -140,7 +140,7 @@ const CheckoutForm = ({
         />
       )}
 
-      <Form form={form} layout="vertical" onFinish={handleSubmit} autoComplete="off">
+      <Form form={form} layout="vertical" onFinish={handleSubmit} autoComplete="off" scrollToFirstError>
 
         <Form.Item
           name="nombre"
