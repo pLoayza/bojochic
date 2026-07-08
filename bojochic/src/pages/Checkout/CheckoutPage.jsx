@@ -114,6 +114,18 @@ const CheckoutPage = () => {
 
       setCartItems(items);
       setLoading(false);
+
+      const syncGuestCart = () => {
+        const updated = getGuestCart();
+        if (updated.length === 0) {
+          navigate('/');
+          return;
+        }
+        setCartItems(updated);
+      };
+
+      window.addEventListener('guestCartUpdated', syncGuestCart);
+      return () => window.removeEventListener('guestCartUpdated', syncGuestCart);
     }
   }, [navigate]);
 
