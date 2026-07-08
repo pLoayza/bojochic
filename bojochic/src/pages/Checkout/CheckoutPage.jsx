@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Row, Col, Spin, message } from 'antd';
+import { Row, Col, Spin, message, Grid } from 'antd';
+
+const { useBreakpoint } = Grid;
 import { auth, db } from '../../firebase/config';
 import { collection, onSnapshot, doc, getDoc, deleteDoc } from 'firebase/firestore';
 import CheckoutForm, { getCostoEnvio } from '../../components/Payments/CheckoutForm';
@@ -38,6 +40,8 @@ const getGuestCart = () => {
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
+  const screens = useBreakpoint();
+  const isDesktop = !!screens.lg;
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
@@ -250,19 +254,21 @@ const CheckoutPage = () => {
             />
           </Col>
           <Col xs={24} lg={10}>
-            <OrderSummary
-              cartItems={cartItems}
-              subtotal={subtotal}
-              shipping={shipping}
-              descuento={descuento}
-              codigoAplicado={codigoAplicado}
-              total={total}
-              onRemoveItem={removeItem}
-            />
-            <RecomendacionesEnvioGratis
-              subtotal={subtotal}
-              cartItems={cartItems}
-            />
+            <div style={{ position: isDesktop ? 'sticky' : 'static', top: isDesktop ? '20px' : 'auto' }}>
+              <OrderSummary
+                cartItems={cartItems}
+                subtotal={subtotal}
+                shipping={shipping}
+                descuento={descuento}
+                codigoAplicado={codigoAplicado}
+                total={total}
+                onRemoveItem={removeItem}
+              />
+              <RecomendacionesEnvioGratis
+                subtotal={subtotal}
+                cartItems={cartItems}
+              />
+            </div>
           </Col>
         </Row>
       </div>
