@@ -36,6 +36,8 @@ const ListaProductos = () => {
     { value: 'dorados',     label: 'Dorados' },
     { value: 'plateados',   label: 'Plateados' },
     { value: 'conjuntos',   label: 'Conjuntos' },
+    { value: 'gorros',      label: 'Gorros' },
+    { value: 'bufandas',    label: 'Bufandas' },
     { value: 'otros',       label: 'Otros' },
     { value: 'Invierno',    label: 'Invierno' },
     { value: 'novedades',   label: 'Novedades' },

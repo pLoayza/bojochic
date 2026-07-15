@@ -16,12 +16,12 @@ import banner8 from '../../assets/Categorias/bojo8.png';
 import banner9 from '../../assets/Categorias/bojo9.png';
 import banner10 from '../../assets/Categorias/bojo10.png';
 import banner11 from '../../assets/Categorias/bojo11.png';
-import banner15 from '../../assets/Categorias/bojo15.png';
+import bannerCamb from '../../assets/Categorias/bannercamb.jpeg';
 
 // ✅ CAMBIO 1: path de banner11 apunta a WhatsApp
 const banners = [
   { src: banner4,  path: '/Invierno' },
-  { src: banner15,  path: '/promociones' },
+  { src: bannerCamb,  path: '/promociones' },
   { src: banner9,  path: '/Invierno' },
   { src: banner10, path: '/Invierno' },
   { src: banner11, path: 'https://wa.me/56989058379?text=¡Hola!%20Me%20gustaría%20obtener%20más%20información.' },
@@ -36,7 +36,7 @@ const C = {
 const RUTAS_CON_PRODUCTOS = [
   '/aros', '/collares', '/pulseras', '/panuelos',
   '/anillos', '/conjuntos', '/otros', '/Invierno',
-  '/novedades', '/promociones',
+  '/novedades', '/promociones', '/gorros', '/bufandas',
 ];
 
 const globalStyles = `
@@ -224,11 +224,12 @@ const Banner = () => {
     { key: 'aros',      label: 'Aros' },
     { key: 'collares',  label: 'Collares' },
     { key: 'pulseras',  label: 'Pulseras' },
-    { key: 'panuelos',  label: 'Pañuelos' },
     { key: 'anillos',   label: 'Anillos' },
     { key: 'conjuntos', label: 'Conjuntos' },
-    { key: 'otros',     label: 'Otros' },
+    { key: 'gorros',    label: 'Gorros' },
+    { key: 'bufandas',  label: 'Bufandas' },
     { key: 'Invierno',  label: 'Invierno' },
+    { key: 'otros',     label: 'Otros' },
   ];
 
   const catalogoMenuItems = catalogoItems.map((item) => ({
