@@ -932,6 +932,228 @@ app.get('/api/mercadopago/payment/:paymentId', async (req, res) => {
 });
 
 // ─────────────────────────────────────────
+// TRANSFERENCIA DIRECTA
+// ─────────────────────────────────────────
+
+// ── Actualizar estos datos cuando estén disponibles ──
+const DATOS_TRANSFERENCIA = {
+  banco:        'Scotiabank',
+  tipoCuenta:   'Cuenta Corriente',
+  numeroCuenta: '993182176',
+  rut:          '78.308.976-9',
+  nombre:       'Deyca SPA',
+  email:        'bohochicchile@gmail.com',
+};
+
+const buildTransferenciaClienteEmail = (shippingData, items, amount, buyOrder) => {
+  const itemsHTML = items.map(item => `
+    <tr>
+      <td style="padding: 12px; border-bottom: 1px solid #f0f0f0;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <img src="${item.image}" alt="${item.name}"
+            style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;" />
+          <span style="font-weight: 500;">${item.name}${item.size ? ` — Talla: ${item.size}` : ''}</span>
+        </div>
+      </td>
+      <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; text-align: center; color: #666;">x${item.quantity}</td>
+      <td style="padding: 12px; border-bottom: 1px solid #f0f0f0; text-align: right; font-weight: 600; color: #f33763;">
+        $${(item.price * item.quantity).toLocaleString('es-CL')}
+      </td>
+    </tr>
+  `).join('');
+
+  return `
+    <!DOCTYPE html><html><head><meta charset="utf-8" /></head>
+    <body style="margin:0;padding:0;background:#f9f9f9;font-family:Helvetica,Arial,sans-serif;">
+      <div style="max-width:600px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+        <div style="background:#f33763;padding:20px 32px;text-align:center;">
+          <img src="https://firebasestorage.googleapis.com/v0/b/bojochic-21749.firebasestorage.app/o/logo-bojo.png?alt=media&token=dede7080-d9a2-4533-bb13-0e1c3b46137d"
+            alt="Bojo" style="height:200px;width:auto;display:block;margin:0 auto;" />
+        </div>
+        <div style="padding:32px;text-align:center;border-bottom:1px solid #f0f0f0;">
+          <div style="font-size:48px;margin-bottom:16px;">🏦</div>
+          <h2 style="margin:0 0 8px;color:#1a1a1a;font-size:24px;">¡Pedido recibido, ${shippingData.nombre}!</h2>
+          <p style="margin:0;color:#666;font-size:15px;line-height:1.6;">
+            Tu pedido está reservado. Solo falta que realices la transferencia para confirmarlo.
+          </p>
+        </div>
+        <div style="padding:24px 32px;background:#fff8e1;border-bottom:1px solid #f0f0f0;">
+          <h3 style="margin:0 0 16px;color:#e65100;font-size:16px;">📋 Datos para la transferencia</h3>
+          <table style="width:100%;border-collapse:collapse;">
+            <tr><td style="padding:6px 0;color:#999;font-size:14px;width:140px;">Banco:</td><td style="padding:6px 0;font-size:14px;font-weight:600;">${DATOS_TRANSFERENCIA.banco}</td></tr>
+            <tr><td style="padding:6px 0;color:#999;font-size:14px;">Tipo de cuenta:</td><td style="padding:6px 0;font-size:14px;font-weight:600;">${DATOS_TRANSFERENCIA.tipoCuenta}</td></tr>
+            <tr><td style="padding:6px 0;color:#999;font-size:14px;">N° de cuenta:</td><td style="padding:6px 0;font-size:14px;font-weight:600;">${DATOS_TRANSFERENCIA.numeroCuenta}</td></tr>
+            <tr><td style="padding:6px 0;color:#999;font-size:14px;">RUT:</td><td style="padding:6px 0;font-size:14px;font-weight:600;">${DATOS_TRANSFERENCIA.rut}</td></tr>
+            <tr><td style="padding:6px 0;color:#999;font-size:14px;">Nombre:</td><td style="padding:6px 0;font-size:14px;font-weight:600;">${DATOS_TRANSFERENCIA.nombre}</td></tr>
+            <tr><td style="padding:6px 0;color:#999;font-size:14px;">Email:</td><td style="padding:6px 0;font-size:14px;font-weight:600;">${DATOS_TRANSFERENCIA.email}</td></tr>
+            <tr>
+              <td style="padding:10px 0 6px;color:#999;font-size:14px;">Monto exacto:</td>
+              <td style="padding:10px 0 6px;font-size:18px;font-weight:700;color:#f33763;">$${amount.toLocaleString('es-CL')}</td>
+            </tr>
+          </table>
+          <p style="margin:12px 0 0;color:#e65100;font-size:13px;">
+            ⚠️ Usa como asunto de la transferencia tu N° de orden: <strong>${buyOrder}</strong>
+          </p>
+        </div>
+        <div style="padding:24px 32px;border-bottom:1px solid #f0f0f0;">
+          <div style="margin-bottom:12px;">
+            <p style="margin:0;font-size:12px;color:#999;text-transform:uppercase;letter-spacing:1px;">N° de Orden</p>
+            <p style="margin:4px 0 0;font-size:15px;font-weight:700;">${buyOrder}</p>
+          </div>
+          <h3 style="margin:16px 0;color:#1a1a1a;font-size:16px;">Productos reservados</h3>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead><tr style="background:#f9f9f9;">
+              <th style="padding:10px 12px;text-align:left;font-size:12px;color:#999;text-transform:uppercase;">Producto</th>
+              <th style="padding:10px 12px;text-align:center;font-size:12px;color:#999;text-transform:uppercase;">Cant.</th>
+              <th style="padding:10px 12px;text-align:right;font-size:12px;color:#999;text-transform:uppercase;">Subtotal</th>
+            </tr></thead>
+            <tbody>${itemsHTML}</tbody>
+            <tfoot><tr>
+              <td colspan="2" style="padding:16px 12px;text-align:right;font-size:16px;font-weight:700;">Total a transferir:</td>
+              <td style="padding:16px 12px;text-align:right;font-size:20px;font-weight:700;color:#f33763;">$${amount.toLocaleString('es-CL')}</td>
+            </tr></tfoot>
+          </table>
+        </div>
+        <div style="padding:24px 32px;background:#fafafa;border-bottom:1px solid #f0f0f0;">
+          <h3 style="margin:0 0 16px;color:#1a1a1a;font-size:16px;">📦 Datos de envío</h3>
+          <table style="width:100%;border-collapse:collapse;">
+            <tr><td style="padding:6px 0;color:#999;font-size:14px;width:140px;">Nombre:</td><td style="padding:6px 0;font-size:14px;font-weight:500;">${shippingData.nombre}</td></tr>
+            <tr><td style="padding:6px 0;color:#999;font-size:14px;">Teléfono:</td><td style="padding:6px 0;font-size:14px;font-weight:500;">${shippingData.telefono}</td></tr>
+            <tr><td style="padding:6px 0;color:#999;font-size:14px;">Dirección:</td><td style="padding:6px 0;font-size:14px;font-weight:500;">${shippingData.direccion}</td></tr>
+            <tr><td style="padding:6px 0;color:#999;font-size:14px;">Comuna:</td><td style="padding:6px 0;font-size:14px;font-weight:500;">${shippingData.comuna}</td></tr>
+            <tr><td style="padding:6px 0;color:#999;font-size:14px;">Región:</td><td style="padding:6px 0;font-size:14px;font-weight:500;">${shippingData.region}</td></tr>
+          </table>
+        </div>
+        <div style="padding:28px 32px;text-align:center;">
+          <p style="margin:0 0 8px;color:#666;font-size:14px;line-height:1.6;">
+            Una vez verificada la transferencia te confirmaremos el pedido.<br/>
+            ¿Tienes dudas? Escríbenos a <a href="mailto:contacto@bojo.cl" style="color:#f33763;text-decoration:none;">contacto@bojo.cl</a>
+          </p>
+          <p style="margin:16px 0 0;color:#bbb;font-size:12px;">© ${new Date().getFullYear()} Bojo · Todos los derechos reservados</p>
+        </div>
+      </div>
+    </body></html>
+  `;
+};
+
+const buildTransferenciaAdminEmail = (shippingData, items, amount, buyOrder, isGuest) => {
+  const itemsHTML = items.map(item => `
+    <tr>
+      <td style="padding:10px 12px;border-bottom:1px solid #f0f0f0;"><strong>${item.name}</strong>${item.size ? ` — Talla: ${item.size}` : ''}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #f0f0f0;text-align:center;">x${item.quantity}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #f0f0f0;text-align:right;color:#f33763;font-weight:600;">$${(item.price * item.quantity).toLocaleString('es-CL')}</td>
+    </tr>
+  `).join('');
+
+  return `
+    <!DOCTYPE html><html><head><meta charset="utf-8" /></head>
+    <body style="margin:0;padding:0;background:#f9f9f9;font-family:Helvetica,Arial,sans-serif;">
+      <div style="max-width:600px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+        <div style="background:#1a1a1a;padding:24px 32px;text-align:center;">
+          <h1 style="margin:0;color:#f33763;font-size:22px;">🏦 Transferencia pendiente — Bojo</h1>
+          <p style="margin:8px 0 0;color:#aaa;font-size:14px;">${new Date().toLocaleString('es-CL')}</p>
+        </div>
+        <div style="padding:24px 32px;background:#fff8e1;border-bottom:1px solid #f0f0f0;">
+          <p style="margin:0;font-size:15px;color:#e65100;font-weight:600;">⏳ Orden en espera de verificación de transferencia</p>
+          <p style="margin:8px 0 0;font-size:14px;color:#666;">Verifica que el monto haya llegado antes de despachar.</p>
+        </div>
+        <div style="padding:24px 32px;background:#fafafa;border-bottom:1px solid #f0f0f0;">
+          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+            <div>
+              <p style="margin:0;font-size:12px;color:#999;text-transform:uppercase;letter-spacing:1px;">N° Orden</p>
+              <p style="margin:4px 0 0;font-size:16px;font-weight:700;">${buyOrder}</p>
+            </div>
+            <div>
+              <p style="margin:0;font-size:12px;color:#999;text-transform:uppercase;letter-spacing:1px;">Total</p>
+              <p style="margin:4px 0 0;font-size:20px;font-weight:700;color:#f33763;">$${amount.toLocaleString('es-CL')}</p>
+            </div>
+            ${isGuest ? `<div><p style="margin:0;font-size:12px;color:#999;text-transform:uppercase;letter-spacing:1px;">Tipo</p><p style="margin:4px 0 0;font-size:14px;font-weight:700;color:#ff9800;">👤 Invitado</p></div>` : ''}
+          </div>
+        </div>
+        <div style="padding:24px 32px;border-bottom:1px solid #f0f0f0;">
+          <h3 style="margin:0 0 16px;font-size:15px;color:#1a1a1a;">👤 Cliente</h3>
+          <table style="width:100%;border-collapse:collapse;">
+            <tr><td style="padding:5px 0;color:#999;font-size:14px;width:120px;">Nombre:</td><td style="padding:5px 0;font-size:14px;font-weight:500;">${shippingData.nombre}</td></tr>
+            <tr><td style="padding:5px 0;color:#999;font-size:14px;">Email:</td><td style="padding:5px 0;font-size:14px;font-weight:500;">${shippingData.email}</td></tr>
+            <tr><td style="padding:5px 0;color:#999;font-size:14px;">Teléfono:</td><td style="padding:5px 0;font-size:14px;font-weight:500;">${shippingData.telefono}</td></tr>
+            <tr><td style="padding:5px 0;color:#999;font-size:14px;">Dirección:</td><td style="padding:5px 0;font-size:14px;font-weight:500;">${shippingData.direccion}, ${shippingData.comuna}, ${shippingData.region}</td></tr>
+          </table>
+        </div>
+        <div style="padding:24px 32px;">
+          <h3 style="margin:0 0 16px;font-size:15px;color:#1a1a1a;">📦 Productos</h3>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead><tr style="background:#f9f9f9;">
+              <th style="padding:10px 12px;text-align:left;font-size:12px;color:#999;text-transform:uppercase;">Producto</th>
+              <th style="padding:10px 12px;text-align:center;font-size:12px;color:#999;text-transform:uppercase;">Cant.</th>
+              <th style="padding:10px 12px;text-align:right;font-size:12px;color:#999;text-transform:uppercase;">Subtotal</th>
+            </tr></thead>
+            <tbody>${itemsHTML}</tbody>
+            <tfoot><tr>
+              <td colspan="2" style="padding:16px 12px;text-align:right;font-size:15px;font-weight:700;">Total:</td>
+              <td style="padding:16px 12px;text-align:right;font-size:20px;font-weight:700;color:#f33763;">$${amount.toLocaleString('es-CL')}</td>
+            </tr></tfoot>
+          </table>
+        </div>
+        <div style="padding:20px 32px;background:#fafafa;text-align:center;">
+          <p style="margin:0;color:#bbb;font-size:12px;">Notificación automática de Bojo · ${new Date().getFullYear()}</p>
+        </div>
+      </div>
+    </body></html>
+  `;
+};
+
+app.post('/api/transferencia/create', verifyAuthOptional, async (req, res) => {
+  try {
+    const { buyOrder: buyOrderFromClient, amount, items, shippingData, isGuest, guestEmail } = req.body;
+    if (!amount || amount <= 0) return res.status(400).json({ error: 'Monto inválido' });
+
+    const buyOrder = buyOrderFromClient || `TRF-${Date.now()}`;
+
+    await db.collection('orders').doc(buyOrder).set({
+      userId:        req.user ? req.user.uid : null,
+      isGuest:       isGuest || false,
+      buyOrder,
+      amount,
+      items,
+      shippingData,
+      status:        'pendiente_transferencia',
+      paymentMethod: 'transferencia',
+      paymentStatus: 'pending',
+      createdAt:     admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    // Correo al cliente
+    try {
+      await resend.emails.send({
+        from:    'Bojo <Pedidos@bojo.cl>',
+        to:      shippingData.email,
+        subject: `🏦 Pedido recibido — realiza tu transferencia | Orden ${buyOrder}`,
+        html:    buildTransferenciaClienteEmail(shippingData, items, amount, buyOrder),
+      });
+    } catch (emailErr) {
+      console.error('⚠️ Error correo cliente (transferencia):', emailErr.message);
+    }
+
+    // Correo al admin
+    try {
+      await resend.emails.send({
+        from:    'Bojo <Pedidos@bojo.cl>',
+        to:      process.env.ADMIN_EMAIL,
+        subject: `🏦 Transferencia pendiente — ${buyOrder} — $${amount.toLocaleString('es-CL')}${isGuest ? ' [Invitado]' : ''}`,
+        html:    buildTransferenciaAdminEmail(shippingData, items, amount, buyOrder, isGuest),
+      });
+    } catch (emailErr) {
+      console.error('⚠️ Error correo admin (transferencia):', emailErr.message);
+    }
+
+    res.json({ success: true, buyOrder });
+  } catch (error) {
+    console.error('❌ Error transferencia/create:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ─────────────────────────────────────────
 // Health check
 // ─────────────────────────────────────────
 app.get('/health', (req, res) => {
