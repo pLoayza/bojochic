@@ -39,6 +39,8 @@ const PaymentMethodPage = () => {
   const navigate = useNavigate();
   const [checkoutData, setCheckoutData] = useState(null);
   const [loadingWebpay, setLoadingWebpay] = useState(false);
+  const [loadingTransferencia, setLoadingTransferencia] = useState(false);
+  const [transferenciaOrden, setTransferenciaOrden] = useState(null);
   const [selected, setSelected] = useState(null);
 
   // MercadoPago brick state
@@ -215,6 +217,76 @@ const PaymentMethodPage = () => {
     }
   };
 
+  // ── Datos de transferencia — actualizar cuando estén disponibles ──
+  const DATOS_TRANSFERENCIA = {
+    banco:        'Scotiabank',
+    tipoCuenta:   'Cuenta Corriente',
+    numeroCuenta: '993182176',
+    rut:          '78.308.976-9',
+    nombre:       'Deyca SPA',
+    email:        'bohochicchile@gmail.com',
+  };
+
+  const handleTransferencia = async () => {
+    if (!checkoutData) return;
+    setLoadingTransferencia(true);
+
+    const { formValues, totalAmount, cartItems, isGuest, codigoAplicado } = checkoutData;
+
+    // Generar ID aquí para poder abrir WhatsApp antes del await
+    const buyOrder = `TRF-${Date.now()}`;
+
+    // Abrir WhatsApp en el mismo hilo del click (antes de cualquier await)
+    // para que el navegador no lo bloquee como popup
+    const waMsg = `Hola, adjunto comprobante de mi compra ID ${buyOrder}`;
+    window.open(`https://wa.me/56989058379?text=${encodeURIComponent(waMsg)}`, '_blank', 'noopener,noreferrer');
+
+    try {
+      const user = auth.currentUser;
+      const headers = { 'Content-Type': 'application/json' };
+      if (user) {
+        const token = await user.getIdToken();
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      await marcarCodigoUsado(codigoAplicado, isGuest);
+
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/transferencia/create`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          buyOrder,
+          amount: totalAmount,
+          isGuest,
+          guestEmail: isGuest ? formValues.email : null,
+          items: cartItems.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image,
+            size: item.size || null,
+            color: item.color || null,
+          })),
+          shippingData: formValues,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Error al crear la orden');
+
+      if (isGuest) localStorage.removeItem('bojo_guest_cart');
+      sessionStorage.removeItem(CHECKOUT_DATA_KEY);
+
+      setTransferenciaOrden(buyOrder);
+    } catch (error) {
+      console.error('Error transferencia:', error);
+      message.error(error.message || 'Error al procesar la orden');
+    } finally {
+      setLoadingTransferencia(false);
+    }
+  };
+
   const handleWebpay = async () => {
     if (!checkoutData) return;
     setLoadingWebpay(true);
@@ -370,37 +442,69 @@ const PaymentMethodPage = () => {
     {
       key: 'transferencia',
       label: 'Transferencia Directa',
-      badge: 'Próximamente',
+      badge: null,
       subtitle: 'Depósito o transferencia bancaria',
-      disabled: true,
       color: '#389e0d',
-      content: (
+      content: transferenciaOrden ? (
         <Space direction="vertical" style={{ width: '100%' }} size="middle">
           <Alert
-            message="Datos de transferencia en configuración"
-            description="Completa los datos bancarios en el código fuente (PaymentMethodPage.jsx) para activar esta opción."
-            type="warning"
+            message="¡Orden creada exitosamente!"
+            description={`Tu orden ${transferenciaOrden} fue registrada. Realiza la transferencia con los datos de abajo y envíanos el comprobante.`}
+            type="success"
             showIcon
           />
           <Descriptions bordered column={1} size="small">
-            <Descriptions.Item label="Banco"><strong>[Banco]</strong></Descriptions.Item>
-            <Descriptions.Item label="Tipo de Cuenta"><strong>[Tipo de Cuenta]</strong></Descriptions.Item>
-            <Descriptions.Item label="N° Cuenta"><strong>[Número de Cuenta]</strong></Descriptions.Item>
-            <Descriptions.Item label="RUT"><strong>[RUT]</strong></Descriptions.Item>
-            <Descriptions.Item label="Nombre"><strong>[Nombre Titular]</strong></Descriptions.Item>
-            <Descriptions.Item label="Email"><strong>[Email]</strong></Descriptions.Item>
-            <Descriptions.Item label="Monto a transferir">
-              <strong style={{ color: '#f33763', fontSize: '15px' }}>
-                ${totalAmount.toLocaleString('es-CL')}
-              </strong>
+            <Descriptions.Item label="Banco"><strong>{DATOS_TRANSFERENCIA.banco}</strong></Descriptions.Item>
+            <Descriptions.Item label="Tipo de Cuenta"><strong>{DATOS_TRANSFERENCIA.tipoCuenta}</strong></Descriptions.Item>
+            <Descriptions.Item label="N° Cuenta"><strong>{DATOS_TRANSFERENCIA.numeroCuenta}</strong></Descriptions.Item>
+            <Descriptions.Item label="RUT"><strong>{DATOS_TRANSFERENCIA.rut}</strong></Descriptions.Item>
+            <Descriptions.Item label="Nombre"><strong>{DATOS_TRANSFERENCIA.nombre}</strong></Descriptions.Item>
+            <Descriptions.Item label="Email"><strong>{DATOS_TRANSFERENCIA.email}</strong></Descriptions.Item>
+            <Descriptions.Item label="Monto exacto">
+              <strong style={{ color: '#f33763', fontSize: '15px' }}>${totalAmount.toLocaleString('es-CL')}</strong>
+            </Descriptions.Item>
+            <Descriptions.Item label="Asunto / Referencia">
+              <strong style={{ color: '#389e0d' }}>{transferenciaOrden}</strong>
             </Descriptions.Item>
           </Descriptions>
-          <Paragraph type="secondary" style={{ fontSize: '12px', margin: 0 }}>
-            Una vez que configures los datos bancarios, reemplaza este bloque con el botón de confirmación
-            de pedido y la lógica de creación de orden.
+          <Paragraph type="secondary" style={{ fontSize: '13px', margin: 0 }}>
+            Una vez verificada la transferencia te confirmaremos tu pedido por correo. Revisa también tu bandeja de entrada para los detalles del pedido.
           </Paragraph>
-          <Button size="large" block disabled icon={<BankOutlined />} style={{ height: '52px', fontSize: '16px' }}>
-            Confirmar Transferencia (Próximamente)
+          <Button
+            type="primary" size="large" block icon={<BankOutlined />}
+            onClick={() => navigate('/')}
+            style={{ background: '#389e0d', border: 'none', height: '52px', fontSize: '16px', fontWeight: 600 }}
+          >
+            Volver al inicio
+          </Button>
+        </Space>
+      ) : (
+        <Space direction="vertical" style={{ width: '100%' }} size="middle">
+          <Alert
+            message={<Space><BankOutlined />Pago por transferencia bancaria</Space>}
+            description="Confirma tu pedido y te enviaremos los datos de transferencia por correo. Tu pedido quedará reservado hasta verificar el pago."
+            type="info"
+            showIcon={false}
+          />
+          <Descriptions bordered column={1} size="small">
+            <Descriptions.Item label="Banco"><strong>{DATOS_TRANSFERENCIA.banco}</strong></Descriptions.Item>
+            <Descriptions.Item label="Tipo de Cuenta"><strong>{DATOS_TRANSFERENCIA.tipoCuenta}</strong></Descriptions.Item>
+            <Descriptions.Item label="N° Cuenta"><strong>{DATOS_TRANSFERENCIA.numeroCuenta}</strong></Descriptions.Item>
+            <Descriptions.Item label="RUT"><strong>{DATOS_TRANSFERENCIA.rut}</strong></Descriptions.Item>
+            <Descriptions.Item label="Nombre"><strong>{DATOS_TRANSFERENCIA.nombre}</strong></Descriptions.Item>
+            <Descriptions.Item label="Email"><strong>{DATOS_TRANSFERENCIA.email}</strong></Descriptions.Item>
+            <Descriptions.Item label="Monto a transferir">
+              <strong style={{ color: '#f33763', fontSize: '15px' }}>${totalAmount.toLocaleString('es-CL')}</strong>
+            </Descriptions.Item>
+          </Descriptions>
+          <Button
+            type="primary" size="large" block
+            loading={loadingTransferencia}
+            icon={<BankOutlined />}
+            onClick={handleTransferencia}
+            style={{ background: '#389e0d', border: 'none', height: '52px', fontSize: '16px', fontWeight: 600 }}
+          >
+            {loadingTransferencia ? 'Creando orden...' : 'Crear orden y enviar comprobante'}
           </Button>
         </Space>
       ),

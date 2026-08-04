@@ -16,18 +16,22 @@ const ProductosPorCategoria = ({ categoria, productos, bundles = [], categoriaNo
     ? categoria.charAt(0).toUpperCase() + categoria.slice(1)
     : '');
 
+  const estaAgotado = (p) => p.stock === 0 || p.activo === false;
+
   const ordenarProductos = (prods, tipo) => {
     const productosOrdenados = [...prods];
-    switch (tipo) {
-      case 'precio-menor':
-        return productosOrdenados.sort((a, b) => (a.precio || 0) - (b.precio || 0));
-      case 'precio-mayor':
-        return productosOrdenados.sort((a, b) => (b.precio || 0) - (a.precio || 0));
-      case 'nombre-az':
-        return productosOrdenados.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
-      default:
-        return productosOrdenados;
-    }
+    const comparadores = {
+      'precio-menor': (a, b) => (a.precio || 0) - (b.precio || 0),
+      'precio-mayor': (a, b) => (b.precio || 0) - (a.precio || 0),
+      'nombre-az':    (a, b) => (a.nombre || '').localeCompare(b.nombre || ''),
+    };
+    const comparador = comparadores[tipo];
+    return productosOrdenados.sort((a, b) => {
+      const aAgotado = estaAgotado(a) ? 1 : 0;
+      const bAgotado = estaAgotado(b) ? 1 : 0;
+      if (aAgotado !== bAgotado) return aAgotado - bAgotado;
+      return comparador ? comparador(a, b) : 0;
+    });
   };
 
   useEffect(() => {
