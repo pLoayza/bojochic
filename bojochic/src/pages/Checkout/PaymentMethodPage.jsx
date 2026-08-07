@@ -390,9 +390,10 @@ const PaymentMethodPage = () => {
     {
       key: 'mercadopago',
       label: 'MercadoPago',
-      badge: null,
+      badge: 'No disponible actualmente',
       subtitle: 'Crédito, débito y saldo MercadoPago',
       color: '#009EE3',
+      disabled: true,
       content: (
         <Space direction="vertical" style={{ width: '100%' }} size={0}>
           {/* Seguridad */}
