@@ -1,9 +1,11 @@
 // src/components/Productos/ProductosPorCategoria.jsx
 import { useState, useEffect } from 'react';
-import { Row, Col, Typography, Breadcrumb, Select, Space } from 'antd';
+import { Row, Col, Typography, Breadcrumb, Select, Space, Pagination } from 'antd';
 import { HomeOutlined, SortAscendingOutlined } from '@ant-design/icons';
 import ProductCard from '../../pages/Productos/ProductCard';
 import BundleCard from '../Productos/BundleCard';
+
+const PRODUCTOS_POR_PAGINA = 12;
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -11,6 +13,7 @@ const { Option } = Select;
 const ProductosPorCategoria = ({ categoria, productos, bundles = [], categoriaNombre }) => {
   const [productosFiltrados, setProductosFiltrados] = useState([]);
   const [ordenamiento, setOrdenamiento] = useState('nombre-az');
+  const [paginaActual, setPaginaActual] = useState(1);
 
   const tituloCategoria = categoriaNombre || (categoria
     ? categoria.charAt(0).toUpperCase() + categoria.slice(1)
@@ -36,9 +39,13 @@ const ProductosPorCategoria = ({ categoria, productos, bundles = [], categoriaNo
 
   useEffect(() => {
     setProductosFiltrados(ordenarProductos(productos, ordenamiento));
+    setPaginaActual(1);
   }, [productos, ordenamiento]);
 
   const totalItems = productosFiltrados.length + bundles.length;
+
+  const inicio = (paginaActual - 1) * PRODUCTOS_POR_PAGINA;
+  const productosPagina = productosFiltrados.slice(inicio, inicio + PRODUCTOS_POR_PAGINA);
 
   return (
     <div id="productos-section" style={{ minHeight: '70vh', backgroundColor: '#f8f9fa' }}>
@@ -116,7 +123,7 @@ const ProductosPorCategoria = ({ categoria, productos, bundles = [], categoriaNo
         {/* Contador */}
         {totalItems > 0 && (
           <div style={{ marginBottom: '30px', color: '#666', fontSize: '14px', fontWeight: '500' }}>
-            Mostrando {totalItems} {totalItems === 1 ? 'producto' : 'productos'}
+            Mostrando {Math.min(inicio + 1, productosFiltrados.length)}–{Math.min(inicio + PRODUCTOS_POR_PAGINA, productosFiltrados.length)} de {productosFiltrados.length} {productosFiltrados.length === 1 ? 'producto' : 'productos'}
             {bundles.length > 0 && (
               <span style={{ marginLeft: '8px', color: '#722ed1', fontWeight: 600 }}>
                 · {bundles.length} {bundles.length === 1 ? 'pack' : 'packs'} incluidos
@@ -171,12 +178,27 @@ const ProductosPorCategoria = ({ categoria, productos, bundles = [], categoriaNo
               </div>
             )}
             <Row gutter={[24, 24]}>
-              {productosFiltrados.map((producto) => (
+              {productosPagina.map((producto) => (
                 <Col xs={24} sm={12} md={8} lg={6} key={producto.id}>
                   <ProductCard producto={producto} />
                 </Col>
               ))}
             </Row>
+
+            {productosFiltrados.length > PRODUCTOS_POR_PAGINA && (
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: '40px' }}>
+                <Pagination
+                  current={paginaActual}
+                  total={productosFiltrados.length}
+                  pageSize={PRODUCTOS_POR_PAGINA}
+                  onChange={(pagina) => {
+                    setPaginaActual(pagina);
+                    document.getElementById('productos-section')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  showSizeChanger={false}
+                />
+              </div>
+            )}
           </>
         ) : (
           /* Vacío solo si tampoco hay bundles */

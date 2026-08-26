@@ -1,7 +1,7 @@
 // src/pages/Productos/ProductosPage.jsx
 import { useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { Spin, Alert } from 'antd';
 import { db } from '../../firebase/config.js';
 import ProductosPorCategoria from '../../components/Productos/ProductosPorCategoria';
@@ -39,31 +39,28 @@ const ProductosPage = () => {
         setLoading(true);
         setError(null);
 
-        const querySnapshot = await getDocs(collection(db, 'productos'));
-        const productosData = querySnapshot.docs
-          .map((doc) => ({ id: doc.id, ...doc.data() }))
-          .filter((producto) => {
-            if (categoria === 'promociones') {
-              return producto.descuento && producto.descuento > 0;
-            }
-            if (producto.categorias && Array.isArray(producto.categorias)) {
-              return producto.categorias.includes(categoria);
-            }
-            return producto.categoria === categoria;
-          });
+        let productosData = [];
 
-        setProductos(productosData);
-
-        // Cargar bundles solo en /promociones
         if (categoria === 'promociones') {
+          // Filtra server-side por descuento > 0
+          const q = query(collection(db, 'productos'), where('descuento', '>', 0));
+          const snap = await getDocs(q);
+          productosData = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
           const bundlesSnap = await getDocs(collection(db, 'bundles'));
           const bundlesData = bundlesSnap.docs
             .map((doc) => ({ id: doc.id, ...doc.data() }))
             .filter((b) => b.activo !== false);
           setBundles(bundlesData);
         } else {
+          // Filtra server-side por array-contains (campo 'categorias')
+          const q = query(collection(db, 'productos'), where('categorias', 'array-contains', categoria));
+          const snap = await getDocs(q);
+          productosData = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
           setBundles([]);
         }
+
+        setProductos(productosData);
 
       } catch (err) {
         console.error('❌ Error al obtener productos:', err);

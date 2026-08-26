@@ -8,8 +8,12 @@ import { auth, db } from '../../firebase/config';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { calcularPrecio, formatearPrecio } from '../../utils/precioUtils';
 import ProductModal from '../../components/Productos/ProductModal';
+import './ProductCard.css';
 
 const CART_KEY = 'bojo_guest_cart';
+
+// Detecta dispositivos touch (mobile/tablet) — se evalúa una vez, no por card
+const isMobile = window.matchMedia('(hover: none)').matches;
 
 const getGuestCart = () => {
   try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); }
@@ -155,283 +159,6 @@ const ProductCard = ({ producto }) => {
 
   return (
     <>
-      <style>{`
-        .pc-root {
-          display: flex;
-          flex-direction: column;
-          cursor: pointer;
-          background: #fff;
-          border-radius: 14px;
-          overflow: visible;
-          transition: box-shadow 0.25s ease;
-          position: relative;
-        }
-        .pc-root:hover {
-          box-shadow: 0 8px 32px rgba(0,0,0,0.10);
-        }
-
-        .pc-img-wrapper {
-          position: relative;
-          width: 100%;
-          padding-bottom: 150%;
-          overflow: hidden;
-          background: #f5f5f5;
-          border-radius: 14px;
-          flex-shrink: 0;
-        }
-        .pc-img {
-          position: absolute;
-          top: 0; left: 0;
-          width: 100%; height: 100%;
-          object-fit: cover;
-          transition: transform 0.45s ease, opacity 0.35s ease;
-        }
-        .pc-img-primary { z-index: 1; }
-        .pc-img-secondary { z-index: 2; opacity: 0; }
-        .pc-root:hover .pc-img-primary { transform: scale(1.04); }
-        .pc-root:hover .pc-img-secondary { opacity: 1; }
-
-        /* Badge izquierda: Agotado o Últimas unidades */
-        .pc-badge {
-          position: absolute;
-          top: 10px; left: 10px;
-          z-index: 4;
-          background: #e53935;
-          color: #fff;
-          font-size: 11px;
-          font-weight: 700;
-          padding: 4px 10px;
-          border-radius: 20px;
-          letter-spacing: 0.5px;
-          text-transform: uppercase;
-        }
-        .pc-badge-ultimas {
-          position: absolute;
-          top: 10px; left: 10px;
-          z-index: 4;
-          background: #fa8c16;
-          color: #fff;
-          font-size: 11px;
-          font-weight: 700;
-          padding: 4px 10px;
-          border-radius: 20px;
-          letter-spacing: 0.5px;
-        }
-
-        /* Badge derecha: % descuento */
-        .pc-badge-desc {
-          position: absolute;
-          top: 10px; right: 10px;
-          z-index: 4;
-          background: #e53935;
-          color: #fff;
-          font-size: 12px;
-          font-weight: 700;
-          padding: 4px 10px;
-          border-radius: 20px;
-          letter-spacing: 0.5px;
-        }
-
-        .pc-info {
-          padding: 12px 2px 0 2px;
-        }
-        .pc-name {
-          font-size: 14px;
-          font-weight: 500;
-          color: #222;
-          margin: 0 0 5px 0;
-          line-height: 1.4;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-          min-height: 40px;
-        }
-
-        .pc-price-block {
-          display: flex;
-          flex-direction: column;
-          gap: 1px;
-          margin-bottom: 12px;
-        }
-        .pc-price {
-          font-size: 17px;
-          font-weight: 700;
-          color: #000;
-          margin: 0;
-        }
-        .pc-price-original {
-          font-size: 12px;
-          color: #aaa;
-          text-decoration: line-through;
-        }
-
-        .pc-cart-btn {
-          width: 100%;
-          padding: 11px 0;
-          background: linear-gradient(45deg, #e53935, #ef5350);
-          color: #fff;
-          border: none;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: 600;
-          letter-spacing: 0.3px;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          transition: opacity 0.2s ease, transform 0.15s ease;
-        }
-        .pc-cart-btn:hover:not(:disabled) {
-          opacity: 0.88;
-          transform: translateY(-1px);
-        }
-        .pc-cart-btn:disabled {
-          background: #ddd;
-          color: #999;
-          cursor: not-allowed;
-          transform: none;
-        }
-        .pc-cart-btn.pc-added {
-          background: linear-gradient(45deg, #22c55e, #4ade80);
-        }
-
-        .pc-popup {
-          position: absolute;
-          bottom: calc(100% + 10px);
-          left: 0; right: 0;
-          background: #fff;
-          border-radius: 12px;
-          box-shadow: 0 8px 30px rgba(0,0,0,0.16);
-          padding: 14px;
-          z-index: 200;
-          animation: pc-popup-in 0.18s ease;
-        }
-        @keyframes pc-popup-in {
-          from { opacity: 0; transform: translateY(6px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        .pc-popup::after {
-          content: '';
-          position: absolute;
-          bottom: -6px;
-          left: 50%;
-          transform: translateX(-50%) rotate(45deg);
-          width: 12px; height: 12px;
-          background: #fff;
-          box-shadow: 2px 2px 4px rgba(0,0,0,0.06);
-        }
-        .pc-popup-label {
-          font-size: 12px;
-          font-weight: 600;
-          color: #888;
-          text-align: center;
-          margin-bottom: 10px;
-          letter-spacing: 0.4px;
-          text-transform: uppercase;
-        }
-
-        .pc-size-grid {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 6px;
-          justify-content: center;
-          margin-bottom: 10px;
-        }
-        .pc-size-btn {
-          padding: 5px 11px;
-          border-radius: 6px;
-          font-size: 12px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.15s ease;
-          border: 1.5px solid #e0e0e0;
-          background: #fafafa;
-          color: #555;
-        }
-        .pc-size-btn:hover { border-color: #e53935; color: #e53935; }
-        .pc-size-btn.active {
-          border: 2px solid #e53935;
-          background: #fff0f4;
-          color: #e53935;
-        }
-        .pc-size-hint {
-          font-size: 11px;
-          color: #e53935;
-          text-align: center;
-          margin: 4px 0 8px 0;
-        }
-
-        .pc-qty-row {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 10px;
-          border: 1.5px solid #f0f0f0;
-          border-radius: 8px;
-          overflow: hidden;
-        }
-        .pc-qty-btn {
-          width: 40px; height: 38px;
-          background: #fafafa;
-          border: none;
-          cursor: pointer;
-          display: flex; align-items: center; justify-content: center;
-          font-size: 14px;
-          color: #333;
-          transition: background 0.15s, color 0.15s;
-          flex-shrink: 0;
-        }
-        .pc-qty-btn:hover:not(:disabled) { background: #e53935; color: #fff; }
-        .pc-qty-btn:disabled { color: #ccc; cursor: not-allowed; }
-        .pc-qty-value {
-          flex: 1;
-          text-align: center;
-          font-size: 16px;
-          font-weight: 700;
-          color: #222;
-          border-left: 1.5px solid #f0f0f0;
-          border-right: 1.5px solid #f0f0f0;
-          height: 38px;
-          line-height: 38px;
-          user-select: none;
-        }
-        .pc-confirm-btn {
-          width: 100%;
-          padding: 9px 0;
-          background: linear-gradient(45deg, #e53935, #ef5350);
-          color: #fff;
-          border: none;
-          border-radius: 7px;
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          display: flex; align-items: center; justify-content: center; gap: 6px;
-          transition: opacity 0.2s;
-        }
-        .pc-confirm-btn:hover:not(:disabled) { opacity: 0.88; }
-        .pc-confirm-btn:disabled { background: #ccc; cursor: not-allowed; }
-
-        .pc-detail-btn {
-          width: 100%;
-          padding: 8px 0;
-          background: #fff;
-          color: #f33763;
-          border: 1.5px solid #f33763;
-          border-radius: 8px;
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-top: 8px;
-          transition: background 0.2s ease;
-        }
-        .pc-detail-btn:hover { background: #fff0f4; }
-      `}</style>
-
       <div ref={cardRef} className="pc-root" onClick={handleCardClick}>
 
         <div className="pc-img-wrapper">
@@ -445,9 +172,21 @@ const ProductCard = ({ producto }) => {
           {/* Badge derecha: % descuento */}
           {tieneDescuento && <span className="pc-badge-desc">-{porcentaje}%</span>}
 
-          <img src={imagenPrincipal()} alt={producto.nombre || producto.title} className="pc-img pc-img-primary" />
-          {segundaImagen && (
-            <img src={segundaImagen} alt={`${producto.nombre || producto.title} - 2`} className="pc-img pc-img-secondary" />
+          <img
+            src={imagenPrincipal()}
+            alt={producto.nombre || producto.title}
+            className="pc-img pc-img-primary"
+            loading="lazy"
+            decoding="async"
+          />
+          {segundaImagen && !isMobile && (
+            <img
+              src={segundaImagen}
+              alt={`${producto.nombre || producto.title} - 2`}
+              className="pc-img pc-img-secondary"
+              loading="lazy"
+              decoding="async"
+            />
           )}
         </div>
 
