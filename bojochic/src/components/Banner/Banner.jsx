@@ -15,7 +15,7 @@ import bojoLogo from '../../assets/Categorias/logo-bojo.png';
 import banner8 from '../../assets/Categorias/bojo8.png';
 import banner9 from '../../assets/Categorias/bojo9.png';
 import banner10 from '../../assets/Categorias/bojo10.png';
-import banner11 from '../../assets/Categorias/bojo11.png';
+import banner11 from '../../assets/Categorias/bannernuevo.png';
 import bannerCamb from '../../assets/Categorias/bannercamb.jpeg';
 
 // ✅ CAMBIO 1: path de banner11 apunta a WhatsApp

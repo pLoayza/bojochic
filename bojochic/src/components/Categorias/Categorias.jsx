@@ -71,7 +71,7 @@ const Categorias = () => {
           letterSpacing: '2px',
         }}
       >
-        Colección Otoño 2026
+        Colección Primavera 2026
       </Title>
       <Row gutter={[24, 24]}>
         {categories.map((cat, index) => (
