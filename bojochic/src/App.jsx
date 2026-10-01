@@ -91,6 +91,7 @@ function App() {
               <Route path="otros"     element={<ProductosPage />} />
               <Route path="conjuntos" element={<ProductosPage />} />
               <Route path="gorros"    element={<ProductosPage />} />
+              <Route path="gorras"    element={<ProductosPage />} />
               <Route path="bufandas"  element={<ProductosPage />} />
               {/* Colecciones */}
               <Route path="plateados" element={<ProductosPage />} />

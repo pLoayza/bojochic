@@ -3,12 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import arosImg from '../../assets/Categorias/aros.jpeg';
 import anillosImg from '../../assets/Categorias/anillos.jpeg';
-import panuelosImg from '../../assets/Categorias/otros.png';
+import otrosImg from '../../assets/Categorias/otros.png';
 import pulserasImg from '../../assets/Categorias/Pulseras.jpeg';
 import collaresImg from '../../assets/Categorias/collares.jpeg';
 import conjuntosImg from '../../assets/Categorias/conjuntos.jpeg';
-import gorrosImg from '../../assets/Categorias/gorros.jpeg';
-import bufandasImg from '../../assets/Categorias/bufandas.jpeg';
+// gorrosImg y bufandasImg guardados para uso futuro
+// import gorrosImg from '../../assets/Categorias/gorros.jpeg';
+// import bufandasImg from '../../assets/Categorias/bufandas.jpeg';
+import gorrasImg from '../../assets/Categorias/gorrosysombreros.jpeg';
+import panuelosImg from '../../assets/Categorias/pañuelos.jpeg';
 
 const { Title } = Typography;
 
@@ -45,17 +48,17 @@ const Categorias = () => {
     {
       title: 'Otros',
       path: '/otros',
+      image: otrosImg,
+    },
+    {
+      title: 'Gorras y Sombreros',
+      path: '/gorras',
+      image: gorrasImg,
+    },
+    {
+      title: 'Pañuelos',
+      path: '/panuelos',
       image: panuelosImg,
-    },
-    {
-      title: 'Gorros',
-      path: '/gorros',
-      image: gorrosImg,
-    },
-    {
-      title: 'Bufandas',
-      path: '/bufandas',
-      image: bufandasImg,
     },
   ];
 

@@ -20,6 +20,7 @@ const categoryNames = {
   novedades:   'Novedades',
   promociones: 'Promociones',
   gorros:      'Gorros',
+  gorras:      'Gorras y Sombreros',
   bufandas:    'Bufandas',
 };
 
