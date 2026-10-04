@@ -9,7 +9,7 @@ import SearchModal from '../search/SearchModal';
 import { useResponsive } from '../../hooks/useResponsive';
 /* import banner1 from '../../assets/Categorias/bojo1.png'; */
 import banner6 from '../../assets/Categorias/bojo6.png';
-import banner4 from '../../assets/Categorias/newbanner.png';
+import banner4 from '../../assets/Categorias/banneroct.jpeg';
 import banner5 from '../../assets/Categorias/bojo5.png';
 import bojoLogo from '../../assets/Categorias/logo-bojo.png';
 import banner8 from '../../assets/Categorias/bojo8.png';
@@ -21,7 +21,7 @@ import bannerSept from '../../assets/Categorias/bannersept.jpeg';
 
 // ✅ CAMBIO 1: path de banner11 apunta a WhatsApp
 const banners = [
-  { src: banner4,    path: '/Invierno' },
+  { src: banner4,    path: '/promociones' },
   { src: bannerCamb, path: '/promociones' },
   { src: banner9,    path: '/Invierno' },
   { src: banner10,   path: '/Invierno' },
