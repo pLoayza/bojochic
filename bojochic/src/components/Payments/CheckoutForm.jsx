@@ -32,8 +32,8 @@ const REGIONES_COMUNAS = {
 };
 
 export const COSTO_ENVIO = {
-  'Arica y Parinacota': 7990,
-  'Tarapacá':           6990,
+  'Arica y Parinacota': 10000,
+  'Tarapacá':           10000,
   'Antofagasta':        6990,
   'Atacama':            5990,
   'Coquimbo':           5990,
@@ -46,9 +46,12 @@ export const COSTO_ENVIO = {
   'La Araucanía':       5990,
   'Los Ríos':           6990,
   'Los Lagos':          6990,
-  'Aysén':              9990,
-  'Magallanes':         9990,
+  'Aysén':              10000,
+  'Magallanes':         10000,
 };
+
+// Estas regiones tienen precio fijo sin descuentos ni envío gratis
+const REGIONES_PRECIO_FIJO = ['Arica y Parinacota', 'Tarapacá', 'Aysén', 'Magallanes'];
 
 const REGIONES_ENVIO_GRATIS = [
   'Coquimbo', 'Valparaíso', 'Metropolitana', "O'Higgins",
@@ -60,6 +63,7 @@ export const MINIMO_ENVIO_GRATIS = 19990;
 
 export const getCostoEnvio = (region, total = 0) => {
   const costo = COSTO_ENVIO[region] ?? 5990;
+  if (REGIONES_PRECIO_FIJO.includes(region)) return costo;
   if (total >= MINIMO_ENVIO_GRATIS) {
     if (REGIONES_ENVIO_GRATIS.includes(region)) return 0;
     return Math.max(0, costo - DESCUENTO_ENVIO);
